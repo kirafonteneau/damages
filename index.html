@@ -696,9 +696,10 @@ function exportExcel() {
   XLSX.utils.book_append_sheet(wb,ws1,'Summary');
   // Back wages
   if (res.disc) {
-    const hdr=['Period','Days in Damage Period','Expected Wages','Mitigation (-)','Net Back Pay','Benefits','Interest','Subtotal'];
-    const rows=res.disc.rows.map(r=>[r.label,r.dd,r.expWages,r.mitWages,r.netBP,r.benefits,r.interest,r.sub]);
-    rows.push(['TOTALS','',res.disc.rows.reduce((a,r)=>a+r.expWages,0),res.disc.totMit,res.disc.totBP,res.disc.totBen,res.disc.totInt,res.disc.discTotal]);
+    const hdr=['Period','Days in Damage Period','Expected Wages','Mitigation (-)','Net Back Pay','Benefits','Interest','Subtotal','Running Total'];
+    let runTotal=0;
+    const rows=res.disc.rows.map(r=>{runTotal+=r.sub;return[r.label,r.dd,r.expWages,r.mitWages,r.netBP,r.benefits,r.interest,r.sub,runTotal];});
+    rows.push(['TOTALS','',res.disc.rows.reduce((a,r)=>a+r.expWages,0),res.disc.totMit,res.disc.totBP,res.disc.totBen,res.disc.totInt,res.disc.discTotal,res.disc.discTotal]);
     const ws2=XLSX.utils.aoa_to_sheet([hdr,...rows]);
     ws2['!cols']=hdr.map((_,i)=>({wch:i===0?18:16}));
     XLSX.utils.book_append_sheet(wb,ws2,'Back Wages');
@@ -794,13 +795,19 @@ function exportPDF() {
     doc.autoTable({head,body,startY:y,styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
     y=doc.lastAutoTable.finalY+10;
   }
-  // Disclaimer
-  if (y>240){doc.addPage();y=20;}
+  // Footnotes
+  if (y>230){doc.addPage();y=20;}
   doc.setFillColor(245,242,235);
-  doc.roundedRect(12,y,W-24,22,2,2,'F');
-  doc.setTextColor(100,95,88); doc.setFontSize(7.5); doc.setFont('helvetica','italic');
-  const disc='DISCLAIMER: This report provides estimates for internal case evaluation only and does not constitute legal advice. Prejudgment interest methodologies vary by jurisdiction, claim type, and judicial discretion. FLSA liquidated damages are subject to the employer\'s good-faith defense (29 U.S.C. § 260). Consult supervising counsel before using these figures in filings, negotiations, or expert reports.';
-  doc.text(disc,15,y+5,{maxWidth:W-28,lineHeightFactor:1.5});
+  doc.roundedRect(12,y,W-24,52,2,2,'F');
+  doc.setTextColor(30,22,16); doc.setFontSize(8); doc.setFont('helvetica','bold');
+  doc.text('Notes & Sources',15,y+6);
+  doc.setFont('helvetica','normal'); doc.setTextColor(70,65,58);
+  const fn1=`1. Prejudgment Interest: Calculated using the IRS underpayment rate under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date (IRS Rev. Rul., applicable quarters). This figure will be updated through the actual date of judgment.`;
+  const fn2=`2. Lost Benefits: Estimated at ${(parseFloat(STATE.customBenefitsRate)||BLS[STATE.employerType]||43.7).toFixed(1)}% of gross back wages per U.S. Bureau of Labor Statistics, Employer Costs for Employee Compensation (ECEC), Table 1, Q4 2024 (USDL-25-0379, Mar. 2025), www.bls.gov/news.release/ecec.htm. Will be supplemented by actual plan documentation prior to trial.`;
+  const fn3=`3. All figures are estimates based on currently available information and are subject to revision. Plaintiff reserves the right to update these calculations through the date of judgment.`;
+  doc.text(fn1,15,y+13,{maxWidth:W-28,lineHeightFactor:1.4});
+  doc.text(fn2,15,y+24,{maxWidth:W-28,lineHeightFactor:1.4});
+  doc.text(fn3,15,y+38,{maxWidth:W-28,lineHeightFactor:1.4});
   doc.save((STATE.caseName||STATE.plaintiff||'damages')+'-report.pdf');
 }
 
@@ -1354,9 +1361,10 @@ function renderResults() {
           <th>Period</th><th class="r">Days</th><th class="r">Expected wages</th>
           <th class="r">Mitigation (−)</th><th class="r">Net back pay</th>
           <th class="r">Benefits</th><th class="r">Interest</th><th class="r">Subtotal</th>
+          <th class="r" style="color:var(--gold)">Running Total</th>
         </tr></thead>
         <tbody>
-          ${disc.rows.map((row,i)=>`<tr>
+          ${(()=>{let run=0;return disc.rows.map((row,i)=>{run+=row.sub;return`<tr>
             <td class="bold">${esc(row.label)}</td>
             <td class="r" style="color:var(--gray-400)">${row.dd}</td>
             <td class="r">${$$(row.expWages)}</td>
@@ -1365,7 +1373,8 @@ function renderResults() {
             <td class="r">${$$(row.benefits)}</td>
             <td class="r">${$$(row.interest)}</td>
             <td class="r gold">${$$(row.sub)}</td>
-          </tr>`).join('')}
+            <td class="r" style="color:var(--gold-d);font-weight:600">${$$(run)}</td>
+          </tr>`;}).join('');})()}
         </tbody>
         <tfoot><tr>
           <td colspan="2">Totals</td>
@@ -1374,6 +1383,7 @@ function renderResults() {
           <td class="r">${$$(disc.totBP)}</td>
           <td class="r">${$$(disc.totBen)}</td>
           <td class="r">${$$(disc.totInt)}</td>
+          <td class="r gold">${$$(disc.discTotal)}</td>
           <td class="r gold">${$$(disc.discTotal)}</td>
         </tr></tfoot>
       </table>
@@ -1410,8 +1420,30 @@ function renderResults() {
     </div>
   </div>`:''}
 
-  <div class="disclaimer">
-    <strong>Disclaimer:</strong> This report provides estimates for internal case evaluation only and does not constitute legal advice. Prejudgment interest methodologies vary by jurisdiction, claim type, and judicial discretion. FLSA liquidated damages are subject to the employer's good-faith defense (29 U.S.C. § 260). Benefits calculations using BLS ECEC data are proxies where actual plan documents are unavailable. Tax consequences vary. Consult supervising counsel before using these figures in filings, negotiations, or expert reports.
+  <div style="margin-top:18px;padding:16px 20px;background:var(--gray-50);border-radius:var(--r);border:1px solid var(--gray-100)">
+    <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Notes &amp; Sources</div>
+    <div style="font-size:11.5px;color:var(--text-2);line-height:1.85">
+      <p style="margin-bottom:6px">
+        <sup style="font-weight:600;color:var(--navy)">1</sup>&nbsp;<strong>Prejudgment Interest:</strong>
+        Calculated using the IRS underpayment rate established under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date.
+        Rates are published quarterly by the Internal Revenue Service in Revenue Rulings and Notices (see <em>I.R.S. Rev. Rul.</em> for each applicable quarter).
+        Interest accrues on the sum of net back pay and lost benefits per period. This figure will be updated and recalculated through the actual date of judgment.
+      </p>
+      <p style="margin-bottom:6px">
+        <sup style="font-weight:600;color:var(--navy)">2</sup>&nbsp;<strong>Lost Employer-Paid Benefits${s.benefitsMethod==='estimate'?` (BLS Estimate)`:` (Actual)`}:</strong>
+        ${s.benefitsMethod==='estimate'
+          ? `Benefits losses are estimated at <strong>${(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||43.7).toFixed(1)}% of gross back wages</strong> based on the U.S. Bureau of Labor Statistics <em>Employer Costs for Employee Compensation</em> (ECEC) survey, Table 1 (${BLS_L[s.employerType]}, civilian workers), fourth quarter 2024 release. See U.S. Bureau of Labor Statistics, <em>Employer Costs for Employee Compensation — December 2024</em>, USDL-25-0379 (Mar. 2025), available at <em>www.bls.gov/news.release/ecec.htm</em>. This estimate will be supplemented or replaced by actual plan documentation, W-2 records, and employer benefits statements prior to trial.`
+          : `Benefits losses reflect actual employer-paid benefit costs as documented by W-2 records, plan documents, and premium statements produced in discovery. These figures will be updated as additional documentation becomes available through the close of discovery.`
+        }
+      </p>
+      <p style="margin-bottom:6px">
+        <sup style="font-weight:600;color:var(--navy)">3</sup>&nbsp;<strong>Back Pay Calculation Methodology:</strong>
+        Expected wages are calculated based on the plaintiff's documented compensation as of the date of the adverse employment action, compounded by applicable annual increases through the projected trial date. Mitigation earnings are deducted on a pro-rata daily basis for all periods of overlapping employment. All figures reflect gross compensation before applicable taxes.
+      </p>
+      <p style="margin-bottom:0;font-style:italic;color:var(--gray-400)">
+        All damages figures presented herein are estimates based on information currently available and are subject to revision. Plaintiff reserves the right to update and supplement these calculations as additional discovery is received, and through the date of judgment or verdict.
+      </p>
+    </div>
   </div>`;
 }
 
