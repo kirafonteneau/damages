@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<!-- saved from url=(0035)https://damages.theworkersfirm.com/ -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Workers' Firm — Employment Damages Calculator</title>
-<link rel="preconnect" href="https://fonts.googleapis.com/">
-<link href="./index_files/css2" rel="stylesheet">
-<script src="./index_files/jspdf.umd.min.js.download"></script>
-<script src="./index_files/jspdf.plugin.autotable.min.js.download"></script>
-<script src="./index_files/xlsx.full.min.js.download"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root {
   --navy: #0D1628;
@@ -184,7 +184,7 @@ tfoot td.gold{color:var(--gold)}
 ::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:3px}
 </style>
 </head>
-<body data-new-gr-c-s-check-loaded="14.1280.0" data-gr-ext-installed="">
+<body>
 <div class="app-wrap">
   <!-- Header -->
   <div class="app-header">
@@ -193,7 +193,9 @@ tfoot td.gold{color:var(--gold)}
       <div class="logo-text">The Workers' Firm<span class="logo-sub">Employment Damages Calculator</span></div>
     </div>
     <div class="header-right">
-      <span class="save-indicator" id="save-indicator">●  Unsaved changes</span>
+      <span class="save-indicator" id="save-indicator">●  Not saved</span>
+      <span class="save-indicator" id="conn-status" onclick="openBlobConfigModal()" style="cursor:pointer" title="Click to configure Azure Blob Storage">⚠ Local only</span>
+      <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.2)" onclick="openBlobConfigModal()" title="Configure shared storage">☁ Storage</button>
       <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.2)" onclick="openCasesModal()">⊞ Cases</button>
       <button class="btn btn-gold btn-sm" onclick="saveCurrentCase()">Save</button>
     </div>
@@ -201,7 +203,9 @@ tfoot td.gold{color:var(--gold)}
 
   <!-- Case / scenario bar -->
   <div class="case-bar">
-    <select class="case-select" id="case-select" onchange="loadCase(this.value)"><option value="">— New case (unsaved) —</option></select>
+    <select class="case-select" id="case-select" onchange="loadCase(this.value)" title="Currently open case">
+      <option value="">— New case (unsaved) —</option>
+    </select>
     <button class="btn btn-ghost btn-sm" onclick="newCase()">+ New case</button>
     <div style="display:flex;gap:6px;margin-left:8px">
       <button class="btn btn-ghost btn-sm" onclick="exportJSON()">⬇ JSON</button>
@@ -217,124 +221,80 @@ tfoot td.gold{color:var(--gold)}
     <!-- Sidebar tabs -->
     <div class="tab-sidebar">
       <div class="tab-section-label">Case</div>
-      <button class="tab-btn active" onclick="showTab(&#39;setup&#39;)" id="tab-setup">
+      <button class="tab-btn active" onclick="showTab('setup')" id="tab-setup">
         <span class="t-icon">⚖</span> Setup
       </button>
-      <button class="tab-btn" onclick="showTab(&#39;incidents&#39;)" id="tab-incidents">
+      <button class="tab-btn" onclick="showTab('incidents')" id="tab-incidents">
         <span class="t-icon">📅</span> Incidents
       </button>
       <div class="tab-section-label">Wages</div>
-      <button class="tab-btn" onclick="showTab(&#39;wages&#39;)" id="tab-wages">
+      <button class="tab-btn" onclick="showTab('wages')" id="tab-wages">
         <span class="t-icon">💰</span> Back Wages
       </button>
-      <button class="tab-btn" onclick="showTab(&#39;benefits&#39;)" id="tab-benefits">
+      <button class="tab-btn" onclick="showTab('benefits')" id="tab-benefits">
         <span class="t-icon">🏥</span> Benefits
       </button>
-      <button class="tab-btn" onclick="showTab(&#39;mitigation&#39;)" id="tab-mitigation">
+      <button class="tab-btn" onclick="showTab('mitigation')" id="tab-mitigation">
         <span class="t-icon">↔</span> Mitigation
       </button>
       <div class="tab-section-label">FLSA</div>
-      <button class="tab-btn" onclick="showTab(&#39;flsa&#39;)" id="tab-flsa">
+      <button class="tab-btn" onclick="showTab('flsa')" id="tab-flsa">
         <span class="t-icon">⏱</span> Overtime
       </button>
       <div class="tab-section-label">Settings</div>
-      <button class="tab-btn" onclick="showTab(&#39;rates&#39;)" id="tab-rates">
+      <button class="tab-btn" onclick="showTab('rates')" id="tab-rates">
         <span class="t-icon">📊</span> DOL Rates
       </button>
-      <button class="tab-btn" onclick="showTab(&#39;results&#39;)" id="tab-results">
+      <button class="tab-btn" onclick="showTab('results')" id="tab-results">
         <span class="t-icon">✦</span> Results
       </button>
     </div>
 
     <!-- Content area -->
-    <div class="tab-content" id="tab-content">
-  <div class="card">
-    <div class="card-title">Case Information</div>
-    <div class="card-sub">Basic case identification and parties</div>
-    <div class="g2">
-      <div style="">
-    <span class="section-label">Case name / number</span>
-    <input type="text" value="" placeholder="Smith v. Acme Corp., No. 25-CV-01234" data-key="caseName">
-  </div>
-      <div style="">
-    <span class="section-label">Attorney of record</span>
-    <input type="text" value="" placeholder="Jane Doe, Esq." data-key="attorney">
-  </div>
-      <div style="">
-    <span class="section-label">Plaintiff</span>
-    <input type="text" value="" placeholder="John Smith" data-key="plaintiff">
-  </div>
-      <div style="">
-    <span class="section-label">Defendant</span>
-    <input type="text" value="" placeholder="Acme Corporation" data-key="defendant">
-  </div>
-      <div style="">
-    <span class="section-label">Employer type</span>
-    <select data-key="employerType" data-rerender="1">
-    <option value="private" selected="">Private sector</option><option value="state_local">State / Local government</option><option value="federal">Federal government</option>
-  </select>
-  </div>
-      <div style="">
-    <span class="section-label">Claim type</span>
-    <select data-key="claimType" data-rerender="1">
-    <option value="both" selected="">Discrimination + FLSA Overtime</option><option value="discrimination">Discrimination only</option><option value="flsa">FLSA Overtime only</option>
-  </select>
-  </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">Damage Scenarios</div>
-    <div class="card-sub">Model multiple trial dates simultaneously — e.g., backpay to date, mediation, trial</div>
-    
-      <div style="border:1px solid var(--gray-100);border-radius:var(--r);padding:12px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-end">
-        <div style="flex:1">
-          <div style="">
-    <span class="section-label">Scenario name</span>
-    <input type="text" value="To Trial" placeholder="e.g. Backpay to Date" data-list="scenarios" data-idx="0" data-field="name">
-  </div>
-        </div>
-        <div style="flex:1">
-          <div style="">
-    <span class="section-label">Trial / end date</span>
-    <input type="date" value="" data-list="scenarios" data-idx="0" data-field="trialDate">
-  </div>
-        </div>
-        <div>
-          <span class="section-label">&nbsp;</span>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost btn-sm btn-navy" onclick="STATE.activeScenarioId=&#39;roct28z&#39;;renderTab()">
-              ✓ Active
-            </button>
-            
-          </div>
-        </div>
-      </div>
-    
-    <button class="btn-add" onclick="STATE.scenarios.push({id:uid(),name:&#39;Scenario &#39;+(STATE.scenarios.length+1),trialDate:&#39;&#39;});renderTab()">
-      + Add scenario (compare different trial dates)
-    </button>
-    <div class="info-box" style="margin-top:12px;margin-bottom:0">
-      <strong>Tip:</strong> Add a "Backpay to Date" scenario using today's date to show damages already accrued, and a "Trial" scenario with the expected trial date.
-    </div>
-  </div></div>
+    <div class="tab-content" id="tab-content"></div>
   </div>
 </div>
 
 <!-- Cases modal -->
 <div class="modal-overlay" id="cases-modal" style="display:none">
-  <div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+  <div class="modal" style="width:640px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
       <div>
         <div class="modal-title">Saved Cases</div>
-        <div class="modal-sub">Cases are stored in your browser and persist between sessions.</div>
+        <div class="modal-sub">Search, load, rename, or delete saved cases.</div>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="closeCasesModal()">✕ Close</button>
+    </div>
+    <!-- Search bar -->
+    <div style="position:relative;margin-bottom:12px">
+      <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:14px">🔍</span>
+      <input type="text" id="cases-search" placeholder="Search by case name, plaintiff, defendant, or attorney…"
+        oninput="renderCasesList(this.value)"
+        style="width:100%;padding:9px 12px 9px 32px;border:1px solid var(--gray-100);border-radius:var(--r);font-size:13px">
     </div>
     <div id="cases-list"></div>
     <button class="btn btn-gold" style="width:100%;margin-top:10px" onclick="newCase();closeCasesModal()">+ Create New Case</button>
   </div>
 </div>
+
+<!-- Blob Storage config modal -->
+<div class="modal-overlay" id="blob-config-modal" style="display:none">
+  <div class="modal" style="width:580px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+      <div>
+        <div class="modal-title">☁ Azure Blob Storage</div>
+        <div class="modal-sub">Connect to shared storage so all team members see the same cases.</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closeBlobConfigModal()">✕ Close</button>
+    </div>
+    <div id="blob-modal-content"></div>
+  </div>
+</div>
+
+<!-- Toast notifications -->
+<div id="toast" style="position:fixed;bottom:24px;right:24px;z-index:999;display:none;
+  padding:12px 18px;border-radius:var(--r);font-size:13px;font-weight:500;
+  box-shadow:0 4px 20px rgba(0,0,0,.18);max-width:340px;line-height:1.5"></div>
 
 <script>
 // ─────────────────────────────────────────────
@@ -399,40 +359,195 @@ let saveTimeout = null;
 let activeTab = 'setup';
 
 // ─────────────────────────────────────────────
-// 3. STORAGE
+// 3. STORAGE  —  Azure Blob Storage + localStorage fallback
 // ─────────────────────────────────────────────
-const store = {
+
+// ── Blob config (stored per-browser in localStorage) ──
+const BLOB_CFG_KEY = 'wf-blob-cfg';
+
+function getBlobCfg() {
+  try { return JSON.parse(localStorage.getItem(BLOB_CFG_KEY)) || null; } catch { return null; }
+}
+function setBlobCfg(cfg) {
+  if (cfg) localStorage.setItem(BLOB_CFG_KEY, JSON.stringify(cfg));
+  else localStorage.removeItem(BLOB_CFG_KEY);
+}
+function blobBase(cfg, blob) {
+  const sas = cfg.sasToken.replace(/^\?/,'');
+  return `https://${cfg.accountName}.blob.core.windows.net/${cfg.containerName}/${blob}?${sas}`;
+}
+function blobListUrl(cfg) {
+  const sas = cfg.sasToken.replace(/^\?/,'');
+  return `https://${cfg.accountName}.blob.core.windows.net/${cfg.containerName}?restype=container&comp=list&${sas}`;
+}
+function keyToBlob(key) { return key.replace(':', '-') + '.json'; }
+
+// ── Test connection ──
+async function testBlobConnection(cfg) {
+  try {
+    const r = await fetch(blobListUrl(cfg), { method: 'GET' });
+    return r.ok || r.status === 200;
+  } catch { return false; }
+}
+
+// ── Blob operations ──
+const blob = {
   async get(key) {
-    if (window.storage) { try { const r = await window.storage.get(key); return r?JSON.parse(r.value):null; } catch{} }
-    try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+    const cfg = getBlobCfg(); if (!cfg) return null;
+    try {
+      const r = await fetch(blobBase(cfg, keyToBlob(key)));
+      if (r.status === 404) return null;
+      if (!r.ok) throw new Error(r.status);
+      return await r.json();
+    } catch { return null; }
   },
   async set(key, val) {
-    const s = JSON.stringify(val);
-    if (window.storage) { try { await window.storage.set(key,s); return; } catch{} }
-    try { localStorage.setItem(key,s); } catch{}
+    const cfg = getBlobCfg(); if (!cfg) throw new Error('No blob config');
+    const body = JSON.stringify(val);
+    const r = await fetch(blobBase(cfg, keyToBlob(key)), {
+      method: 'PUT',
+      headers: { 'x-ms-blob-type': 'BlockBlob', 'Content-Type': 'application/json', 'x-ms-blob-content-type': 'application/json' },
+      body
+    });
+    if (!r.ok) throw new Error('Blob write failed: ' + r.status + ' ' + await r.text());
   },
   async delete(key) {
-    if (window.storage) { try { await window.storage.delete(key); return; } catch{} }
-    try { localStorage.removeItem(key); } catch{}
-  },
-  async list(prefix) {
-    if (window.storage) { try { const r = await window.storage.list(prefix); return r?r.keys:[]; } catch{ return []; } }
-    const keys=[];
-    for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith(prefix))keys.push(k);}
-    return keys;
+    const cfg = getBlobCfg(); if (!cfg) return;
+    try { await fetch(blobBase(cfg, keyToBlob(key)), { method: 'DELETE' }); } catch {}
   }
 };
 
+// ── Unified store: blob when configured, localStorage fallback ──
+const store = {
+  async get(key) {
+    if (getBlobCfg()) return blob.get(key);
+    try { return JSON.parse(localStorage.getItem(key)); } catch { return null; }
+  },
+  async set(key, val) {
+    if (getBlobCfg()) { await blob.set(key, val); return; }
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  },
+  async delete(key) {
+    if (getBlobCfg()) { await blob.delete(key); return; }
+    try { localStorage.removeItem(key); } catch {}
+  }
+};
+
+// ── Connection status indicator ──
+function updateConnectionStatus() {
+  const cfg = getBlobCfg();
+  const el = document.getElementById('conn-status');
+  if (!el) return;
+  if (cfg) {
+    el.textContent = '☁ ' + cfg.accountName;
+    el.style.color = '#7AE09A';
+    el.style.borderColor = 'rgba(122,224,154,.3)';
+    el.title = 'Connected to Azure Blob Storage\nContainer: ' + cfg.containerName + '\nUser: ' + (cfg.userName||'—');
+  } else {
+    el.textContent = '⚠ Local only';
+    el.style.color = '#f59e0b';
+    el.style.borderColor = 'rgba(245,158,11,.3)';
+    el.title = 'Cases saved locally only. Configure Azure Blob Storage to share cases across the team.';
+  }
+}
+
+// ── Blob config modal ──
+function openBlobConfigModal() {
+  const cfg = getBlobCfg() || {};
+  const existing = `
+    <div style="background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:var(--navy-2)">
+      ☁ <strong>Connected:</strong> ${cfg.accountName} / ${cfg.containerName} &nbsp;·&nbsp; User: ${cfg.userName||'(not set)'}
+      <button onclick="disconnectBlob()" style="margin-left:10px;background:none;border:none;color:var(--danger);cursor:pointer;font-size:12px">Disconnect</button>
+    </div>`;
+  document.getElementById('blob-modal-content').innerHTML = `
+    ${cfg.accountName ? existing : ''}
+    <div style="display:grid;gap:10px">
+      <div><span class="section-label">Storage account name</span>
+        <input type="text" id="bi-account" value="${esc(cfg.accountName||'')}" placeholder="workersfrmdamages" autocomplete="off"></div>
+      <div><span class="section-label">Container name</span>
+        <input type="text" id="bi-container" value="${esc(cfg.containerName||'cases')}" placeholder="cases" autocomplete="off"></div>
+      <div><span class="section-label">SAS token (starts with sv= or ?sv=)</span>
+        <input type="text" id="bi-sas" value="${esc(cfg.sasToken||'')}" placeholder="sv=2023-08-03&ss=b&srt=co&sp=rwdlac..." autocomplete="off" style="font-size:11px;font-family:monospace"></div>
+      <div><span class="section-label">Your name (shown on shared cases)</span>
+        <input type="text" id="bi-user" value="${esc(cfg.userName||'')}" placeholder="e.g. Jane Smith" autocomplete="off"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn btn-gold" onclick="saveBlobConfig()">Test & Save Connection</button>
+      <button class="btn btn-ghost" onclick="closeBlobConfigModal()">Cancel</button>
+    </div>
+    <div id="blob-test-result" style="margin-top:10px;font-size:13px"></div>`;
+  document.getElementById('blob-config-modal').style.display = 'flex';
+}
+
+async function saveBlobConfig() {
+  const cfg = {
+    accountName: document.getElementById('bi-account').value.trim(),
+    containerName: document.getElementById('bi-container').value.trim() || 'cases',
+    sasToken: document.getElementById('bi-sas').value.trim(),
+    userName: document.getElementById('bi-user').value.trim()
+  };
+  if (!cfg.accountName || !cfg.sasToken) {
+    document.getElementById('blob-test-result').innerHTML = '<span style="color:var(--danger)">⚠ Account name and SAS token are required.</span>';
+    return;
+  }
+  const res = document.getElementById('blob-test-result');
+  res.innerHTML = '<span style="color:var(--gray-400)">⏳ Testing connection…</span>';
+  const ok = await testBlobConnection(cfg);
+  if (ok) {
+    setBlobCfg(cfg);
+    updateConnectionStatus();
+    res.innerHTML = '<span style="color:var(--success)">✓ Connected! Cases will now save to Azure Blob Storage and be shared across your team.</span>';
+    setTimeout(()=>{ closeBlobConfigModal(); updateCaseSelect(); }, 1800);
+  } else {
+    res.innerHTML = '<span style="color:var(--danger)">✗ Connection failed. Check your account name, container name, SAS token, and CORS settings. See the deployment guide for help.</span>';
+  }
+}
+
+function disconnectBlob() {
+  if (!confirm('Disconnect from Azure Blob Storage? Cases will save locally only until reconnected.')) return;
+  setBlobCfg(null);
+  updateConnectionStatus();
+  closeBlobConfigModal();
+}
+function closeBlobConfigModal() { document.getElementById('blob-config-modal').style.display = 'none'; }
+
+function deriveCaseName(s) {
+  const parts = [];
+  if (s.caseName) parts.push(s.caseName);
+  else {
+    if (s.plaintiff) parts.push(s.plaintiff);
+    if (s.defendant) parts.push('v. ' + s.defendant);
+  }
+  return parts.join(' ') || 'Untitled Case';
+}
+
 async function saveCurrentCase() {
+  STATE.name = deriveCaseName(STATE);
   STATE.savedAt = new Date().toISOString();
+  const cfg = getBlobCfg();
+  STATE.savedBy = cfg?.userName || 'Local';
   currentCaseId = STATE.id;
-  await store.set('case:'+STATE.id, STATE);
-  // Update index
-  const idx = await store.get('case-index') || {};
-  idx[STATE.id] = {id:STATE.id, name:STATE.name||STATE.caseName||'Untitled', savedAt:STATE.savedAt};
-  await store.set('case-index', idx);
-  updateSaveIndicator(true);
-  updateCaseSelect();
+  try {
+    await store.set('case:'+STATE.id, STATE);
+    const idx = await store.get('case-index') || {};
+    idx[STATE.id] = {
+      id: STATE.id,
+      name: STATE.name,
+      plaintiff: STATE.plaintiff||'',
+      defendant: STATE.defendant||'',
+      caseName: STATE.caseName||'',
+      attorney: STATE.attorney||'',
+      savedAt: STATE.savedAt,
+      savedBy: STATE.savedBy
+    };
+    await store.set('case-index', idx);
+    updateSaveIndicator(true);
+    updateCaseSelect();
+  } catch(e) {
+    updateSaveIndicator(false);
+    // Show error toast
+    showToast('Save failed: ' + e.message, 'error');
+  }
 }
 
 async function loadCase(id) {
@@ -477,24 +592,97 @@ async function deleteCase(id) {
   renderCasesList();
 }
 
-async function renderCasesList() {
+async function renderCasesList(query='') {
   const idx = await loadCaseIndex();
   const el = document.getElementById('cases-list');
-  const cases = Object.values(idx).sort((a,b)=>b.savedAt?.localeCompare(a.savedAt||''));
-  if (!cases.length) { el.innerHTML='<div style="text-align:center;padding:24px;color:var(--gray-400)">No saved cases yet.</div>'; return; }
-  el.innerHTML = cases.map(c=>`
-    <div class="case-list-item">
-      <div style="flex:1">
-        <div class="case-list-name">${esc(c.name)}</div>
-        <div class="case-list-date">Saved ${c.savedAt?new Date(c.savedAt).toLocaleDateString():'—'}</div>
+  let cases = Object.values(idx).sort((a,b)=>(b.savedAt||'').localeCompare(a.savedAt||''));
+  // Filter by search query across all searchable fields
+  if (query && query.trim()) {
+    const q = query.trim().toLowerCase();
+    cases = cases.filter(c =>
+      (c.name||'').toLowerCase().includes(q) ||
+      (c.plaintiff||'').toLowerCase().includes(q) ||
+      (c.defendant||'').toLowerCase().includes(q) ||
+      (c.caseName||'').toLowerCase().includes(q) ||
+      (c.attorney||'').toLowerCase().includes(q)
+    );
+  }
+  if (!cases.length) {
+    el.innerHTML = query
+      ? '<div style="text-align:center;padding:24px;color:var(--gray-400)">No cases match your search.</div>'
+      : '<div style="text-align:center;padding:24px;color:var(--gray-400)">No saved cases yet.</div>';
+    return;
+  }
+  el.innerHTML = cases.map(c => {
+    const isOpen = c.id === currentCaseId;
+    const sub = [c.plaintiff, c.defendant ? 'v. '+c.defendant : ''].filter(Boolean).join(' ') || c.caseName || '';
+    return `
+    <div class="case-list-item" style="${isOpen ? 'border-color:var(--gold-border);background:var(--gold-bg)' : ''}">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="case-list-name" id="name-display-${c.id}">${esc(c.name)}</div>
+          ${isOpen ? '<span style="font-size:10px;background:var(--gold);color:var(--navy);border-radius:10px;padding:1px 7px;font-weight:600;flex-shrink:0">Open</span>' : ''}
+        </div>
+        ${sub && sub !== c.name ? `<div class="case-list-date" style="margin-top:1px">${esc(sub)}</div>` : ''}
+        <div class="case-list-date">Saved ${c.savedAt ? new Date(c.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—'}${c.savedBy && c.savedBy!=='Local' ? ' &nbsp;·&nbsp; <strong>'+esc(c.savedBy)+'</strong>' : ''}</div>
+        <!-- Inline rename form (hidden by default) -->
+        <div id="rename-form-${c.id}" style="display:none;margin-top:6px;display:none">
+          <input type="text" id="rename-input-${c.id}" value="${esc(c.name)}"
+            style="width:100%;padding:6px 8px;border:1px solid var(--gold);border-radius:var(--r);font-size:13px"
+            onkeydown="if(event.key==='Enter')commitRename('${c.id}');if(event.key==='Escape')cancelRename('${c.id}')">
+          <div style="display:flex;gap:6px;margin-top:5px">
+            <button class="btn btn-gold btn-sm" onclick="commitRename('${c.id}')">Save name</button>
+            <button class="btn btn-ghost btn-sm" onclick="cancelRename('${c.id}')">Cancel</button>
+          </div>
+        </div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="loadCase('${c.id}');closeCasesModal()">Load</button>
-      <button class="btn btn-sm btn-danger" onclick="deleteCase('${c.id}')">Delete</button>
-    </div>
-  `).join('');
+      <div style="display:flex;gap:5px;flex-shrink:0;align-items:flex-start;margin-left:8px">
+        ${isOpen ? '' : `<button class="btn btn-ghost btn-sm" onclick="loadCase('${c.id}');closeCasesModal()">Load</button>`}
+        <button class="btn btn-ghost btn-sm" onclick="startRename('${c.id}')" title="Rename">✏</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteCase('${c.id}')">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-function openCasesModal() { renderCasesList(); document.getElementById('cases-modal').style.display='flex'; }
+function startRename(id) {
+  document.getElementById('rename-form-'+id).style.display = 'block';
+  document.getElementById('name-display-'+id).style.display = 'none';
+  const inp = document.getElementById('rename-input-'+id);
+  inp.focus(); inp.select();
+}
+function cancelRename(id) {
+  document.getElementById('rename-form-'+id).style.display = 'none';
+  document.getElementById('name-display-'+id).style.display = '';
+}
+async function commitRename(id) {
+  const inp = document.getElementById('rename-input-'+id);
+  const newName = inp.value.trim();
+  if (!newName) return;
+  // Update the index
+  const idx = await store.get('case-index') || {};
+  if (idx[id]) { idx[id].name = newName; await store.set('case-index', idx); }
+  // If this is the currently open case, sync STATE.name too
+  if (id === currentCaseId) {
+    STATE.name = newName;
+    await store.set('case:'+id, STATE);
+  } else {
+    // Update the stored case name without loading it
+    const caseData = await store.get('case:'+id);
+    if (caseData) { caseData.name = newName; await store.set('case:'+id, caseData); }
+  }
+  updateCaseSelect();
+  const q = document.getElementById('cases-search')?.value || '';
+  renderCasesList(q);
+}
+
+function openCasesModal() {
+  document.getElementById('cases-modal').style.display='flex';
+  const inp = document.getElementById('cases-search');
+  if (inp) inp.value = '';
+  renderCasesList();
+  setTimeout(()=>{ const inp=document.getElementById('cases-search'); if(inp) inp.focus(); }, 80);
+}
 function closeCasesModal() { document.getElementById('cases-modal').style.display='none'; }
 
 function newCase() {
@@ -515,7 +703,7 @@ function updateSaveIndicator(saved) {
 function scheduleSave() {
   updateSaveIndicator(false);
   clearTimeout(saveTimeout);
-  saveTimeout = setTimeout(()=>{ if(currentCaseId||STATE.caseName) saveCurrentCase(); }, 3000);
+  saveTimeout = setTimeout(()=>{ if(currentCaseId||STATE.caseName||STATE.plaintiff||STATE.defendant) saveCurrentCase(); }, 3000);
 }
 
 function esc(s) { return String(s||'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
@@ -927,7 +1115,19 @@ function handleChange(e) {
   }
   // Re-render if structural change needed
   if (el.dataset.rerender==='1') renderTab();
-  else { updateHeaderTotal(); scheduleSave(); }
+  else {
+    updateHeaderTotal();
+    scheduleSave();
+    // Keep the case dropdown label in sync as user types case/plaintiff name
+    if (key && ['caseName','plaintiff','defendant'].includes(key)) {
+      const derived = deriveCaseName(STATE);
+      const sel = document.getElementById('case-select');
+      if (sel && currentCaseId) {
+        const opt = sel.querySelector(`option[value="${currentCaseId}"]`);
+        if (opt) opt.textContent = derived;
+      }
+    }
+  }
 }
 
 function setNested(obj,key,val) {
@@ -1516,37 +1716,45 @@ function renderResults() {
 }
 
 // ─────────────────────────────────────────────
+// 7b. TOAST UTILITY
+// ─────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg, type='info') {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  const colors = { info:'#162240', success:'#1a7a4a', error:'#B83232', warning:'#92400e' };
+  const bgs   = { info:'#E8F0FE',  success:'#eafaf1', error:'#fdecea',  warning:'#fff8e6' };
+  el.textContent = msg;
+  el.style.background = bgs[type]||bgs.info;
+  el.style.color = colors[type]||colors.info;
+  el.style.border = '1px solid ' + (colors[type]||colors.info);
+  el.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ el.style.display='none'; }, type==='error'?6000:3500);
+}
+
+// ─────────────────────────────────────────────
 // 8. INIT
 // ─────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async ()=>{
+  updateConnectionStatus();
   await updateCaseSelect();
   renderTab();
-  // Close modal on overlay click
+  // Close modals on overlay click
   document.getElementById('cases-modal').addEventListener('click', e=>{
     if(e.target===e.currentTarget) closeCasesModal();
   });
+  document.getElementById('blob-config-modal').addEventListener('click', e=>{
+    if(e.target===e.currentTarget) closeBlobConfigModal();
+  });
+  // If blob is configured, check connection health silently
+  const cfg = getBlobCfg();
+  if (cfg) {
+    testBlobConnection(cfg).then(ok=>{
+      if (!ok) showToast('⚠ Azure Blob Storage connection failed. Check your SAS token has not expired.', 'warning');
+    });
+  }
 });
 </script>
-
-
-</body><grammarly-desktop-integration data-grammarly-shadow-root="true"><template shadowrootmode="open"><style>
-      div.grammarly-desktop-integration {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-        -moz-user-select: none;
-        -webkit-user-select: none;
-        -ms-user-select:none;
-        user-select:none;
-      }
-
-      div.grammarly-desktop-integration:before {
-        content: attr(data-content);
-      }
-    </style><div aria-label="grammarly-integration" role="group" tabindex="-1" class="grammarly-desktop-integration" data-content="{&quot;mode&quot;:&quot;full&quot;,&quot;isActive&quot;:true,&quot;isUserDisabled&quot;:false}"></div></template></grammarly-desktop-integration></html>
+</body>
+</html>
