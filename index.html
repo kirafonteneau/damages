@@ -9,6 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
 :root {
   --navy: #0D1628;
@@ -924,60 +925,184 @@ function computeAll(state) {
 // ─────────────────────────────────────────────
 // 5. EXPORT FUNCTIONS
 // ─────────────────────────────────────────────
+// ── ExcelJS helpers ──
+const XL_NAVY={argb:'FF0D1628'};
+const XL_GOLD={argb:'FFC8A55A'};
+const XL_CREAM={argb:'FFF8F5EE'};
+const XL_WHITE={argb:'FFFFFFFF'};
+const XL_BORDER_THIN={style:'thin',color:{argb:'FFD0D0D0'}};
+const XL_BORDERS={top:XL_BORDER_THIN,left:XL_BORDER_THIN,bottom:XL_BORDER_THIN,right:XL_BORDER_THIN};
+
+function xlStyleHeader(row){
+  row.eachCell(c=>{
+    c.fill={type:'pattern',pattern:'solid',fgColor:XL_NAVY};
+    c.font={bold:true,color:XL_GOLD,size:11};
+    c.alignment={vertical:'middle',horizontal:'center',wrapText:true};
+    c.border=XL_BORDERS;
+  });
+  row.height=22;
+}
+function xlStyleBody(ws,startRow,endRow){
+  for(let r=startRow;r<=endRow;r++){
+    const row=ws.getRow(r);
+    const isAlt=(r-startRow)%2===1;
+    row.eachCell(c=>{
+      c.fill=isAlt?{type:'pattern',pattern:'solid',fgColor:XL_CREAM}:{type:'pattern',pattern:'solid',fgColor:XL_WHITE};
+      c.border=XL_BORDERS;
+      c.font={size:10};
+      c.alignment={vertical:'middle'};
+    });
+  }
+}
+function xlStyleTotals(row){
+  row.eachCell(c=>{
+    c.fill={type:'pattern',pattern:'solid',fgColor:XL_NAVY};
+    c.font={bold:true,color:{argb:'FFFFFFFF'},size:11};
+    c.border=XL_BORDERS;
+    c.alignment={vertical:'middle'};
+  });
+  row.height=22;
+}
+function xlSectionTitle(ws,rowNum,title,colSpan){
+  const row=ws.getRow(rowNum);
+  row.getCell(1).value=title;
+  row.getCell(1).font={bold:true,color:XL_NAVY,size:13};
+  row.getCell(1).alignment={vertical:'middle'};
+  row.height=26;
+  if(colSpan>1) ws.mergeCells(rowNum,1,rowNum,colSpan);
+}
+function xlNumFmt(ws,cols,startRow,endRow){
+  for(let r=startRow;r<=endRow;r++){
+    cols.forEach(c=>{
+      const cell=ws.getRow(r).getCell(c);
+      if(typeof cell.value==='number') cell.numFmt='$#,##0.00';
+    });
+  }
+}
+
+function buildScenarioExcelSheets(wb,res,scenarioName,state){
+  const suffix=state.scenarios.length>1?(' — '+scenarioName):'';
+  // Summary sheet
+  const ws1=wb.addWorksheet('Summary'+suffix);
+  ws1.columns=[{width:35},{width:22}];
+  ws1.getRow(1).getCell(1).value="The Workers' Firm — Employment Damages Report";
+  ws1.getRow(1).getCell(1).font={bold:true,color:XL_NAVY,size:16};
+  ws1.mergeCells('A1:B1');
+  ws1.getRow(1).height=30;
+  const meta=[['Case Name',state.caseName||''],['Plaintiff',state.plaintiff||''],['Defendant',state.defendant||''],['Attorney',state.attorney||''],['Scenario',scenarioName],['Trial Date',res.scenario.trialDate],['Generated',new Date().toLocaleDateString()]];
+  meta.forEach((m,i)=>{
+    const r=ws1.getRow(3+i);
+    r.getCell(1).value=m[0]; r.getCell(1).font={bold:true,color:{argb:'FF666666'},size:10};
+    r.getCell(2).value=m[1]; r.getCell(2).font={size:10};
+  });
+  let sRow=11;
+  xlSectionTitle(ws1,sRow,'SUMMARY',2);
+  sRow++;
+  const summaryItems=[];
+  if(res.disc){
+    summaryItems.push(['Back Pay (net)',res.disc.totBP],['Lost Benefits',res.disc.totBen],['Prejudgment Interest',res.disc.totInt],['Discrimination Subtotal',res.disc.discTotal]);
+  }
+  if(res.flsa){
+    summaryItems.push(['Unpaid OT Wages',res.flsa.totOT],['Liquidated Damages',res.flsa.totLiq],['FLSA Interest',res.flsa.totFInt],['FLSA Subtotal',res.flsa.flsaTotal]);
+  }
+  summaryItems.push(['TOTAL DAMAGES',res.grand]);
+  summaryItems.forEach((item,i)=>{
+    const r=ws1.getRow(sRow+i);
+    r.getCell(1).value=item[0]; r.getCell(1).font={bold:item[0]==='TOTAL DAMAGES',size:10,color:item[0]==='TOTAL DAMAGES'?XL_NAVY:undefined};
+    r.getCell(2).value=item[1]; r.getCell(2).numFmt='$#,##0.00'; r.getCell(2).font={bold:item[0]==='TOTAL DAMAGES',size:item[0]==='TOTAL DAMAGES'?13:10,color:item[0]==='TOTAL DAMAGES'?XL_NAVY:undefined};
+    r.getCell(1).border=XL_BORDERS; r.getCell(2).border=XL_BORDERS;
+    if(i%2===1){r.getCell(1).fill={type:'pattern',pattern:'solid',fgColor:XL_CREAM};r.getCell(2).fill={type:'pattern',pattern:'solid',fgColor:XL_CREAM};}
+  });
+  if(summaryItems.length){
+    const lastRow=ws1.getRow(sRow+summaryItems.length-1);
+    lastRow.getCell(1).fill={type:'pattern',pattern:'solid',fgColor:XL_NAVY};
+    lastRow.getCell(1).font={bold:true,color:{argb:'FFFFFFFF'},size:12};
+    lastRow.getCell(2).fill={type:'pattern',pattern:'solid',fgColor:XL_NAVY};
+    lastRow.getCell(2).font={bold:true,color:XL_GOLD,size:14};
+  }
+
+  // Back wages sheet
+  if(res.disc&&res.disc.rows.length){
+    const ws2=wb.addWorksheet('Back Wages'+suffix);
+    xlSectionTitle(ws2,1,'Estimated Back Wages — '+state.displayPeriod.charAt(0).toUpperCase()+state.displayPeriod.slice(1)+' Breakdown',9);
+    const hdr=['Period','Days','Expected Wages','Mitigation (-)','Net Back Pay','Benefits','Interest','Subtotal','Running Total'];
+    const hdrRow=ws2.getRow(3);
+    hdr.forEach((h,i)=>{hdrRow.getCell(i+1).value=h;});
+    xlStyleHeader(hdrRow);
+    let runTotal=0;
+    res.disc.rows.forEach((r,i)=>{
+      runTotal+=r.sub;
+      const row=ws2.getRow(4+i);
+      [r.label,r.dd,r.expWages,r.mitWages,r.netBP,r.benefits,r.interest,r.sub,runTotal].forEach((v,j)=>{row.getCell(j+1).value=v;});
+    });
+    xlStyleBody(ws2,4,3+res.disc.rows.length);
+    xlNumFmt(ws2,[3,4,5,6,7,8,9],4,3+res.disc.rows.length);
+    const totRow=ws2.getRow(4+res.disc.rows.length);
+    ['TOTALS','',res.disc.rows.reduce((a,r)=>a+r.expWages,0),res.disc.totMit,res.disc.totBP,res.disc.totBen,res.disc.totInt,res.disc.discTotal,res.disc.discTotal].forEach((v,j)=>{totRow.getCell(j+1).value=v;});
+    xlStyleTotals(totRow);
+    xlNumFmt(ws2,[3,4,5,6,7,8,9],4+res.disc.rows.length,4+res.disc.rows.length);
+    ws2.columns=[{width:20},{width:8},{width:18},{width:18},{width:18},{width:16},{width:16},{width:18},{width:18}];
+  }
+
+  // FLSA sheet
+  if(res.flsa&&res.flsa.flsaRows.length){
+    const ws3=wb.addWorksheet('FLSA Overtime'+suffix);
+    xlSectionTitle(ws3,1,'FLSA Overtime Breakdown',6);
+    const hdr=['Period / Position','OT Hours','OT Wages','Liquidated','Interest','Subtotal'];
+    const hdrRow=ws3.getRow(3);
+    hdr.forEach((h,i)=>{hdrRow.getCell(i+1).value=h;});
+    xlStyleHeader(hdrRow);
+    res.flsa.flsaRows.forEach((r,i)=>{
+      const row=ws3.getRow(4+i);
+      [`${r.startDate} – ${r.endDate||'present'}${r.description?' · '+r.description:''}`,r.otHrs,r.ot,r.liq,r.fi,r.sub].forEach((v,j)=>{row.getCell(j+1).value=v;});
+    });
+    xlStyleBody(ws3,4,3+res.flsa.flsaRows.length);
+    xlNumFmt(ws3,[3,4,5,6],4,3+res.flsa.flsaRows.length);
+    const totRow=ws3.getRow(4+res.flsa.flsaRows.length);
+    ['FLSA TOTAL','',res.flsa.totOT,res.flsa.totLiq,res.flsa.totFInt,res.flsa.flsaTotal].forEach((v,j)=>{totRow.getCell(j+1).value=v;});
+    xlStyleTotals(totRow);
+    xlNumFmt(ws3,[3,4,5,6],4+res.flsa.flsaRows.length,4+res.flsa.flsaRows.length);
+    ws3.columns=[{width:34},{width:12},{width:16},{width:16},{width:16},{width:16}];
+  }
+}
+
 function exportExcel() {
   const res=computeAll(STATE);
   if (!res){alert('Enter required case data first.');return;}
-  const wb=XLSX.utils.book_new();
-  // Summary
-  const summaryData=[
-    ['The Workers\' Firm — Employment Damages Report'],
-    [''],
-    ['Case Name',STATE.caseName||''],
-    ['Plaintiff',STATE.plaintiff||''],
-    ['Defendant',STATE.defendant||''],
-    ['Attorney',STATE.attorney||''],
-    ['Scenario',res.scenario.name],
-    ['Trial Date',res.scenario.trialDate],
-    ['Generated',new Date().toLocaleDateString()],
-    [''],
-    ['SUMMARY',''],
-  ];
-  if (res.disc) {
-    summaryData.push(['Back Pay (net)',res.disc.totBP]);
-    summaryData.push(['Lost Benefits',res.disc.totBen]);
-    summaryData.push(['Prejudgment Interest',res.disc.totInt]);
-    summaryData.push(['Discrimination Subtotal',res.disc.discTotal]);
-  }
-  if (res.flsa) {
-    summaryData.push(['Unpaid OT Wages',res.flsa.totOT]);
-    summaryData.push(['Liquidated Damages',res.flsa.totLiq]);
-    summaryData.push(['FLSA Interest',res.flsa.totFInt]);
-    summaryData.push(['FLSA Subtotal',res.flsa.flsaTotal]);
-  }
-  summaryData.push(['TOTAL DAMAGES',res.grand]);
-  const ws1=XLSX.utils.aoa_to_sheet(summaryData);
-  ws1['!cols']=[{wch:30},{wch:20}];
-  XLSX.utils.book_append_sheet(wb,ws1,'Summary');
-  // Back wages
-  if (res.disc) {
-    const hdr=['Period','Days in Damage Period','Expected Wages','Mitigation (-)','Net Back Pay','Benefits','Interest','Subtotal','Running Total'];
-    let runTotal=0;
-    const rows=res.disc.rows.map(r=>{runTotal+=r.sub;return[r.label,r.dd,r.expWages,r.mitWages,r.netBP,r.benefits,r.interest,r.sub,runTotal];});
-    rows.push(['TOTALS','',res.disc.rows.reduce((a,r)=>a+r.expWages,0),res.disc.totMit,res.disc.totBP,res.disc.totBen,res.disc.totInt,res.disc.discTotal,res.disc.discTotal]);
-    const ws2=XLSX.utils.aoa_to_sheet([hdr,...rows]);
-    ws2['!cols']=hdr.map((_,i)=>({wch:i===0?18:16}));
-    XLSX.utils.book_append_sheet(wb,ws2,'Back Wages');
-  }
-  // FLSA
-  if (res.flsa&&res.flsa.flsaRows.length) {
-    const hdr=['Period / Position','OT Hours','OT Wages','Liquidated','Interest','Subtotal'];
-    const rows=res.flsa.flsaRows.map(r=>[`${r.startDate} – ${r.endDate||'present'}${r.description?' · '+r.description:''}`,r.otHrs,r.ot,r.liq,r.fi,r.sub]);
-    rows.push(['FLSA TOTAL','',res.flsa.totOT,res.flsa.totLiq,res.flsa.totFInt,res.flsa.flsaTotal]);
-    const ws3=XLSX.utils.aoa_to_sheet([hdr,...rows]);
-    ws3['!cols']=[{wch:30},{wch:12},{wch:14},{wch:14},{wch:14},{wch:14}];
-    XLSX.utils.book_append_sheet(wb,ws3,'FLSA Overtime');
-  }
-  XLSX.writeFile(wb,(STATE.caseName||STATE.plaintiff||'damages')+'-report.xlsx');
+  const wb=new ExcelJS.Workbook();
+  wb.creator='The Workers\' Firm';
+  buildScenarioExcelSheets(wb,res,res.scenario.name,STATE);
+  wb.xlsx.writeBuffer().then(buf=>{
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=(STATE.caseName||STATE.plaintiff||'damages')+'-report.xlsx'; a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+
+function exportAllExcel() {
+  const s=STATE;
+  const scenarioResults=s.scenarios.map(sc=>{
+    if(!sc.trialDate) return null;
+    const td=sc.trialDate;
+    const includeDisc=s.claimType!=='flsa';
+    const includeFlsa=s.claimType!=='discrimination';
+    const disc=includeDisc?computeDiscrimination({...s,activeScenarioId:sc.id},td):null;
+    const flsa=includeFlsa?computeFlsa(s,td):null;
+    const discTotal=disc?.discTotal||0;
+    const flsaTotal=flsa?.flsaTotal||0;
+    return {disc,flsa,discTotal,flsaTotal,grand:discTotal+flsaTotal,scenario:sc};
+  }).filter(Boolean);
+  if(!scenarioResults.length){alert('No scenarios with trial dates found.');return;}
+  const wb=new ExcelJS.Workbook();
+  wb.creator='The Workers\' Firm';
+  scenarioResults.forEach(res=>buildScenarioExcelSheets(wb,res,res.scenario.name,s));
+  wb.xlsx.writeBuffer().then(buf=>{
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=(s.caseName||s.plaintiff||'damages')+'-all-scenarios.xlsx'; a.click();
+    URL.revokeObjectURL(url);
+  });
 }
 
 function exportPDF() {
@@ -1039,24 +1164,24 @@ function exportPDF() {
   // Back wages table
   if (res.disc&&res.disc.rows.length) {
     doc.setTextColor(13,22,40); doc.setFontSize(12); doc.setFont('helvetica','bold');
-    doc.text('Back Wages — '+STATE.displayPeriod.charAt(0).toUpperCase()+STATE.displayPeriod.slice(1)+' Breakdown',12,y);
+    doc.text('Back Wages — '+STATE.displayPeriod.charAt(0).toUpperCase()+STATE.displayPeriod.slice(1)+' Breakdown',14,y);
     y+=6;
     const head=[['Period','Days','Expected','Mitigation (-)','Net Back Pay','Benefits','Interest','Subtotal']];
     const body=res.disc.rows.map(r=>[r.label,r.dd,$$(r.expWages),$$(r.mitWages),$$(r.netBP),$$(r.benefits),$$(r.interest),$$(r.sub)]);
     body.push(['TOTALS','','',$$(res.disc.totMit),$$(res.disc.totBP),$$(res.disc.totBen),$$(res.disc.totInt),$$(res.disc.discTotal)]);
-    doc.autoTable({head,body,startY:y,styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:22},1:{cellWidth:10,halign:'right'},2:{cellWidth:24,halign:'right'},3:{cellWidth:24,halign:'right'},4:{cellWidth:24,halign:'right'},5:{cellWidth:20,halign:'right'},6:{cellWidth:20,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
+    doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:22},1:{cellWidth:10,halign:'right'},2:{cellWidth:24,halign:'right'},3:{cellWidth:24,halign:'right'},4:{cellWidth:24,halign:'right'},5:{cellWidth:20,halign:'right'},6:{cellWidth:20,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
     y=doc.lastAutoTable.finalY+10;
   }
   // FLSA table
   if (res.flsa&&res.flsa.flsaRows.length) {
     if (y>220){doc.addPage();y=20;}
     doc.setTextColor(13,22,40); doc.setFontSize(12); doc.setFont('helvetica','bold');
-    doc.text('FLSA Overtime Breakdown',12,y);
+    doc.text('FLSA Overtime Breakdown',14,y);
     y+=6;
     const head=[['Period / Position','OT Hours','OT Wages','Liquidated','Interest','Subtotal']];
     const body=res.flsa.flsaRows.map(r=>[`${r.startDate} – ${r.endDate||'present'}${r.description?' · '+r.description:''}`,r.otHrs.toFixed(1),$$(r.ot),$$(r.liq),$$(r.fi),$$(r.sub)]);
     body.push(['FLSA TOTAL','','',$$(res.flsa.totLiq),$$(res.flsa.totFInt),$$(res.flsa.flsaTotal)]);
-    doc.autoTable({head,body,startY:y,styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
+    doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
     y=doc.lastAutoTable.finalY+10;
   }
   // Footnotes
@@ -1090,10 +1215,10 @@ function exportPDF() {
 
   // ── Section 1: DOL Interest Rates ──
   doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
-  doc.text('A. DOL Prejudgment Interest Rates (26 U.S.C. § 6621)',12,y);
+  doc.text('A. DOL Prejudgment Interest Rates (26 U.S.C. § 6621)',14,y);
   y+=3;
   doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
-  doc.text('IRS underpayment rate applied quarterly. Custom overrides shown where applicable.',12,y+3);
+  doc.text('IRS underpayment rate applied quarterly. Custom overrides shown where applicable.',14,y+3);
   y+=8;
 
   // Find applicable date range from incidents
@@ -1110,7 +1235,7 @@ function exportPDF() {
       const applied=isCustom?Number(STATE.customRates[key]).toFixed(2):r.r.toFixed(2);
       return [`${r.y} Q${r.q}`,`${r.r}%`,`${applied}%`,isCustom?'Yes (overridden)':'No'];
     });
-    doc.autoTable({head:rateHead,body:rateBody,startY:y,styles:{fontSize:7.5,cellPadding:2},
+    doc.autoTable({head:rateHead,body:rateBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2},
       headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
       alternateRowStyles:{fillColor:[248,245,238]},
       columnStyles:{0:{cellWidth:28},1:{cellWidth:28,halign:'center'},2:{cellWidth:28,halign:'center'},3:{cellWidth:36}}
@@ -1121,7 +1246,7 @@ function exportPDF() {
   // ── Section 2: Input Summary ──
   if (y>200){doc.addPage();y=20;}
   doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
-  doc.text('B. Compensation Inputs Summary',12,y);
+  doc.text('B. Compensation Inputs Summary',14,y);
   y+=7;
 
   // Wage periods table
@@ -1149,7 +1274,7 @@ function exportPDF() {
   });
 
   if (wageBody.length) {
-    doc.autoTable({head:wageHead,body:wageBody,startY:y,styles:{fontSize:7.5,cellPadding:2},
+    doc.autoTable({head:wageHead,body:wageBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2},
       headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
       alternateRowStyles:{fillColor:[248,245,238]}
     });
@@ -1159,7 +1284,7 @@ function exportPDF() {
   // Benefits method
   if (y>230){doc.addPage();y=20;}
   doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
-  doc.text('C. Benefits & Mitigation',12,y);
+  doc.text('C. Benefits & Mitigation',14,y);
   y+=7;
 
   const benefitsRate=(parseFloat(STATE.customBenefitsRate)||BLS[STATE.employerType]||32.5).toFixed(1);
@@ -1179,7 +1304,7 @@ function exportPDF() {
       `$${Number(mp.annualWages).toLocaleString()}/yr (${mp.startDate}${mp.endDate?' – '+mp.endDate:' – trial'})`]);
   });
 
-  doc.autoTable({head:infoHead,body:infoBody,startY:y,styles:{fontSize:7.5,cellPadding:2.5},
+  doc.autoTable({head:infoHead,body:infoBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2.5},
     headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
     alternateRowStyles:{fillColor:[248,245,238]},
     columnStyles:{0:{cellWidth:50,fontStyle:'bold'}}
@@ -1194,9 +1319,9 @@ function exportPDF() {
   });
   if (incBody.length) {
     doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
-    doc.text('D. Adverse Employment Actions',12,y);
+    doc.text('D. Adverse Employment Actions',14,y);
     y+=7;
-    doc.autoTable({head:[['#','Date','End Date','Type','Description']],body:incBody,startY:y,styles:{fontSize:7.5,cellPadding:2},
+    doc.autoTable({head:[['#','Date','End Date','Type','Description']],body:incBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2},
       headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
       alternateRowStyles:{fillColor:[248,245,238]}
     });
@@ -1211,6 +1336,227 @@ function exportPDF() {
   doc.text('This addendum is provided for reference purposes. All inputs are subject to revision as additional discovery is received. Generated by The Workers\' Firm Employment Damages Calculator.',15,y+7,{maxWidth:W-30});
 
   doc.save((STATE.caseName||STATE.plaintiff||'damages')+'-report.pdf');
+}
+
+function exportAllPDF() {
+  const s=STATE;
+  const scenarioResults=s.scenarios.map(sc=>{
+    if(!sc.trialDate) return null;
+    const td=sc.trialDate;
+    const includeDisc=s.claimType!=='flsa';
+    const includeFlsa=s.claimType!=='discrimination';
+    const disc=includeDisc?computeDiscrimination({...s,activeScenarioId:sc.id},td):null;
+    const flsa=includeFlsa?computeFlsa(s,td):null;
+    const discTotal=disc?.discTotal||0;
+    const flsaTotal=flsa?.flsaTotal||0;
+    return {disc,flsa,discTotal,flsaTotal,grand:discTotal+flsaTotal,scenario:sc};
+  }).filter(Boolean);
+  if(!scenarioResults.length){alert('No scenarios with trial dates found.');return;}
+
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+  const W=doc.internal.pageSize.getWidth();
+
+  scenarioResults.forEach((res,sIdx)=>{
+    if(sIdx>0) doc.addPage();
+    // Header bar
+    doc.setFillColor(13,22,40);
+    doc.rect(0,0,W,22,'F');
+    doc.setTextColor(200,165,90);
+    doc.setFontSize(13);
+    doc.setFont('helvetica','bold');
+    doc.text("THE WORKERS' FIRM",12,9);
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(200,195,185);
+    doc.text('Employment Damages Calculator',12,15);
+    doc.setTextColor(200,165,90);
+    doc.setFontSize(9);
+    doc.text(`Generated: ${new Date().toLocaleDateString()}`,W-12,12,{align:'right'});
+    // Title
+    doc.setTextColor(13,22,40);
+    doc.setFontSize(17);
+    doc.setFont('helvetica','bold');
+    doc.text(s.caseName||'Employment Damages Report',12,33);
+    // Case info
+    doc.setFontSize(9.5);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(80,80,80);
+    const info=[];
+    if(s.plaintiff) info.push(['Plaintiff',s.plaintiff]);
+    if(s.defendant) info.push(['Defendant',s.defendant]);
+    if(s.attorney) info.push(['Attorney',s.attorney]);
+    info.push(['Scenario',res.scenario.name]);
+    info.push(['Trial Date',res.scenario.trialDate||'—']);
+    info.forEach(([k,v],i)=>{
+      const col=i%2===0?12:105, row=39+Math.floor(i/2)*6;
+      doc.setTextColor(150,145,135); doc.text(k+':',col,row);
+      doc.setTextColor(30,22,16); doc.text(String(v),col+28,row);
+    });
+    // Total banner
+    const bannerY=39+Math.ceil(info.length/2)*6+4;
+    doc.setFillColor(13,22,40);
+    doc.roundedRect(12,bannerY,W-24,18,3,3,'F');
+    doc.setTextColor(200,165,90);
+    doc.setFontSize(9);
+    doc.setFont('helvetica','bold');
+    doc.text('ESTIMATED TOTAL DAMAGES',16,bannerY+7);
+    doc.setFontSize(22);
+    doc.text($$(res.grand),W-16,bannerY+12,{align:'right'});
+    if(res.disc&&res.flsa){
+      doc.setFontSize(8); doc.setFont('helvetica','normal');
+      doc.setTextColor(180,175,165);
+      doc.text(`Discrimination: ${$$(res.disc.discTotal)}   FLSA: ${$$(res.flsa.flsaTotal)}`,16,bannerY+14);
+    }
+    let y=bannerY+26;
+    // Back wages table
+    if(res.disc&&res.disc.rows.length){
+      doc.setTextColor(13,22,40); doc.setFontSize(12); doc.setFont('helvetica','bold');
+      doc.text('Back Wages — '+s.displayPeriod.charAt(0).toUpperCase()+s.displayPeriod.slice(1)+' Breakdown',14,y);
+      y+=6;
+      const head=[['Period','Days','Expected','Mitigation (-)','Net Back Pay','Benefits','Interest','Subtotal']];
+      const body=res.disc.rows.map(r=>[r.label,r.dd,$$(r.expWages),$$(r.mitWages),$$(r.netBP),$$(r.benefits),$$(r.interest),$$(r.sub)]);
+      body.push(['TOTALS','','',$$(res.disc.totMit),$$(res.disc.totBP),$$(res.disc.totBen),$$(res.disc.totInt),$$(res.disc.discTotal)]);
+      doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:22},1:{cellWidth:10,halign:'right'},2:{cellWidth:24,halign:'right'},3:{cellWidth:24,halign:'right'},4:{cellWidth:24,halign:'right'},5:{cellWidth:20,halign:'right'},6:{cellWidth:20,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
+      y=doc.lastAutoTable.finalY+10;
+    }
+    // FLSA table
+    if(res.flsa&&res.flsa.flsaRows.length){
+      if(y>220){doc.addPage();y=20;}
+      doc.setTextColor(13,22,40); doc.setFontSize(12); doc.setFont('helvetica','bold');
+      doc.text('FLSA Overtime Breakdown',14,y);
+      y+=6;
+      const head=[['Period / Position','OT Hours','OT Wages','Liquidated','Interest','Subtotal']];
+      const body=res.flsa.flsaRows.map(r=>[`${r.startDate} – ${r.endDate||'present'}${r.description?' · '+r.description:''}`,r.otHrs.toFixed(1),$$(r.ot),$$(r.liq),$$(r.fi),$$(r.sub)]);
+      body.push(['FLSA TOTAL','','',$$(res.flsa.totLiq),$$(res.flsa.totFInt),$$(res.flsa.flsaTotal)]);
+      doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
+      y=doc.lastAutoTable.finalY+10;
+    }
+    // Footnotes
+    if(y>230){doc.addPage();y=20;}
+    doc.setFillColor(245,242,235);
+    doc.roundedRect(12,y,W-24,52,2,2,'F');
+    doc.setTextColor(30,22,16); doc.setFontSize(8); doc.setFont('helvetica','bold');
+    doc.text('Notes & Sources',15,y+6);
+    doc.setFont('helvetica','normal'); doc.setTextColor(70,65,58);
+    const fn1=`1. Prejudgment Interest: Calculated using the IRS underpayment rate under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date (IRS Rev. Rul., applicable quarters). This figure will be updated through the actual date of judgment.`;
+    const fn2=`2. Lost Benefits: Estimated at ${(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5).toFixed(1)}% of gross back wages, reflecting supplementary (voluntary) employer-paid benefits per U.S. Bureau of Labor Statistics, Employer Costs for Employee Compensation (ECEC), Table 1, Q4 2024 (USDL-25-0379, Mar. 2025), www.bls.gov/news.release/ecec.htm. Excludes legally-required costs (Social Security, Medicare, unemployment insurance, workers' compensation). Will be supplemented by actual plan documentation prior to trial.`;
+    const fn3=`3. All figures are estimates based on currently available information and are subject to revision. Plaintiff reserves the right to update these calculations through the date of judgment.`;
+    doc.text(fn1,15,y+13,{maxWidth:W-28,lineHeightFactor:1.4});
+    doc.text(fn2,15,y+24,{maxWidth:W-28,lineHeightFactor:1.4});
+    doc.text(fn3,15,y+38,{maxWidth:W-28,lineHeightFactor:1.4});
+    // Addendum
+    doc.addPage();
+    y=12;
+    doc.setFillColor(13,22,40);
+    doc.rect(0,0,W,16,'F');
+    doc.setTextColor(200,165,90);
+    doc.setFontSize(11);
+    doc.setFont('helvetica','bold');
+    doc.text('ADDENDUM — Calculation Inputs & Applicable Interest Rates',12,10);
+    doc.setFontSize(8);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(200,195,185);
+    doc.text((s.caseName||'Employment Damages Report')+' — '+res.scenario.name,W-12,10,{align:'right'});
+    y=24;
+
+    // Section A: DOL rates
+    doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.text('A. DOL Prejudgment Interest Rates (26 U.S.C. § 6621)',14,y);
+    y+=3;
+    doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+    doc.text('IRS underpayment rate applied quarterly. Custom overrides shown where applicable.',14,y+3);
+    y+=8;
+    const allDates2=s.incidents.filter(i=>i.date).map(i=>new Date(i.date+'T12:00:00'));
+    const earliestYear2=allDates2.length?Math.min(...allDates2.map(d=>d.getFullYear())):2020;
+    const trialYear2=res.scenario.trialDate?new Date(res.scenario.trialDate+'T12:00:00').getFullYear():2026;
+    const applicableRates2=DOL_RATES.filter(r=>r.y>=earliestYear2&&r.y<=trialYear2);
+    if(applicableRates2.length){
+      const rateHead=[['Quarter','DOL Rate (%)','Applied Rate (%)','Custom Override']];
+      const rateBody=applicableRates2.map(r=>{
+        const key=`${r.y}Q${r.q}`;
+        const isCustom=s.customRates[key]!=null&&s.customRates[key]!=='';
+        const applied=isCustom?Number(s.customRates[key]).toFixed(2):r.r.toFixed(2);
+        return [`${r.y} Q${r.q}`,`${r.r}%`,`${applied}%`,isCustom?'Yes (overridden)':'No'];
+      });
+      doc.autoTable({head:rateHead,body:rateBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2},
+        headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
+        alternateRowStyles:{fillColor:[248,245,238]},
+        columnStyles:{0:{cellWidth:28},1:{cellWidth:28,halign:'center'},2:{cellWidth:28,halign:'center'},3:{cellWidth:36}}
+      });
+      y=doc.lastAutoTable.finalY+10;
+    }
+    // Section B: Inputs
+    if(y>200){doc.addPage();y=20;}
+    doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.text('B. Compensation Inputs Summary',14,y);
+    y+=7;
+    const wageHead=[['Period','Type','Base Pay','Annual Increase','Bonus','Commissions','Source']];
+    const wageBody=s.wagePeriods.filter(wp=>wp.startDate).map(wp=>{
+      const baseLabel=wp.wageType==='hourly'?`$${parseFloat(wp.hourlyRate||0).toFixed(2)}/hr × ${wp.hoursPerWeek||40}hrs/wk`:`$${Number(wp.annualSalary||0).toLocaleString()}/yr`;
+      const bonusLabel=wp.bonusType==='percent'?`${wp.bonus||0}% of salary`:(parseFloat(wp.bonus)?`$${Number(wp.bonus).toLocaleString()}`:'—');
+      const commLabel=[];
+      if(parseFloat(wp.commissionRate)) commLabel.push(`${wp.commissionRate}% of salary`);
+      if(parseFloat(wp.commissions)) commLabel.push(`$${Number(wp.commissions).toLocaleString()}`);
+      const sourceMap={paystub:'Paystub',w2:'W-2',offer_letter:'Offer letter',estimate:'Estimate'};
+      return [`${wp.startDate}${wp.endDate?' – '+wp.endDate:' – trial'}`,wp.wageType==='hourly'?'Hourly':'Salary',baseLabel,`${wp.annualIncrease||0}%`,bonusLabel,commLabel.length?commLabel.join(' + '):'—',sourceMap[wp.source]||wp.source];
+    });
+    if(wageBody.length){
+      doc.autoTable({head:wageHead,body:wageBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2},
+        headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
+        alternateRowStyles:{fillColor:[248,245,238]}
+      });
+      y=doc.lastAutoTable.finalY+8;
+    }
+    // Section C: Benefits & Mitigation
+    if(y>230){doc.addPage();y=20;}
+    doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.text('C. Benefits & Mitigation',14,y);
+    y+=7;
+    const benefitsRate=(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5).toFixed(1);
+    const infoHead=[['Parameter','Value']];
+    const infoBody=[
+      ['Benefits Method',s.benefitsMethod==='estimate'?'BLS ECEC Estimate':'W-2 / Actual Documents'],
+      ['Employer Type',BLS_L[s.employerType]||s.employerType],
+    ];
+    if(s.benefitsMethod==='estimate'){
+      infoBody.push(['Benefits Rate Applied',`${benefitsRate}% of net back pay (supplementary benefits only)`]);
+      if(s.customBenefitsRate) infoBody.push(['Custom Override','Yes — user-specified rate']);
+    }
+    s.mitigationPeriods.filter(mp=>mp.startDate&&mp.annualWages).forEach((mp,i)=>{
+      infoBody.push([`Mitigation #${i+1}: ${mp.employer||'—'}`,`$${Number(mp.annualWages).toLocaleString()}/yr (${mp.startDate}${mp.endDate?' – '+mp.endDate:' – trial'})`]);
+    });
+    doc.autoTable({head:infoHead,body:infoBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2.5},
+      headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[248,245,238]},
+      columnStyles:{0:{cellWidth:50,fontStyle:'bold'}}
+    });
+    y=doc.lastAutoTable.finalY+8;
+    // Section D: Incidents
+    if(y>230){doc.addPage();y=20;}
+    const incBody=s.incidents.filter(i=>i.date).map((inc,i)=>{
+      const typeLabel=INC_TYPES.find(t=>t.v===inc.type)?.l||inc.type;
+      return [`#${i+1}`,inc.date,inc.endDate||'Ongoing',typeLabel,inc.description||'—'];
+    });
+    if(incBody.length){
+      doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+      doc.text('D. Adverse Employment Actions',14,y);
+      y+=7;
+      doc.autoTable({head:[['#','Date','End Date','Type','Description']],body:incBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2},
+        headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
+        alternateRowStyles:{fillColor:[248,245,238]}
+      });
+      y=doc.lastAutoTable.finalY+8;
+    }
+    // Footer disclaimer
+    if(y>240){doc.addPage();y=20;}
+    doc.setFillColor(245,242,235);
+    doc.roundedRect(12,y,W-24,16,2,2,'F');
+    doc.setTextColor(100,95,88); doc.setFontSize(7); doc.setFont('helvetica','italic');
+    doc.text('This addendum is provided for reference purposes. All inputs are subject to revision as additional discovery is received. Generated by The Workers\' Firm Employment Damages Calculator.',15,y+7,{maxWidth:W-30});
+  });
+
+  doc.save((s.caseName||s.plaintiff||'damages')+'-all-scenarios.pdf');
 }
 
 // ─────────────────────────────────────────────
@@ -1716,6 +2062,9 @@ function renderResults() {
   <div class="export-bar">
     <button class="btn btn-navy" onclick="exportExcel()">⬇ Download Excel</button>
     <button class="btn btn-navy" onclick="exportPDF()">⬇ Download PDF</button>
+    ${scenarioResults.length>1?`
+    <button class="btn btn-gold" onclick="exportAllExcel()" title="Export all scenarios to one Excel workbook">⬇ Export All Scenarios (Excel)</button>
+    <button class="btn btn-gold" onclick="exportAllPDF()" title="Export all scenarios to one PDF">⬇ Export All Scenarios (PDF)</button>`:''}
     <div class="period-toggle">
       ${['annual','monthly','weekly'].map(p=>`
         <button class="period-btn ${s.displayPeriod===p?'active':''}"
