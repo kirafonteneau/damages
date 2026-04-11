@@ -311,7 +311,14 @@ const DOL_RATES = [
   {y:2025,q:1,r:7},{y:2025,q:2,r:7},{y:2025,q:3,r:7},{y:2025,q:4,r:7},
   {y:2026,q:1,r:7},{y:2026,q:2,r:7},
 ];
-const BLS = {private:43.7,state_local:61.0,federal:71.0};
+// BLS ECEC benefits rates — supplementary (voluntary) benefits only
+// Excludes legally-required costs (SS/Medicare, FUTA, workers comp) which are not "lost benefits"
+// Source: BLS ECEC Table 1, Q4 2024 (USDL-25-0379, Mar. 2025)
+// Total benefits % of wages:  private 43.7%, state_local 61.0%, federal 71.0%
+// Legally-required % of wages: private ~11.2%, state_local ~12.1%, federal ~11.7%
+// Supplementary (applied):    private 32.5%, state_local 48.9%, federal 59.3%
+const BLS = {private:32.5,state_local:48.9,federal:59.3};
+const BLS_TOTAL = {private:43.7,state_local:61.0,federal:71.0};
 const BLS_L = {private:'Private sector',state_local:'State / Local govt',federal:'Federal govt'};
 const INC_TYPES = [
   {v:'termination',l:'Termination'},
@@ -346,7 +353,7 @@ function defaultCase(name='New Case') {
     incidents:[{id:uid(), date:'', endDate:'', type:'termination', description:''}],
     wagePeriods:[{id:uid(), startDate:'', endDate:'', wageType:'annual',
       annualSalary:'', hourlyRate:'', hoursPerWeek:'40', annualIncrease:'0',
-      source:'paystub', bonus:'', bonusType:'fixed', commissionRate:'', employerBenefitsW2:''}],
+      source:'paystub', bonus:'', bonusType:'fixed', commissionRate:'', commissions:'', employerBenefitsW2:''}],
     mitigationPeriods:[{id:uid(), startDate:'', endDate:'', annualWages:'', employer:'', notes:''}],
     flsaPeriods:[{id:uid(), startDate:'', endDate:'', regularRate:'', weeklyHours:'', weeksWorked:'', description:'', otMethod:'half'}],
     customRates:{}
@@ -801,8 +808,9 @@ function getEffectiveAnnual(wp, year, trial) {
   const bonus = wp.bonusType==='percent'
     ? salary*(parseFloat(wp.bonus)||0)/100
     : (parseFloat(wp.bonus)||0);
-  const commission = salary*(parseFloat(wp.commissionRate)||0)/100;
-  return salary+bonus+commission;
+  const commissionPct = salary*(parseFloat(wp.commissionRate)||0)/100;
+  const commissionFixed = parseFloat(wp.commissions)||0;
+  return salary+bonus+commissionPct+commissionFixed;
 }
 
 function getDailyWage(date, wagePeriods, trial) {
@@ -855,7 +863,7 @@ function computeDiscrimination(state, trialDate) {
   const trial=new Date(trialDate+'T23:59:59');
   const periods=getDamagePeriods(state.incidents, trial);
   if (!periods.length) return null;
-  const bRate=(parseFloat(state.customBenefitsRate)||BLS[state.employerType]||43.7)/100;
+  const bRate=(parseFloat(state.customBenefitsRate)||BLS[state.employerType]||32.5)/100;
   const units=getTimeUnits(periods[0].start, trial, state.displayPeriod);
   let rows=[],totBP=0,totMit=0,totBen=0,totInt=0;
   for (const unit of units) {
@@ -1059,11 +1067,149 @@ function exportPDF() {
   doc.text('Notes & Sources',15,y+6);
   doc.setFont('helvetica','normal'); doc.setTextColor(70,65,58);
   const fn1=`1. Prejudgment Interest: Calculated using the IRS underpayment rate under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date (IRS Rev. Rul., applicable quarters). This figure will be updated through the actual date of judgment.`;
-  const fn2=`2. Lost Benefits: Estimated at ${(parseFloat(STATE.customBenefitsRate)||BLS[STATE.employerType]||43.7).toFixed(1)}% of gross back wages per U.S. Bureau of Labor Statistics, Employer Costs for Employee Compensation (ECEC), Table 1, Q4 2024 (USDL-25-0379, Mar. 2025), www.bls.gov/news.release/ecec.htm. Will be supplemented by actual plan documentation prior to trial.`;
+  const fn2=`2. Lost Benefits: Estimated at ${(parseFloat(STATE.customBenefitsRate)||BLS[STATE.employerType]||32.5).toFixed(1)}% of gross back wages, reflecting supplementary (voluntary) employer-paid benefits per U.S. Bureau of Labor Statistics, Employer Costs for Employee Compensation (ECEC), Table 1, Q4 2024 (USDL-25-0379, Mar. 2025), www.bls.gov/news.release/ecec.htm. Excludes legally-required costs (Social Security, Medicare, unemployment insurance, workers' compensation). Will be supplemented by actual plan documentation prior to trial.`;
   const fn3=`3. All figures are estimates based on currently available information and are subject to revision. Plaintiff reserves the right to update these calculations through the date of judgment.`;
   doc.text(fn1,15,y+13,{maxWidth:W-28,lineHeightFactor:1.4});
   doc.text(fn2,15,y+24,{maxWidth:W-28,lineHeightFactor:1.4});
   doc.text(fn3,15,y+38,{maxWidth:W-28,lineHeightFactor:1.4});
+  // ── Addendum: Informational Sheet ──
+  doc.addPage();
+  y=12;
+  // Header bar (same as page 1)
+  doc.setFillColor(13,22,40);
+  doc.rect(0,0,W,16,'F');
+  doc.setTextColor(200,165,90);
+  doc.setFontSize(11);
+  doc.setFont('helvetica','bold');
+  doc.text('ADDENDUM — Calculation Inputs & Applicable Interest Rates',12,10);
+  doc.setFontSize(8);
+  doc.setFont('helvetica','normal');
+  doc.setTextColor(200,195,185);
+  doc.text(STATE.caseName||'Employment Damages Report',W-12,10,{align:'right'});
+  y=24;
+
+  // ── Section 1: DOL Interest Rates ──
+  doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.text('A. DOL Prejudgment Interest Rates (26 U.S.C. § 6621)',12,y);
+  y+=3;
+  doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+  doc.text('IRS underpayment rate applied quarterly. Custom overrides shown where applicable.',12,y+3);
+  y+=8;
+
+  // Find applicable date range from incidents
+  const allDates=STATE.incidents.filter(i=>i.date).map(i=>new Date(i.date+'T12:00:00'));
+  const earliestYear=allDates.length?Math.min(...allDates.map(d=>d.getFullYear())):2020;
+  const trialYear=res.scenario.trialDate?new Date(res.scenario.trialDate+'T12:00:00').getFullYear():2026;
+  const applicableRates=DOL_RATES.filter(r=>r.y>=earliestYear&&r.y<=trialYear);
+
+  if (applicableRates.length) {
+    const rateHead=[['Quarter','DOL Rate (%)','Applied Rate (%)','Custom Override']];
+    const rateBody=applicableRates.map(r=>{
+      const key=`${r.y}Q${r.q}`;
+      const isCustom=STATE.customRates[key]!=null&&STATE.customRates[key]!=='';
+      const applied=isCustom?Number(STATE.customRates[key]).toFixed(2):r.r.toFixed(2);
+      return [`${r.y} Q${r.q}`,`${r.r}%`,`${applied}%`,isCustom?'Yes (overridden)':'No'];
+    });
+    doc.autoTable({head:rateHead,body:rateBody,startY:y,styles:{fontSize:7.5,cellPadding:2},
+      headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[248,245,238]},
+      columnStyles:{0:{cellWidth:28},1:{cellWidth:28,halign:'center'},2:{cellWidth:28,halign:'center'},3:{cellWidth:36}}
+    });
+    y=doc.lastAutoTable.finalY+10;
+  }
+
+  // ── Section 2: Input Summary ──
+  if (y>200){doc.addPage();y=20;}
+  doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.text('B. Compensation Inputs Summary',12,y);
+  y+=7;
+
+  // Wage periods table
+  const wageHead=[['Period','Type','Base Pay','Annual Increase','Bonus','Commissions','Source']];
+  const wageBody=STATE.wagePeriods.filter(wp=>wp.startDate).map(wp=>{
+    const baseLabel=wp.wageType==='hourly'
+      ?`$${parseFloat(wp.hourlyRate||0).toFixed(2)}/hr × ${wp.hoursPerWeek||40}hrs/wk`
+      :`$${Number(wp.annualSalary||0).toLocaleString()}/yr`;
+    const bonusLabel=wp.bonusType==='percent'
+      ?`${wp.bonus||0}% of salary`
+      :(parseFloat(wp.bonus)?`$${Number(wp.bonus).toLocaleString()}`:'—');
+    const commLabel=[];
+    if (parseFloat(wp.commissionRate)) commLabel.push(`${wp.commissionRate}% of salary`);
+    if (parseFloat(wp.commissions)) commLabel.push(`$${Number(wp.commissions).toLocaleString()}`);
+    const sourceMap={paystub:'Paystub',w2:'W-2',offer_letter:'Offer letter',estimate:'Estimate'};
+    return [
+      `${wp.startDate}${wp.endDate?' – '+wp.endDate:' – trial'}`,
+      wp.wageType==='hourly'?'Hourly':'Salary',
+      baseLabel,
+      `${wp.annualIncrease||0}%`,
+      bonusLabel,
+      commLabel.length?commLabel.join(' + '):'—',
+      sourceMap[wp.source]||wp.source
+    ];
+  });
+
+  if (wageBody.length) {
+    doc.autoTable({head:wageHead,body:wageBody,startY:y,styles:{fontSize:7.5,cellPadding:2},
+      headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[248,245,238]}
+    });
+    y=doc.lastAutoTable.finalY+8;
+  }
+
+  // Benefits method
+  if (y>230){doc.addPage();y=20;}
+  doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.text('C. Benefits & Mitigation',12,y);
+  y+=7;
+
+  const benefitsRate=(parseFloat(STATE.customBenefitsRate)||BLS[STATE.employerType]||32.5).toFixed(1);
+  const infoHead=[['Parameter','Value']];
+  const infoBody=[
+    ['Benefits Method',STATE.benefitsMethod==='estimate'?'BLS ECEC Estimate':'W-2 / Actual Documents'],
+    ['Employer Type',BLS_L[STATE.employerType]||STATE.employerType],
+  ];
+  if (STATE.benefitsMethod==='estimate') {
+    infoBody.push(['Benefits Rate Applied',`${benefitsRate}% of net back pay (supplementary benefits only)`]);
+    if (STATE.customBenefitsRate) infoBody.push(['Custom Override','Yes — user-specified rate']);
+  }
+
+  // Add mitigation periods
+  STATE.mitigationPeriods.filter(mp=>mp.startDate&&mp.annualWages).forEach((mp,i)=>{
+    infoBody.push([`Mitigation #${i+1}: ${mp.employer||'—'}`,
+      `$${Number(mp.annualWages).toLocaleString()}/yr (${mp.startDate}${mp.endDate?' – '+mp.endDate:' – trial'})`]);
+  });
+
+  doc.autoTable({head:infoHead,body:infoBody,startY:y,styles:{fontSize:7.5,cellPadding:2.5},
+    headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
+    alternateRowStyles:{fillColor:[248,245,238]},
+    columnStyles:{0:{cellWidth:50,fontStyle:'bold'}}
+  });
+  y=doc.lastAutoTable.finalY+8;
+
+  // Incidents summary
+  if (y>230){doc.addPage();y=20;}
+  const incBody=STATE.incidents.filter(i=>i.date).map((inc,i)=>{
+    const typeLabel=INC_TYPES.find(t=>t.v===inc.type)?.l||inc.type;
+    return [`#${i+1}`,inc.date,inc.endDate||'Ongoing',typeLabel,inc.description||'—'];
+  });
+  if (incBody.length) {
+    doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.text('D. Adverse Employment Actions',12,y);
+    y+=7;
+    doc.autoTable({head:[['#','Date','End Date','Type','Description']],body:incBody,startY:y,styles:{fontSize:7.5,cellPadding:2},
+      headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[248,245,238]}
+    });
+    y=doc.lastAutoTable.finalY+8;
+  }
+
+  // Footer disclaimer on addendum
+  if (y>240){doc.addPage();y=20;}
+  doc.setFillColor(245,242,235);
+  doc.roundedRect(12,y,W-24,16,2,2,'F');
+  doc.setTextColor(100,95,88); doc.setFontSize(7); doc.setFont('helvetica','italic');
+  doc.text('This addendum is provided for reference purposes. All inputs are subject to revision as additional discovery is received. Generated by The Workers\' Firm Employment Damages Calculator.',15,y+7,{maxWidth:W-30});
+
   doc.save((STATE.caseName||STATE.plaintiff||'damages')+'-report.pdf');
 }
 
@@ -1191,6 +1337,20 @@ function renderSetup() {
       ${field('Employer type',sel(s.employerType,[{v:'private',l:'Private sector'},{v:'state_local',l:'State / Local government'},{v:'federal',l:'Federal government'}],{dk:'employerType',rerender:'1'}))}
       ${field('Claim type',sel(s.claimType,[{v:'both',l:'Discrimination + FLSA Overtime'},{v:'discrimination',l:'Discrimination only'},{v:'flsa',l:'FLSA Overtime only'}],{dk:'claimType',rerender:'1'}))}
     </div>
+    ${s.claimType!=='flsa'?`
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-100)">
+      <span class="section-label" style="margin-bottom:8px;display:block">Benefits calculation method</span>
+      <div class="g2">
+        ${['estimate','w2'].map(v=>`
+          <label class="radio-card ${s.benefitsMethod===v?'selected':''}">
+            <input type="radio" name="bm-setup" value="${v}" ${s.benefitsMethod===v?'checked':''} data-key="benefitsMethod" data-rerender="1">
+            <div>
+              <div class="radio-card-label">${v==='estimate'?'BLS Government Estimate':'W-2 / Actual Plan Documents'}</div>
+              <div class="radio-card-desc">${v==='estimate'?'Bureau of Labor Statistics ECEC data — supplementary benefits only':'Enter actual employer benefit costs per wage period (W-2 Box 12, premium statements)'}</div>
+            </div>
+          </label>`).join('')}
+      </div>
+    </div>`:''}
   </div>
 
   <div class="card">
@@ -1308,7 +1468,7 @@ function renderWages() {
       </div>
       <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-50)">
         <div class="section-label" style="margin-bottom:8px">Bonuses &amp; Commissions (annual amounts)</div>
-        <div class="g3">
+        <div class="g4">
           <div>
             <span class="section-label">Bonus type</span>
             <select data-list="wagePeriods" data-idx="${i}" data-field="bonusType">
@@ -1319,6 +1479,7 @@ function renderWages() {
           ${field(wp.bonusType==='percent'?'Bonus rate (% of salary)':'Annual bonus amount ($)',
             inp(wp.bonus,{type:'number',placeholder:wp.bonusType==='percent'?'10':'5,000',min:'0',step:wp.bonusType==='percent'?'0.1':'100',list:'wagePeriods',idx:i,field:'bonus'}))}
           ${field('Commission rate (% of salary)',inp(wp.commissionRate,{type:'number',placeholder:'0',min:'0',step:'0.1',list:'wagePeriods',idx:i,field:'commissionRate'}))}
+          ${field('Annual commissions ($)',inp(wp.commissions,{type:'number',placeholder:'Fixed annual commission amount',min:'0',step:'100',list:'wagePeriods',idx:i,field:'commissions'}))}
         </div>
       </div>
       ${(wp.annualSalary||wp.hourlyRate)&&wp.startDate?`
@@ -1326,7 +1487,7 @@ function renderWages() {
           <div class="metric-card">
             <div class="metric-label">Effective annual pay</div>
             <div class="metric-value">${$$(getEffectiveAnnual(wp,new Date().getFullYear(),new Date()))}</div>
-            <div class="metric-sub">salary + bonus + commission</div>
+            <div class="metric-sub">salary + bonus + commissions</div>
           </div>
           <div class="metric-card">
             <div class="metric-label">Daily rate</div>
@@ -1341,7 +1502,7 @@ function renderWages() {
         </div>`:''}
     </div>
   `).join('')}
-  <button class="btn-add" onclick="STATE.wagePeriods.push({id:uid(),startDate:'',endDate:'',wageType:'annual',annualSalary:'',hourlyRate:'',hoursPerWeek:'40',annualIncrease:'0',source:'paystub',bonus:'',bonusType:'fixed',commissionRate:'',employerBenefitsW2:''});renderTab()">
+  <button class="btn-add" onclick="STATE.wagePeriods.push({id:uid(),startDate:'',endDate:'',wageType:'annual',annualSalary:'',hourlyRate:'',hoursPerWeek:'40',annualIncrease:'0',source:'paystub',bonus:'',bonusType:'fixed',commissionRate:'',commissions:'',employerBenefitsW2:''});renderTab()">
     + Add wage period (promotion, reclassification, COLA)
   </button>`;
 }
@@ -1349,32 +1510,27 @@ function renderWages() {
 // ── BENEFITS TAB ──
 function renderBenefits() {
   const s=STATE;
-  const blsRate=parseFloat(s.customBenefitsRate)||BLS[s.employerType]||43.7;
+  const blsRate=parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5;
   return `
   <div class="card">
-    <div class="card-title">Benefits Calculation Method</div>
-    <div class="card-sub">Lost employer-paid benefits are recoverable as part of back pay damages.</div>
-    <div class="g2">
-      ${['estimate','w2'].map(v=>`
-        <label class="radio-card ${s.benefitsMethod===v?'selected':''}">
-          <input type="radio" name="bm" value="${v}" ${s.benefitsMethod===v?'checked':''} data-key="benefitsMethod" data-rerender="1">
-          <div>
-            <div class="radio-card-label">${v==='estimate'?'BLS Government Estimate':'W-2 / Actual Plan Documents'}</div>
-            <div class="radio-card-desc">${v==='estimate'?'Bureau of Labor Statistics ECEC data — use when W-2 or plan docs are unavailable':'Enter actual employer benefit costs per wage period (W-2 Box 12, premium statements)'}</div>
-          </div>
-        </label>`).join('')}
+    <div class="card-title">Benefits Configuration</div>
+    <div class="card-sub">Lost employer-paid benefits are recoverable as part of back pay damages. Method is selected in <strong>Case Setup</strong>.</div>
+    <div class="info-box">
+      <strong>Current method:</strong> ${s.benefitsMethod==='estimate'?'BLS Government Estimate':'W-2 / Actual Plan Documents'}.
+      To change, go to the <strong>Setup</strong> tab.
     </div>
   </div>
   ${s.benefitsMethod==='estimate'?`
   <div class="card">
     <div class="card-title">BLS ECEC Benefits Rate</div>
-    <div class="card-sub">Bureau of Labor Statistics — Employer Costs for Employee Compensation (2024). Employer-paid benefits as a % of wages.</div>
+    <div class="card-sub">Bureau of Labor Statistics — Employer Costs for Employee Compensation (ECEC), Q4 2024. Shows <strong>supplementary benefits</strong> (health, retirement, paid leave, life/disability insurance) as a % of wages. Excludes legally-required costs (Social Security, Medicare, unemployment, workers' comp) which are not lost benefits.</div>
     <div class="g3">
-      ${[{k:'private',r:43.7},{k:'state_local',r:61.0},{k:'federal',r:71.0}].map(row=>`
+      ${[{k:'private',r:BLS.private,t:BLS_TOTAL.private},{k:'state_local',r:BLS.state_local,t:BLS_TOTAL.state_local},{k:'federal',r:BLS.federal,t:BLS_TOTAL.federal}].map(row=>`
         <div class="metric-card" style="${s.employerType===row.k?'border:2px solid var(--gold);background:var(--gold-bg)':''}">
           <div class="metric-label">${BLS_L[row.k]}</div>
           <div class="metric-value ${s.employerType===row.k?'gold':''}">${row.r}%</div>
-          <div class="metric-sub">of wages · BLS ECEC 2024</div>
+          <div class="metric-sub">supplementary benefits / wages</div>
+          <div style="font-size:10px;color:var(--gray-400);margin-top:2px">Total incl. payroll taxes: ${row.t}%</div>
           ${s.employerType===row.k?'<div style="font-size:10px;color:var(--gold-d);margin-top:4px;font-weight:500">▸ Applied to this case</div>':''}
         </div>`).join('')}
     </div>
@@ -1622,7 +1778,7 @@ function renderResults() {
     <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;margin-bottom:4px">
       <div class="card-title">Back Wages — ${s.displayPeriod.charAt(0).toUpperCase()+s.displayPeriod.slice(1)} Breakdown</div>
     </div>
-    <div class="card-sub">Mitigation deducted: ${$$(disc.totMit)} total · Benefits: ${s.benefitsMethod==='w2'?'W-2 actual':`BLS estimate (${(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||43.7).toFixed(1)}%)`}</div>
+    <div class="card-sub">Mitigation deducted: ${$$(disc.totMit)} total · Benefits: ${s.benefitsMethod==='w2'?'W-2 actual':`BLS estimate (${(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5).toFixed(1)}%)`}</div>
     <div class="table-wrap">
       <table>
         <thead><tr>
@@ -1700,7 +1856,7 @@ function renderResults() {
       <p style="margin-bottom:6px">
         <sup style="font-weight:600;color:var(--navy)">2</sup>&nbsp;<strong>Lost Employer-Paid Benefits${s.benefitsMethod==='estimate'?` (BLS Estimate)`:` (Actual)`}:</strong>
         ${s.benefitsMethod==='estimate'
-          ? `Benefits losses are estimated at <strong>${(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||43.7).toFixed(1)}% of gross back wages</strong> based on the U.S. Bureau of Labor Statistics <em>Employer Costs for Employee Compensation</em> (ECEC) survey, Table 1 (${BLS_L[s.employerType]}, civilian workers), fourth quarter 2024 release. See U.S. Bureau of Labor Statistics, <em>Employer Costs for Employee Compensation — December 2024</em>, USDL-25-0379 (Mar. 2025), available at <em>www.bls.gov/news.release/ecec.htm</em>. This estimate will be supplemented or replaced by actual plan documentation, W-2 records, and employer benefits statements prior to trial.`
+          ? `Benefits losses are estimated at <strong>${(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5).toFixed(1)}% of gross back wages</strong>, reflecting supplementary (voluntary) employer-paid benefits based on the U.S. Bureau of Labor Statistics <em>Employer Costs for Employee Compensation</em> (ECEC) survey, Table 1 (${BLS_L[s.employerType]}, civilian workers), fourth quarter 2024 release. This rate excludes legally-required employer costs (Social Security, Medicare, FUTA, workers' compensation) which are not recoverable as lost benefits. See U.S. Bureau of Labor Statistics, <em>Employer Costs for Employee Compensation — December 2024</em>, USDL-25-0379 (Mar. 2025), available at <em>www.bls.gov/news.release/ecec.htm</em>. This estimate will be supplemented or replaced by actual plan documentation, W-2 records, and employer benefits statements prior to trial.`
           : `Benefits losses reflect actual employer-paid benefit costs as documented by W-2 records, plan documents, and premium statements produced in discovery. These figures will be updated as additional documentation becomes available through the close of discovery.`
         }
       </p>
