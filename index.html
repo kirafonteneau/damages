@@ -5,45 +5,54 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Workers' Firm — Employment Damages Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
 :root {
-  --navy: #0D1628;
-  --navy-2: #162240;
-  --navy-3: #1F3060;
-  --gold: #C8A55A;
+  /* Brand palette — synced with theworkersfirm.com */
+  --navy: #0F2327;          /* deep teal-black, primary dark */
+  --navy-2: #1A3338;        /* hover / panel-darker */
+  --navy-3: #284449;        /* tertiary dark */
+  --gold: #C9A85A;          /* warm accent (table headers, banners) */
   --gold-h: #DDB96E;
   --gold-d: #9A7A35;
-  --gold-bg: rgba(200,165,90,0.10);
-  --gold-border: rgba(200,165,90,0.35);
-  --cream: #FAF8F3;
+  --gold-bg: rgba(201,168,90,0.10);
+  --gold-border: rgba(201,168,90,0.35);
+  --highlight: #F4FE7C;     /* signature TWF yellow — running totals, key amounts */
+  --mint: #BCDBDB;          /* secondary highlight */
+  --teal-pale: #DFEBEC;     /* on-dark text / panels */
+  --cream: #F6F7F3;         /* page bg — matches site */
   --white: #FFFFFF;
-  --gray-50: #F5F2EA;
-  --gray-100: #E8E3D8;
-  --gray-200: #CDC7BA;
-  --gray-400: #8A8478;
-  --gray-600: #4A4840;
-  --text: #1A1610;
-  --text-2: #5A5650;
-  --danger: #B83232;
-  --danger-bg: rgba(184,50,50,0.08);
+  --gray-50: #EFF1F0;
+  --gray-100: #DCDFDD;
+  --gray-200: #B6BBB9;
+  --gray-400: #69727B;      /* body muted text */
+  --gray-600: #3D4549;
+  --text: #0F2327;          /* primary text — matches site body */
+  --text-2: #69727B;
+  --danger: #AC3939;        /* matches site CTA red */
+  --danger-bg: rgba(172,57,57,0.08);
   --success: #2D6E4A;
   --r: 8px;
   --r-lg: 14px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.07);
+  --shadow: 0 1px 3px rgba(15,35,39,0.06), 0 4px 16px rgba(15,35,39,0.08);
+  /* Brand fonts */
+  --font-display: 'Cormorant Garamond', 'Tobias-light', Georgia, serif;
+  --font-body: 'Poppins', Tahoma, sans-serif;
+  --font-data: 'Noto Sans', 'Poppins', sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:'Inter',sans-serif;background:var(--cream);color:var(--text);font-size:14px;line-height:1.5}
+html,body{height:100%;font-family:var(--font-body);background:var(--cream);color:var(--text);font-size:14px;line-height:1.55}
 
 /* ── Header ── */
 .app-header{background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:54px;flex-shrink:0;border-bottom:2px solid var(--gold)}
 .logo{display:flex;align-items:center;gap:10px}
-.logo-mark{width:32px;height:32px;background:var(--gold);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:700;font-size:16px;color:var(--navy)}
-.logo-text{font-family:'Playfair Display',serif;font-weight:600;font-size:15px;color:#fff;line-height:1.2}
+.logo-mark{width:32px;height:32px;background:var(--gold);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:18px;color:var(--navy)}
+.logo-text{font-family:var(--font-body);font-weight:600;font-size:14px;color:#fff;line-height:1.2;letter-spacing:.05em;text-transform:uppercase}
 .logo-sub{font-size:9px;font-weight:400;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;display:block}
 .header-right{display:flex;align-items:center;gap:8px}
 .save-indicator{font-size:11px;color:var(--gray-200);padding:3px 10px;border:1px solid rgba(255,255,255,.15);border-radius:20px}
@@ -54,7 +63,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--cream);col
 .case-select{font-size:13px;font-weight:500;padding:6px 10px;border:1px solid var(--gray-100);border-radius:var(--r);background:#fff;cursor:pointer;min-width:220px}
 .case-bar-total{margin-left:auto;text-align:right}
 .case-bar-total-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-400)}
-.case-bar-total-value{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;color:var(--gold-d)}
+.case-bar-total-value{font-family:var(--font-display);font-size:24px;font-weight:500;color:var(--gold-d);letter-spacing:.01em}
 
 /* ── Layout ── */
 .app-wrap{display:flex;flex-direction:column;height:100vh;overflow:hidden}
@@ -69,7 +78,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--cream);col
 
 /* ── Cards ── */
 .card{background:var(--white);border:1px solid var(--gray-100);border-radius:var(--r-lg);padding:20px;margin-bottom:14px;box-shadow:var(--shadow)}
-.card-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;color:var(--navy);margin-bottom:4px}
+.card-title{font-family:var(--font-display);font-size:20px;font-weight:500;color:var(--navy);margin-bottom:4px;letter-spacing:.005em}
 .card-sub{font-size:12px;color:var(--gray-400);margin-bottom:14px}
 .section-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-400);margin-bottom:4px;display:block}
 .info-box{background:var(--gold-bg);border-left:3px solid var(--gold);padding:10px 14px;border-radius:0 var(--r) var(--r) 0;font-size:12.5px;color:var(--navy-2);margin-bottom:14px;line-height:1.6}
@@ -84,14 +93,14 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--cream);col
 
 /* ── Inputs ── */
 input[type=text],input[type=number],input[type=date],select,textarea{
-  width:100%;border:1px solid var(--gray-100);border-radius:var(--r);padding:8px 10px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text);background:#fff;transition:border-color .15s
+  width:100%;border:1px solid var(--gray-100);border-radius:var(--r);padding:8px 10px;font-size:13px;font-family:var(--font-body);color:var(--text);background:#fff;transition:border-color .15s
 }
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-bg)}
 input[type=radio],input[type=checkbox]{width:auto}
 input::placeholder{color:var(--gray-200)}
 
 /* ── Buttons ── */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:'Inter',sans-serif}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:var(--font-body)}
 .btn-gold{background:var(--gold);color:var(--navy);font-weight:600}
 .btn-gold:hover{background:var(--gold-h)}
 .btn-navy{background:var(--navy);color:#fff}
@@ -112,7 +121,7 @@ input::placeholder{color:var(--gray-200)}
 /* ── Metric cards ── */
 .metric-card{background:var(--gray-50);border-radius:var(--r);padding:12px 14px}
 .metric-label{font-size:10px;color:var(--gray-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
-.metric-value{font-size:19px;font-weight:500;color:var(--text)}
+.metric-value{font-size:22px;font-weight:500;color:var(--text);font-family:var(--font-display);letter-spacing:.005em}
 .metric-value.gold{color:var(--gold-d)}
 .metric-sub{font-size:11px;color:var(--gray-400);margin-top:2px}
 
@@ -120,11 +129,11 @@ input::placeholder{color:var(--gray-200)}
 .total-banner{background:var(--navy);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
 .total-banner-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
 .total-banner-sub{font-size:12px;color:rgba(255,255,255,.55);margin-top:4px}
-.total-banner-amount{font-family:'Playfair Display',serif;font-size:42px;font-weight:700;color:var(--gold)}
+.total-banner-amount{font-family:var(--font-display);font-size:48px;font-weight:500;color:var(--highlight);letter-spacing:.005em}
 
 /* ── Tables ── */
 .table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:12.5px}
+table{width:100%;border-collapse:collapse;font-size:12.5px;font-family:var(--font-data);font-variant-numeric:tabular-nums}
 thead th{padding:8px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);border-bottom:1.5px solid var(--gray-100);white-space:nowrap}
 thead th.r{text-align:right}
 tbody td{padding:8px 10px;border-bottom:1px solid var(--gray-50)}
@@ -155,7 +164,7 @@ tfoot td.gold{color:var(--gold)}
 /* ── Case modal ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center}
 .modal{background:#fff;border-radius:var(--r-lg);padding:24px;width:560px;max-width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
-.modal-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:600;color:var(--navy);margin-bottom:4px}
+.modal-title{font-family:var(--font-display);font-size:24px;font-weight:500;color:var(--navy);margin-bottom:4px;letter-spacing:.005em}
 .modal-sub{font-size:12.5px;color:var(--gray-400);margin-bottom:18px}
 .case-list-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--gray-100);border-radius:var(--r);margin-bottom:8px;transition:all .15s}
 .case-list-item:hover{border-color:var(--gold-border);background:var(--gold-bg)}
@@ -409,10 +418,21 @@ function defaultCase(name='New Case') {
 // ── Migration: bring older cases up to the current shape ──
 function migrateFlsaPeriod(fp) {
   if (!fp) return fp;
-  // Scrub any junk dates left behind by old typos (e.g. year-0002).
-  // Keep blank instead of silently rewriting — the user should retype.
-  if (fp.startDate && !isValidISODate(fp.startDate)) fp.startDate = '';
-  if (fp.endDate   && !isValidISODate(fp.endDate))   fp.endDate   = '';
+  // Repair junk dates left behind by old typos (e.g. year-0002, 0005).
+  // We *replace* with sensible defaults instead of blanking, because an empty
+  // <input type="date"> opens its calendar picker at year 0001/0005 (browser
+  // default), which is exactly the bug we're trying to kill.
+  if (fp.startDate && !isValidISODate(fp.startDate)) fp.startDate = yearsAgoISO(5);
+  if (fp.endDate   && !isValidISODate(fp.endDate))   fp.endDate   = todayISO();
+  // Repair rate-change effective dates the same way — fall back to the
+  // (now valid) period start so the picker opens in the right decade.
+  if (Array.isArray(fp.rateChanges)) {
+    fp.rateChanges.forEach(rc => {
+      if (rc && rc.effectiveDate && !isValidISODate(rc.effectiveDate)) {
+        rc.effectiveDate = fp.startDate || yearsAgoISO(5);
+      }
+    });
+  }
   if (fp.defaultWeeklyHours !== undefined) {
     // Already migrated; just ensure newer fields exist
     if (fp.workweekStart === undefined) fp.workweekStart = 1;
@@ -443,45 +463,57 @@ function migrateFlsaPeriod(fp) {
   return out;
 }
 
-// Scrub any persisted date field that fails our sanity check (e.g. year-0002
-// from a typo before min/max were enforced). Blank it out rather than rewriting
-// silently — the user should retype.
-function scrubDate(obj, field) {
-  if (obj && obj[field] && !isValidISODate(obj[field])) obj[field] = '';
+// Repair any persisted date field that fails our sanity check (e.g. year-0002
+// from a typo before min/max were enforced). We *replace* with the supplied
+// fallback rather than blanking, because empty <input type="date"> elements
+// open their calendar picker at year 0001/0005 — the very bug we're fixing.
+// Pass a fallback that makes contextual sense (e.g. yearsAgoISO(5) for a
+// period start, todayISO() for an end date, '' only when blank is meaningful).
+function scrubDate(obj, field, fallback = '') {
+  if (obj && obj[field] && !isValidISODate(obj[field])) obj[field] = fallback;
 }
 
 function migrateCase(c) {
   if (!c || typeof c !== 'object') return c;
   if (c.complaintFiledDate === undefined) c.complaintFiledDate = '';
   if (c.statutoryBasis === undefined) c.statutoryBasis = 'title_vii';
-  scrubDate(c, 'complaintFiledDate');
+  // Complaint filing date — default to today if junk; user can adjust.
+  scrubDate(c, 'complaintFiledDate', todayISO());
   if (Array.isArray(c.scenarios)) {
     c.scenarios = c.scenarios.map(s => {
       const out = {
         flsaWillful: (s && s.flsaWillful !== undefined) ? s.flsaWillful : true,
         ...s
       };
-      scrubDate(out, 'trialDate');
+      // Trial date — default to today if junk.
+      scrubDate(out, 'trialDate', todayISO());
       return out;
     });
   }
   if (Array.isArray(c.incidents)) {
-    c.incidents.forEach(inc => { scrubDate(inc, 'date'); scrubDate(inc, 'endDate'); });
+    c.incidents.forEach(inc => {
+      scrubDate(inc, 'date', todayISO());
+      // endDate is meaningfully blank when employment is ongoing — keep blank.
+      scrubDate(inc, 'endDate', '');
+    });
   }
   if (Array.isArray(c.wagePeriods)) {
-    c.wagePeriods.forEach(wp => { scrubDate(wp, 'startDate'); scrubDate(wp, 'endDate'); });
+    c.wagePeriods.forEach(wp => {
+      scrubDate(wp, 'startDate', yearsAgoISO(5));
+      // endDate blank = "runs to trial" — keep blank.
+      scrubDate(wp, 'endDate', '');
+    });
   }
   if (Array.isArray(c.mitigationPeriods)) {
-    c.mitigationPeriods.forEach(mp => { scrubDate(mp, 'startDate'); scrubDate(mp, 'endDate'); });
+    c.mitigationPeriods.forEach(mp => {
+      scrubDate(mp, 'startDate', yearsAgoISO(5));
+      // endDate blank = "runs to trial" — keep blank.
+      scrubDate(mp, 'endDate', '');
+    });
   }
   if (Array.isArray(c.flsaPeriods)) {
     c.flsaPeriods = c.flsaPeriods.map(migrateFlsaPeriod);
-    // Also scrub any rate-change effective dates within each period
-    c.flsaPeriods.forEach(fp => {
-      if (Array.isArray(fp.rateChanges)) {
-        fp.rateChanges.forEach(rc => scrubDate(rc, 'effectiveDate'));
-      }
-    });
+    // Rate-change effective dates are reseeded inside migrateFlsaPeriod above.
   }
   return c;
 }
@@ -1213,11 +1245,12 @@ function computeAll(state) {
 // 5. EXPORT FUNCTIONS
 // ─────────────────────────────────────────────
 // ── ExcelJS helpers ──
-const XL_NAVY={argb:'FF0D1628'};
-const XL_GOLD={argb:'FFC8A55A'};
-const XL_CREAM={argb:'FFF8F5EE'};
+// Brand palette — synced with theworkersfirm.com
+const XL_NAVY={argb:'FF0F2327'};   // deep teal-black, primary dark
+const XL_GOLD={argb:'FFC9A85A'};   // warm accent
+const XL_CREAM={argb:'FFF6F7F3'};  // page bg / alt rows
 const XL_WHITE={argb:'FFFFFFFF'};
-const XL_BORDER_THIN={style:'thin',color:{argb:'FFD0D0D0'}};
+const XL_BORDER_THIN={style:'thin',color:{argb:'FFDCDFDD'}};
 const XL_BORDERS={top:XL_BORDER_THIN,left:XL_BORDER_THIN,bottom:XL_BORDER_THIN,right:XL_BORDER_THIN};
 
 function xlStyleHeader(row){
@@ -1279,7 +1312,7 @@ function buildScenarioExcelSheets(wb,res,scenarioName,state){
   const meta=[['Case Name',state.caseName||''],['Plaintiff',state.plaintiff||''],['Defendant',state.defendant||''],['Attorney',state.attorney||''],['Scenario',scenarioName],['Trial Date',res.scenario.trialDate],['Generated',new Date().toLocaleDateString()]];
   meta.forEach((m,i)=>{
     const r=ws1.getRow(3+i);
-    r.getCell(1).value=m[0]; r.getCell(1).font={bold:true,color:{argb:'FF666666'},size:10};
+    r.getCell(1).value=m[0]; r.getCell(1).font={bold:true,color:{argb:'FF69727B'},size:10};
     r.getCell(2).value=m[1]; r.getCell(2).font={size:10};
   });
   let sRow=11;
@@ -1390,7 +1423,7 @@ function buildScenarioExcelSheets(wb,res,scenarioName,state){
     });
     settings.forEach((m,i)=>{
       const r=ws3.getRow(sStartRow+1+i);
-      r.getCell(1).value=m[0]; r.getCell(1).font={bold:true,color:{argb:'FF666666'},size:10};
+      r.getCell(1).value=m[0]; r.getCell(1).font={bold:true,color:{argb:'FF69727B'},size:10};
       r.getCell(2).value=m[1]; r.getCell(2).font={size:10};
     });
   }
@@ -1416,7 +1449,7 @@ function buildScenarioExcelSheets(wb,res,scenarioName,state){
       [w.weekKey, w.description||'', statusLabels[w.status]||w.status, w.daysInPeriod||7, w.hours||0, w.rate||0, meth, w.otHrs||0, w.ot||0, w.liq||0, note].forEach((v,j)=>{row.getCell(j+1).value=v;});
       // Soft row tinting for non-counted statuses
       if (w.status !== 'counted') {
-        for (let c=1;c<=11;c++) row.getCell(c).font={size:9,color:{argb:'FF888888'},italic:true};
+        for (let c=1;c<=11;c++) row.getCell(c).font={size:9,color:{argb:'FF69727B'},italic:true};
       }
     });
     xlStyleBody(ws4,4,3+res.flsa.weeklyRows.length);
@@ -1471,28 +1504,28 @@ function exportPDF() {
   const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
   const W=doc.internal.pageSize.getWidth();
   // Header bar
-  doc.setFillColor(13,22,40);
+  doc.setFillColor(15,35,39);
   doc.rect(0,0,W,22,'F');
-  doc.setTextColor(200,165,90);
+  doc.setTextColor(201,168,90);
   doc.setFontSize(13);
   doc.setFont('helvetica','bold');
   doc.text("THE WORKERS' FIRM",12,9);
   doc.setFontSize(8.5);
   doc.setFont('helvetica','normal');
-  doc.setTextColor(200,195,185);
+  doc.setTextColor(223,235,236);
   doc.text('Employment Damages Calculator',12,15);
-  doc.setTextColor(200,165,90);
+  doc.setTextColor(201,168,90);
   doc.setFontSize(9);
   doc.text(`Generated: ${new Date().toLocaleDateString()}`,W-12,12,{align:'right'});
   // Title
-  doc.setTextColor(13,22,40);
+  doc.setTextColor(15,35,39);
   doc.setFontSize(17);
   doc.setFont('helvetica','bold');
   doc.text(STATE.caseName||'Employment Damages Report',12,33);
   // Case info
   doc.setFontSize(9.5);
   doc.setFont('helvetica','normal');
-  doc.setTextColor(80,80,80);
+  doc.setTextColor(61,69,73);
   const info=[];
   if (STATE.plaintiff) info.push(['Plaintiff',STATE.plaintiff]);
   if (STATE.defendant) info.push(['Defendant',STATE.defendant]);
@@ -1501,14 +1534,14 @@ function exportPDF() {
   info.push(['Trial Date',res.scenario.trialDate||'—']);
   info.forEach(([k,v],i)=>{
     const col=i%2===0?12:105, row=39+Math.floor(i/2)*6;
-    doc.setTextColor(150,145,135); doc.text(k+':',col,row);
-    doc.setTextColor(30,22,16); doc.text(String(v),col+28,row);
+    doc.setTextColor(105,114,123); doc.text(k+':',col,row);
+    doc.setTextColor(15,35,39); doc.text(String(v),col+28,row);
   });
   // Total banner
   const bannerY=39+Math.ceil(info.length/2)*6+4;
-  doc.setFillColor(13,22,40);
+  doc.setFillColor(15,35,39);
   doc.roundedRect(12,bannerY,W-24,18,3,3,'F');
-  doc.setTextColor(200,165,90);
+  doc.setTextColor(201,168,90);
   doc.setFontSize(9);
   doc.setFont('helvetica','bold');
   doc.text('ESTIMATED TOTAL DAMAGES',16,bannerY+7);
@@ -1516,7 +1549,7 @@ function exportPDF() {
   doc.text($$(res.grand),W-16,bannerY+12,{align:'right'});
   if (res.disc&&res.flsa) {
     doc.setFontSize(8); doc.setFont('helvetica','normal');
-    doc.setTextColor(180,175,165);
+    doc.setTextColor(223,235,236);
     doc.text(`Discrimination: ${$$(res.disc.discTotal)}   FLSA: ${$$(res.flsa.flsaTotal)}`,16,bannerY+14);
   }
   let y=bannerY+26;
@@ -1525,7 +1558,7 @@ function exportPDF() {
     // ADEA: liquidated damages substitute for prejudgment interest. Lorillard v. Pons,
     // 434 U.S. 575, 581 (1978); Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990).
     const xNoInt = (STATE.statutoryBasis === 'adea');
-    doc.setTextColor(13,22,40); doc.setFontSize(12); doc.setFont('helvetica','bold');
+    doc.setTextColor(15,35,39); doc.setFontSize(12); doc.setFont('helvetica','bold');
     doc.text('Back Wages — '+STATE.displayPeriod.charAt(0).toUpperCase()+STATE.displayPeriod.slice(1)+' Breakdown',14,y);
     y+=6;
     const head = xNoInt
@@ -1543,22 +1576,24 @@ function exportPDF() {
     const colStyles = xNoInt
       ? {0:{cellWidth:26},1:{cellWidth:12,halign:'right'},2:{cellWidth:26,halign:'right'},3:{cellWidth:26,halign:'right'},4:{cellWidth:26,halign:'right'},5:{cellWidth:24,halign:'right'},6:{cellWidth:28,halign:'right',fontStyle:'bold'}}
       : {0:{cellWidth:22},1:{cellWidth:10,halign:'right'},2:{cellWidth:24,halign:'right'},3:{cellWidth:24,halign:'right'},4:{cellWidth:24,halign:'right'},5:{cellWidth:20,halign:'right'},6:{cellWidth:20,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}};
-    doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:colStyles,alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
+    doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},columnStyles:colStyles,alternateRowStyles:{fillColor:[246,247,243]},footStyles:{fillColor:[15,35,39],textColor:255,fontStyle:'bold'}});
     y=doc.lastAutoTable.finalY+10;
   }
   // FLSA period summary table
   if (res.flsa&&res.flsa.flsaRows.length) {
     if (y>220){doc.addPage();y=20;}
-    doc.setTextColor(13,22,40); doc.setFontSize(12); doc.setFont('helvetica','bold');
+    doc.setTextColor(15,35,39); doc.setFontSize(12); doc.setFont('helvetica','bold');
     doc.text('FLSA Overtime — Period Summary',14,y);
     y+=6;
     // SOL/willfulness banner line
-    doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.setTextColor(90,80,60);
+    doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.setTextColor(105,114,123);
     const solLine = `Filing date: ${res.flsa.filingDate||'(not set — SOL not applied)'}   |   ${res.flsa.willful?'Willful (3-yr)':'Non-willful (2-yr)'}   |   SOL cutoff: ${res.flsa.cutoff||'—'}`;
     doc.text(solLine,14,y);
-    doc.setFont('helvetica','normal'); doc.setTextColor(13,22,40);
+    doc.setFont('helvetica','normal'); doc.setTextColor(15,35,39);
     y+=4;
-    const head=[['Period / Position','Wks Counted','Excluded','Dropped','OT Hours','OT Wages','Liquidated','Subtotal']];
+    // Short header labels so each column fits on one line within letter-portrait
+    // page width (188 mm usable). Column widths sum to 188 mm exactly.
+    const head=[['Period / Position','Weeks','Excl.','Dropped','OT Hrs','OT Wages','Liq.','Subtotal']];
     const body=res.flsa.flsaRows.map(r=>[
       `${r.startDate} – ${r.endDate||'present'}${r.description?' · '+r.description:''}`,
       String(r.weeksCounted||0), String(r.weeksExcluded||0), String((r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0)),
@@ -1569,14 +1604,14 @@ function exportPDF() {
     const sumDrop=res.flsa.flsaRows.reduce((a,r)=>a+(r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0),0);
     const sumHrs=res.flsa.flsaRows.reduce((a,r)=>a+(r.otHrs||0),0);
     body.push(['FLSA TOTAL',String(sumWks),String(sumExcl),String(sumDrop),sumHrs.toFixed(1),$$(res.flsa.totOT),$$(res.flsa.totLiq),$$(res.flsa.flsaTotal)]);
-    doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:54},1:{cellWidth:18,halign:'right'},2:{cellWidth:16,halign:'right'},3:{cellWidth:16,halign:'right'},4:{cellWidth:18,halign:'right'},5:{cellWidth:22,halign:'right'},6:{cellWidth:22,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
+    doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2,overflow:'linebreak'},headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:60,halign:'left'},1:{cellWidth:14,halign:'right'},2:{cellWidth:14,halign:'right'},3:{cellWidth:18,halign:'right'},4:{cellWidth:16,halign:'right'},5:{cellWidth:22,halign:'right'},6:{cellWidth:18,halign:'right'},7:{cellWidth:26,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[246,247,243]},footStyles:{fillColor:[15,35,39],textColor:255,fontStyle:'bold'}});
     y=doc.lastAutoTable.finalY+10;
 
     // FLSA weekly detail — only the counted/excluded weeks (skip pure SOL/post-trial drops to keep it short)
     const wkRows = (res.flsa.weeklyRows||[]).filter(w => w.status==='counted' || w.status==='user_excluded');
     if (wkRows.length) {
       if (y>220){doc.addPage();y=20;}
-      doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+      doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
       doc.text('FLSA Overtime — Weekly Breakdown',14,y);
       y+=5;
       const reasonLabels = {vacation:'Vacation',fmla:'FMLA',sick:'Sick',suspension:'Suspension',no_work:'No work',other:'Other'};
@@ -1592,7 +1627,7 @@ function exportPDF() {
           (w.otHrs||0).toFixed(1), $$(w.ot||0), $$(w.liq||0), note
         ];
       });
-      doc.autoTable({head:wHead,body:wBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7,cellPadding:1.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:18},1:{cellWidth:24},2:{cellWidth:18},3:{cellWidth:10,halign:'right'},4:{cellWidth:12,halign:'right'},5:{cellWidth:14,halign:'right'},6:{cellWidth:13,halign:'right'},7:{cellWidth:20,halign:'right'},8:{cellWidth:20,halign:'right'},9:{cellWidth:'auto'}},alternateRowStyles:{fillColor:[248,245,238]},didParseCell:function(data){if(data.section==='body'&&wkRows[data.row.index]&&wkRows[data.row.index].status==='user_excluded'){data.cell.styles.textColor=[136,136,136];data.cell.styles.fontStyle='italic';}}});
+      doc.autoTable({head:wHead,body:wBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7,cellPadding:1.5},headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:18},1:{cellWidth:24},2:{cellWidth:18},3:{cellWidth:10,halign:'right'},4:{cellWidth:12,halign:'right'},5:{cellWidth:14,halign:'right'},6:{cellWidth:13,halign:'right'},7:{cellWidth:20,halign:'right'},8:{cellWidth:20,halign:'right'},9:{cellWidth:'auto'}},alternateRowStyles:{fillColor:[246,247,243]},didParseCell:function(data){if(data.section==='body'&&wkRows[data.row.index]&&wkRows[data.row.index].status==='user_excluded'){data.cell.styles.textColor=[136,136,136];data.cell.styles.fontStyle='italic';}}});
       y=doc.lastAutoTable.finalY+10;
     }
   }
@@ -1603,11 +1638,11 @@ function exportPDF() {
   const isAdea = (STATE.statutoryBasis === 'adea') && hasDisc;
   let fnBoxH = (hasFlsa && hasDisc) ? 86 : (hasFlsa ? 70 : 52);
   if (isAdea) fnBoxH += 18;
-  doc.setFillColor(245,242,235);
+  doc.setFillColor(246,247,243);
   doc.roundedRect(12,y,W-24,fnBoxH,2,2,'F');
-  doc.setTextColor(30,22,16); doc.setFontSize(8); doc.setFont('helvetica','bold');
+  doc.setTextColor(15,35,39); doc.setFontSize(8); doc.setFont('helvetica','bold');
   doc.text('Notes & Sources',15,y+6);
-  doc.setFont('helvetica','normal'); doc.setTextColor(70,65,58);
+  doc.setFont('helvetica','normal'); doc.setTextColor(61,69,73);
   const fn1=`1. Prejudgment Interest (Title VII / ADA / FMLA / § 1981 back pay only): Calculated using the IRS underpayment rate under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date. Does not apply to ADEA (see note 6) or FLSA overtime claims (see note 4); updated through the actual date of judgment.`;
   const fn2=`2. Lost Benefits: Estimated at ${(parseFloat(STATE.customBenefitsRate)||BLS[STATE.employerType]||32.5).toFixed(1)}% of gross back wages, reflecting supplementary (voluntary) employer-paid benefits per U.S. Bureau of Labor Statistics, Employer Costs for Employee Compensation (ECEC), Table 1, Q4 2024 (USDL-25-0379, Mar. 2025), www.bls.gov/news.release/ecec.htm. Excludes legally-required costs (Social Security, Medicare, unemployment insurance, workers' compensation). Will be supplemented by actual plan documentation prior to trial.`;
   const fn3=`3. All figures are estimates based on currently available information and are subject to revision. Plaintiff reserves the right to update these calculations through the date of judgment.`;
@@ -1629,23 +1664,23 @@ function exportPDF() {
   doc.addPage();
   y=12;
   // Header bar (same as page 1)
-  doc.setFillColor(13,22,40);
+  doc.setFillColor(15,35,39);
   doc.rect(0,0,W,16,'F');
-  doc.setTextColor(200,165,90);
+  doc.setTextColor(201,168,90);
   doc.setFontSize(11);
   doc.setFont('helvetica','bold');
   doc.text('ADDENDUM — Calculation Inputs & Applicable Interest Rates',12,10);
   doc.setFontSize(8);
   doc.setFont('helvetica','normal');
-  doc.setTextColor(200,195,185);
+  doc.setTextColor(223,235,236);
   doc.text(STATE.caseName||'Employment Damages Report',W-12,10,{align:'right'});
   y=24;
 
   // ── Section 1: DOL Interest Rates ──
-  doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
   doc.text('A. DOL Prejudgment Interest Rates (26 U.S.C. § 6621)',14,y);
   y+=3;
-  doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+  doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(61,69,73);
   doc.text('IRS underpayment rate applied quarterly. Custom overrides shown where applicable.',14,y+3);
   y+=8;
 
@@ -1664,8 +1699,8 @@ function exportPDF() {
       return [`${r.y} Q${r.q}`,`${r.r}%`,`${applied}%`,isCustom?'Yes (overridden)':'No'];
     });
     doc.autoTable({head:rateHead,body:rateBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2},
-      headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
-      alternateRowStyles:{fillColor:[248,245,238]},
+      headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[246,247,243]},
       columnStyles:{0:{cellWidth:28},1:{cellWidth:28,halign:'center'},2:{cellWidth:28,halign:'center'},3:{cellWidth:36}}
     });
     y=doc.lastAutoTable.finalY+10;
@@ -1673,7 +1708,7 @@ function exportPDF() {
 
   // ── Section 2: Input Summary ──
   if (y>200){doc.addPage();y=20;}
-  doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
   doc.text('B. Compensation Inputs Summary',14,y);
   y+=7;
 
@@ -1703,15 +1738,15 @@ function exportPDF() {
 
   if (wageBody.length) {
     doc.autoTable({head:wageHead,body:wageBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2},
-      headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
-      alternateRowStyles:{fillColor:[248,245,238]}
+      headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[246,247,243]}
     });
     y=doc.lastAutoTable.finalY+8;
   }
 
   // Benefits method
   if (y>230){doc.addPage();y=20;}
-  doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
   doc.text('C. Benefits & Mitigation',14,y);
   y+=7;
 
@@ -1733,8 +1768,8 @@ function exportPDF() {
   });
 
   doc.autoTable({head:infoHead,body:infoBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2.5},
-    headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[248,245,238]},
+    headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},
+    alternateRowStyles:{fillColor:[246,247,243]},
     columnStyles:{0:{cellWidth:50,fontStyle:'bold'}}
   });
   y=doc.lastAutoTable.finalY+8;
@@ -1746,21 +1781,21 @@ function exportPDF() {
     return [`#${i+1}`,inc.date,inc.endDate||'Ongoing',typeLabel,inc.description||'—'];
   });
   if (incBody.length) {
-    doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
     doc.text('D. Adverse Employment Actions',14,y);
     y+=7;
     doc.autoTable({head:[['#','Date','End Date','Type','Description']],body:incBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2},
-      headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
-      alternateRowStyles:{fillColor:[248,245,238]}
+      headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[246,247,243]}
     });
     y=doc.lastAutoTable.finalY+8;
   }
 
   // Footer disclaimer on addendum
   if (y>240){doc.addPage();y=20;}
-  doc.setFillColor(245,242,235);
+  doc.setFillColor(246,247,243);
   doc.roundedRect(12,y,W-24,16,2,2,'F');
-  doc.setTextColor(100,95,88); doc.setFontSize(7); doc.setFont('helvetica','italic');
+  doc.setTextColor(105,114,123); doc.setFontSize(7); doc.setFont('helvetica','italic');
   doc.text('This addendum is provided for reference purposes. All inputs are subject to revision as additional discovery is received. Generated by The Workers\' Firm Employment Damages Calculator.',15,y+7,{maxWidth:W-30});
 
   doc.save((STATE.caseName||STATE.plaintiff||'damages')+'-report.pdf');
@@ -1788,28 +1823,28 @@ function exportAllPDF() {
   scenarioResults.forEach((res,sIdx)=>{
     if(sIdx>0) doc.addPage();
     // Header bar
-    doc.setFillColor(13,22,40);
+    doc.setFillColor(15,35,39);
     doc.rect(0,0,W,22,'F');
-    doc.setTextColor(200,165,90);
+    doc.setTextColor(201,168,90);
     doc.setFontSize(13);
     doc.setFont('helvetica','bold');
     doc.text("THE WORKERS' FIRM",12,9);
     doc.setFontSize(8.5);
     doc.setFont('helvetica','normal');
-    doc.setTextColor(200,195,185);
+    doc.setTextColor(223,235,236);
     doc.text('Employment Damages Calculator',12,15);
-    doc.setTextColor(200,165,90);
+    doc.setTextColor(201,168,90);
     doc.setFontSize(9);
     doc.text(`Generated: ${new Date().toLocaleDateString()}`,W-12,12,{align:'right'});
     // Title
-    doc.setTextColor(13,22,40);
+    doc.setTextColor(15,35,39);
     doc.setFontSize(17);
     doc.setFont('helvetica','bold');
     doc.text(s.caseName||'Employment Damages Report',12,33);
     // Case info
     doc.setFontSize(9.5);
     doc.setFont('helvetica','normal');
-    doc.setTextColor(80,80,80);
+    doc.setTextColor(61,69,73);
     const info=[];
     if(s.plaintiff) info.push(['Plaintiff',s.plaintiff]);
     if(s.defendant) info.push(['Defendant',s.defendant]);
@@ -1818,14 +1853,14 @@ function exportAllPDF() {
     info.push(['Trial Date',res.scenario.trialDate||'—']);
     info.forEach(([k,v],i)=>{
       const col=i%2===0?12:105, row=39+Math.floor(i/2)*6;
-      doc.setTextColor(150,145,135); doc.text(k+':',col,row);
-      doc.setTextColor(30,22,16); doc.text(String(v),col+28,row);
+      doc.setTextColor(105,114,123); doc.text(k+':',col,row);
+      doc.setTextColor(15,35,39); doc.text(String(v),col+28,row);
     });
     // Total banner
     const bannerY=39+Math.ceil(info.length/2)*6+4;
-    doc.setFillColor(13,22,40);
+    doc.setFillColor(15,35,39);
     doc.roundedRect(12,bannerY,W-24,18,3,3,'F');
-    doc.setTextColor(200,165,90);
+    doc.setTextColor(201,168,90);
     doc.setFontSize(9);
     doc.setFont('helvetica','bold');
     doc.text('ESTIMATED TOTAL DAMAGES',16,bannerY+7);
@@ -1833,7 +1868,7 @@ function exportAllPDF() {
     doc.text($$(res.grand),W-16,bannerY+12,{align:'right'});
     if(res.disc&&res.flsa){
       doc.setFontSize(8); doc.setFont('helvetica','normal');
-      doc.setTextColor(180,175,165);
+      doc.setTextColor(223,235,236);
       doc.text(`Discrimination: ${$$(res.disc.discTotal)}   FLSA: ${$$(res.flsa.flsaTotal)}`,16,bannerY+14);
     }
     let y=bannerY+26;
@@ -1842,7 +1877,7 @@ function exportAllPDF() {
       // ADEA: liquidated damages substitute for prejudgment interest. Lorillard v. Pons,
       // 434 U.S. 575, 581 (1978); Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990).
       const xNoInt = (s.statutoryBasis === 'adea');
-      doc.setTextColor(13,22,40); doc.setFontSize(12); doc.setFont('helvetica','bold');
+      doc.setTextColor(15,35,39); doc.setFontSize(12); doc.setFont('helvetica','bold');
       doc.text('Back Wages — '+s.displayPeriod.charAt(0).toUpperCase()+s.displayPeriod.slice(1)+' Breakdown',14,y);
       y+=6;
       const head = xNoInt
@@ -1860,21 +1895,22 @@ function exportAllPDF() {
       const colStyles = xNoInt
         ? {0:{cellWidth:26},1:{cellWidth:12,halign:'right'},2:{cellWidth:26,halign:'right'},3:{cellWidth:26,halign:'right'},4:{cellWidth:26,halign:'right'},5:{cellWidth:24,halign:'right'},6:{cellWidth:28,halign:'right',fontStyle:'bold'}}
         : {0:{cellWidth:22},1:{cellWidth:10,halign:'right'},2:{cellWidth:24,halign:'right'},3:{cellWidth:24,halign:'right'},4:{cellWidth:24,halign:'right'},5:{cellWidth:20,halign:'right'},6:{cellWidth:20,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}};
-      doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:colStyles,alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
+      doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},columnStyles:colStyles,alternateRowStyles:{fillColor:[246,247,243]},footStyles:{fillColor:[15,35,39],textColor:255,fontStyle:'bold'}});
       y=doc.lastAutoTable.finalY+10;
     }
     // FLSA period summary table
     if(res.flsa&&res.flsa.flsaRows.length){
       if(y>220){doc.addPage();y=20;}
-      doc.setTextColor(13,22,40); doc.setFontSize(12); doc.setFont('helvetica','bold');
+      doc.setTextColor(15,35,39); doc.setFontSize(12); doc.setFont('helvetica','bold');
       doc.text('FLSA Overtime — Period Summary',14,y);
       y+=6;
-      doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.setTextColor(90,80,60);
+      doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.setTextColor(105,114,123);
       const solLine = `Filing date: ${res.flsa.filingDate||'(not set — SOL not applied)'}   |   ${res.flsa.willful?'Willful (3-yr)':'Non-willful (2-yr)'}   |   SOL cutoff: ${res.flsa.cutoff||'—'}`;
       doc.text(solLine,14,y);
-      doc.setFont('helvetica','normal'); doc.setTextColor(13,22,40);
+      doc.setFont('helvetica','normal'); doc.setTextColor(15,35,39);
       y+=4;
-      const head=[['Period / Position','Wks Counted','Excluded','Dropped','OT Hours','OT Wages','Liquidated','Subtotal']];
+      // Short header labels so each column fits on one line (see main PDF path).
+      const head=[['Period / Position','Weeks','Excl.','Dropped','OT Hrs','OT Wages','Liq.','Subtotal']];
       const body=res.flsa.flsaRows.map(r=>[
         `${r.startDate} – ${r.endDate||'present'}${r.description?' · '+r.description:''}`,
         String(r.weeksCounted||0), String(r.weeksExcluded||0), String((r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0)),
@@ -1885,13 +1921,13 @@ function exportAllPDF() {
       const sumDrop=res.flsa.flsaRows.reduce((a,r)=>a+(r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0),0);
       const sumHrs=res.flsa.flsaRows.reduce((a,r)=>a+(r.otHrs||0),0);
       body.push(['FLSA TOTAL',String(sumWks),String(sumExcl),String(sumDrop),sumHrs.toFixed(1),$$(res.flsa.totOT),$$(res.flsa.totLiq),$$(res.flsa.flsaTotal)]);
-      doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:54},1:{cellWidth:18,halign:'right'},2:{cellWidth:16,halign:'right'},3:{cellWidth:16,halign:'right'},4:{cellWidth:18,halign:'right'},5:{cellWidth:22,halign:'right'},6:{cellWidth:22,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
+      doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2,overflow:'linebreak'},headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:60,halign:'left'},1:{cellWidth:14,halign:'right'},2:{cellWidth:14,halign:'right'},3:{cellWidth:18,halign:'right'},4:{cellWidth:16,halign:'right'},5:{cellWidth:22,halign:'right'},6:{cellWidth:18,halign:'right'},7:{cellWidth:26,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[246,247,243]},footStyles:{fillColor:[15,35,39],textColor:255,fontStyle:'bold'}});
       y=doc.lastAutoTable.finalY+10;
 
       const wkRows = (res.flsa.weeklyRows||[]).filter(w => w.status==='counted' || w.status==='user_excluded');
       if (wkRows.length) {
         if (y>220){doc.addPage();y=20;}
-        doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+        doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
         doc.text('FLSA Overtime — Weekly Breakdown',14,y);
         y+=5;
         const reasonLabels = {vacation:'Vacation',fmla:'FMLA',sick:'Sick',suspension:'Suspension',no_work:'No work',other:'Other'};
@@ -1907,7 +1943,7 @@ function exportAllPDF() {
             (w.otHrs||0).toFixed(1), $$(w.ot||0), $$(w.liq||0), note
           ];
         });
-        doc.autoTable({head:wHead,body:wBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7,cellPadding:1.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:18},1:{cellWidth:24},2:{cellWidth:18},3:{cellWidth:10,halign:'right'},4:{cellWidth:12,halign:'right'},5:{cellWidth:14,halign:'right'},6:{cellWidth:13,halign:'right'},7:{cellWidth:20,halign:'right'},8:{cellWidth:20,halign:'right'},9:{cellWidth:'auto'}},alternateRowStyles:{fillColor:[248,245,238]},didParseCell:function(data){if(data.section==='body'&&wkRows[data.row.index]&&wkRows[data.row.index].status==='user_excluded'){data.cell.styles.textColor=[136,136,136];data.cell.styles.fontStyle='italic';}}});
+        doc.autoTable({head:wHead,body:wBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7,cellPadding:1.5},headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:18},1:{cellWidth:24},2:{cellWidth:18},3:{cellWidth:10,halign:'right'},4:{cellWidth:12,halign:'right'},5:{cellWidth:14,halign:'right'},6:{cellWidth:13,halign:'right'},7:{cellWidth:20,halign:'right'},8:{cellWidth:20,halign:'right'},9:{cellWidth:'auto'}},alternateRowStyles:{fillColor:[246,247,243]},didParseCell:function(data){if(data.section==='body'&&wkRows[data.row.index]&&wkRows[data.row.index].status==='user_excluded'){data.cell.styles.textColor=[136,136,136];data.cell.styles.fontStyle='italic';}}});
         y=doc.lastAutoTable.finalY+10;
       }
     }
@@ -1918,11 +1954,11 @@ function exportAllPDF() {
     const isAdea = (s.statutoryBasis === 'adea') && hasDisc;
     let fnBoxH = (hasFlsa && hasDisc) ? 86 : (hasFlsa ? 70 : 52);
     if (isAdea) fnBoxH += 18;
-    doc.setFillColor(245,242,235);
+    doc.setFillColor(246,247,243);
     doc.roundedRect(12,y,W-24,fnBoxH,2,2,'F');
-    doc.setTextColor(30,22,16); doc.setFontSize(8); doc.setFont('helvetica','bold');
+    doc.setTextColor(15,35,39); doc.setFontSize(8); doc.setFont('helvetica','bold');
     doc.text('Notes & Sources',15,y+6);
-    doc.setFont('helvetica','normal'); doc.setTextColor(70,65,58);
+    doc.setFont('helvetica','normal'); doc.setTextColor(61,69,73);
     const fn1=`1. Prejudgment Interest (Title VII / ADA / FMLA / § 1981 back pay only): Calculated using the IRS underpayment rate under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date. Does not apply to ADEA (see note 6) or FLSA overtime claims (see note 4); updated through the actual date of judgment.`;
     const fn2=`2. Lost Benefits: Estimated at ${(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5).toFixed(1)}% of gross back wages, reflecting supplementary (voluntary) employer-paid benefits per U.S. Bureau of Labor Statistics, Employer Costs for Employee Compensation (ECEC), Table 1, Q4 2024 (USDL-25-0379, Mar. 2025), www.bls.gov/news.release/ecec.htm. Excludes legally-required costs (Social Security, Medicare, unemployment insurance, workers' compensation). Will be supplemented by actual plan documentation prior to trial.`;
     const fn3=`3. All figures are estimates based on currently available information and are subject to revision. Plaintiff reserves the right to update these calculations through the date of judgment.`;
@@ -1943,23 +1979,23 @@ function exportAllPDF() {
     // Addendum
     doc.addPage();
     y=12;
-    doc.setFillColor(13,22,40);
+    doc.setFillColor(15,35,39);
     doc.rect(0,0,W,16,'F');
-    doc.setTextColor(200,165,90);
+    doc.setTextColor(201,168,90);
     doc.setFontSize(11);
     doc.setFont('helvetica','bold');
     doc.text('ADDENDUM — Calculation Inputs & Applicable Interest Rates',12,10);
     doc.setFontSize(8);
     doc.setFont('helvetica','normal');
-    doc.setTextColor(200,195,185);
+    doc.setTextColor(223,235,236);
     doc.text((s.caseName||'Employment Damages Report')+' — '+res.scenario.name,W-12,10,{align:'right'});
     y=24;
 
     // Section A: DOL rates
-    doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
     doc.text('A. DOL Prejudgment Interest Rates (26 U.S.C. § 6621)',14,y);
     y+=3;
-    doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(80,80,80);
+    doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(61,69,73);
     doc.text('IRS underpayment rate applied quarterly. Custom overrides shown where applicable.',14,y+3);
     y+=8;
     const allDates2=s.incidents.filter(i=>i.date).map(i=>new Date(i.date+'T12:00:00'));
@@ -1975,15 +2011,15 @@ function exportAllPDF() {
         return [`${r.y} Q${r.q}`,`${r.r}%`,`${applied}%`,isCustom?'Yes (overridden)':'No'];
       });
       doc.autoTable({head:rateHead,body:rateBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2},
-        headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
-        alternateRowStyles:{fillColor:[248,245,238]},
+        headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},
+        alternateRowStyles:{fillColor:[246,247,243]},
         columnStyles:{0:{cellWidth:28},1:{cellWidth:28,halign:'center'},2:{cellWidth:28,halign:'center'},3:{cellWidth:36}}
       });
       y=doc.lastAutoTable.finalY+10;
     }
     // Section B: Inputs
     if(y>200){doc.addPage();y=20;}
-    doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
     doc.text('B. Compensation Inputs Summary',14,y);
     y+=7;
     const wageHead=[['Period','Type','Base Pay','Annual Increase','Bonus','Commissions','Source']];
@@ -1998,14 +2034,14 @@ function exportAllPDF() {
     });
     if(wageBody.length){
       doc.autoTable({head:wageHead,body:wageBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2},
-        headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
-        alternateRowStyles:{fillColor:[248,245,238]}
+        headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},
+        alternateRowStyles:{fillColor:[246,247,243]}
       });
       y=doc.lastAutoTable.finalY+8;
     }
     // Section C: Benefits & Mitigation
     if(y>230){doc.addPage();y=20;}
-    doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
     doc.text('C. Benefits & Mitigation',14,y);
     y+=7;
     const benefitsRate=(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5).toFixed(1);
@@ -2022,8 +2058,8 @@ function exportAllPDF() {
       infoBody.push([`Mitigation #${i+1}: ${mp.employer||'—'}`,`$${Number(mp.annualWages).toLocaleString()}/yr (${mp.startDate}${mp.endDate?' – '+mp.endDate:' – trial'})`]);
     });
     doc.autoTable({head:infoHead,body:infoBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2.5},
-      headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
-      alternateRowStyles:{fillColor:[248,245,238]},
+      headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[246,247,243]},
       columnStyles:{0:{cellWidth:50,fontStyle:'bold'}}
     });
     y=doc.lastAutoTable.finalY+8;
@@ -2034,20 +2070,20 @@ function exportAllPDF() {
       return [`#${i+1}`,inc.date,inc.endDate||'Ongoing',typeLabel,inc.description||'—'];
     });
     if(incBody.length){
-      doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+      doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
       doc.text('D. Adverse Employment Actions',14,y);
       y+=7;
       doc.autoTable({head:[['#','Date','End Date','Type','Description']],body:incBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2},
-        headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},
-        alternateRowStyles:{fillColor:[248,245,238]}
+        headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},
+        alternateRowStyles:{fillColor:[246,247,243]}
       });
       y=doc.lastAutoTable.finalY+8;
     }
     // Footer disclaimer
     if(y>240){doc.addPage();y=20;}
-    doc.setFillColor(245,242,235);
+    doc.setFillColor(246,247,243);
     doc.roundedRect(12,y,W-24,16,2,2,'F');
-    doc.setTextColor(100,95,88); doc.setFontSize(7); doc.setFont('helvetica','italic');
+    doc.setTextColor(105,114,123); doc.setFontSize(7); doc.setFont('helvetica','italic');
     doc.text('This addendum is provided for reference purposes. All inputs are subject to revision as additional discovery is received. Generated by The Workers\' Firm Employment Damages Calculator.',15,y+7,{maxWidth:W-30});
   });
 
@@ -2067,6 +2103,10 @@ function showTab(name) {
 
 function renderTab() {
   const el=document.getElementById('tab-content');
+  // Preserve scroll position so users don't get jumped to the top when an
+  // in-place control (month toggle, week exclude/reset, rate change, etc.)
+  // triggers a full re-render of the tab.
+  const prevScroll = el ? el.scrollTop : 0;
   switch(activeTab) {
     case 'setup': el.innerHTML=renderSetup(); break;
     case 'incidents': el.innerHTML=renderIncidents(); break;
@@ -2079,12 +2119,66 @@ function renderTab() {
   }
   attachInputListeners();
   updateHeaderTotal();
+  if (el) el.scrollTop = prevScroll;
 }
 
 function attachInputListeners() {
   document.querySelectorAll('#tab-content input, #tab-content select, #tab-content textarea').forEach(el=>{
     el.addEventListener('change',handleChange);
     if (el.tagName==='INPUT'&&el.type!=='radio'&&el.type!=='checkbox') el.addEventListener('input',handleChange);
+  });
+  // Anchor empty date pickers to a recent year so the calendar widget opens
+  // in the right decade instead of at year 0001/0005 (browser default for
+  // empty <input type="date"> fields). We seed the value on focus, then
+  // clear it on blur if the user didn't actually pick something — so blank
+  // remains a meaningful state ("runs to trial", "ongoing").
+  document.querySelectorAll('#tab-content input[type="date"]').forEach(el => {
+    el.addEventListener('focus', () => {
+      if (!el.value) {
+        // Pick an anchor inside [min, max] — prefer today, fall back to max, then min.
+        const max = el.getAttribute('max');
+        const min = el.getAttribute('min');
+        const today = todayISO();
+        let anchor = today;
+        if (max && today > max) anchor = max;
+        else if (min && today < min) anchor = min;
+        el.dataset.anchored = '1';
+        el.value = anchor;
+      }
+    });
+    el.addEventListener('blur', () => {
+      // If we anchored an empty field and the user didn't actually change it,
+      // restore blank so the field's "runs to trial / ongoing" semantics survive.
+      if (el.dataset.anchored === '1') {
+        delete el.dataset.anchored;
+        // If the underlying STATE never received this value (handleChange writes it),
+        // we can detect that by reading STATE for the input's data-list/data-field.
+        // Simpler heuristic: if the value still equals the anchor we set AND the
+        // user never typed/picked, clear it. We can't perfectly detect "didn't pick",
+        // so we always clear on blur — if they DID pick the same date as the anchor,
+        // change event already fired and STATE is updated; renderTab() will repaint
+        // it back. The clear here only affects the visible DOM until next render.
+        // Safest: only clear if STATE says the field is empty.
+        const list = el.getAttribute('data-list');
+        const idx = el.getAttribute('data-idx');
+        const field = el.getAttribute('data-field');
+        const key = el.getAttribute('data-key');
+        const rcId = el.getAttribute('data-rate-change-id');
+        let stored = null;
+        try {
+          if (key) stored = STATE[key];
+          else if (list && idx !== null && field) {
+            const item = STATE[list]?.[Number(idx)];
+            if (rcId && Array.isArray(item?.rateChanges)) {
+              stored = item.rateChanges.find(r => r.id === rcId)?.[field];
+            } else if (item) {
+              stored = item[field];
+            }
+          }
+        } catch {}
+        if (!stored) el.value = '';
+      }
+    });
   });
 }
 
@@ -2103,7 +2197,16 @@ function handleChange(e) {
   const field=el.dataset.field;
   const overridesKey=el.dataset.overridesKey;
   const rateChangeId=el.dataset.rateChangeId;
-  const val=el.type==='checkbox'?el.checked:el.value;
+  let val=el.type==='checkbox'?el.checked:el.value;
+  // Reject obvious year-typo dates (e.g. 0002-01-24 from typing "2-1-24" into
+  // a date field). The browser's min/max only blocks on form submit; on
+  // 'input' events we have to gate it ourselves. Empty string passes — blank
+  // is meaningful for end-date fields ("runs to trial").
+  if (el.type === 'date' && val && !isValidISODate(val)) {
+    // Don't write the bad value to STATE — just ignore until they finish typing
+    // a valid date.
+    return;
+  }
   // Per-week override (FLSA weekly grid): list=flsaPeriods, idx, data-overrides-key=weekKey, data-field
   if (list==='flsaPeriods' && idx!==null && overridesKey && field) {
     const fp = STATE.flsaPeriods[idx];
