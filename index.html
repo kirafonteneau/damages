@@ -1581,7 +1581,9 @@ function exportPDF() {
     doc.text(solLine,14,y);
     doc.setFont('helvetica','normal'); doc.setTextColor(13,22,40);
     y+=4;
-    const head=[['Period / Position','Wks Counted','Excluded','Dropped','OT Hours','OT Wages','Liquidated','Subtotal']];
+    // Short header labels so each column fits on one line within letter-portrait
+    // page width (188 mm usable). Column widths sum to 188 mm exactly.
+    const head=[['Period / Position','Weeks','Excl.','Dropped','OT Hrs','OT Wages','Liq.','Subtotal']];
     const body=res.flsa.flsaRows.map(r=>[
       `${r.startDate} – ${r.endDate||'present'}${r.description?' · '+r.description:''}`,
       String(r.weeksCounted||0), String(r.weeksExcluded||0), String((r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0)),
@@ -1592,7 +1594,7 @@ function exportPDF() {
     const sumDrop=res.flsa.flsaRows.reduce((a,r)=>a+(r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0),0);
     const sumHrs=res.flsa.flsaRows.reduce((a,r)=>a+(r.otHrs||0),0);
     body.push(['FLSA TOTAL',String(sumWks),String(sumExcl),String(sumDrop),sumHrs.toFixed(1),$$(res.flsa.totOT),$$(res.flsa.totLiq),$$(res.flsa.flsaTotal)]);
-    doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:54},1:{cellWidth:18,halign:'right'},2:{cellWidth:16,halign:'right'},3:{cellWidth:16,halign:'right'},4:{cellWidth:18,halign:'right'},5:{cellWidth:22,halign:'right'},6:{cellWidth:22,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
+    doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2,overflow:'linebreak'},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:60,halign:'left'},1:{cellWidth:14,halign:'right'},2:{cellWidth:14,halign:'right'},3:{cellWidth:18,halign:'right'},4:{cellWidth:16,halign:'right'},5:{cellWidth:22,halign:'right'},6:{cellWidth:18,halign:'right'},7:{cellWidth:26,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
     y=doc.lastAutoTable.finalY+10;
 
     // FLSA weekly detail — only the counted/excluded weeks (skip pure SOL/post-trial drops to keep it short)
@@ -1897,7 +1899,8 @@ function exportAllPDF() {
       doc.text(solLine,14,y);
       doc.setFont('helvetica','normal'); doc.setTextColor(13,22,40);
       y+=4;
-      const head=[['Period / Position','Wks Counted','Excluded','Dropped','OT Hours','OT Wages','Liquidated','Subtotal']];
+      // Short header labels so each column fits on one line (see main PDF path).
+      const head=[['Period / Position','Weeks','Excl.','Dropped','OT Hrs','OT Wages','Liq.','Subtotal']];
       const body=res.flsa.flsaRows.map(r=>[
         `${r.startDate} – ${r.endDate||'present'}${r.description?' · '+r.description:''}`,
         String(r.weeksCounted||0), String(r.weeksExcluded||0), String((r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0)),
@@ -1908,7 +1911,7 @@ function exportAllPDF() {
       const sumDrop=res.flsa.flsaRows.reduce((a,r)=>a+(r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0),0);
       const sumHrs=res.flsa.flsaRows.reduce((a,r)=>a+(r.otHrs||0),0);
       body.push(['FLSA TOTAL',String(sumWks),String(sumExcl),String(sumDrop),sumHrs.toFixed(1),$$(res.flsa.totOT),$$(res.flsa.totLiq),$$(res.flsa.flsaTotal)]);
-      doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:54},1:{cellWidth:18,halign:'right'},2:{cellWidth:16,halign:'right'},3:{cellWidth:16,halign:'right'},4:{cellWidth:18,halign:'right'},5:{cellWidth:22,halign:'right'},6:{cellWidth:22,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
+      doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2,overflow:'linebreak'},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:60,halign:'left'},1:{cellWidth:14,halign:'right'},2:{cellWidth:14,halign:'right'},3:{cellWidth:18,halign:'right'},4:{cellWidth:16,halign:'right'},5:{cellWidth:22,halign:'right'},6:{cellWidth:18,halign:'right'},7:{cellWidth:26,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
       y=doc.lastAutoTable.finalY+10;
 
       const wkRows = (res.flsa.weeklyRows||[]).filter(w => w.status==='counted' || w.status==='user_excluded');
