@@ -389,7 +389,7 @@ function defaultCase(name='New Case') {
     savedAt: null,
     caseName:'', plaintiff:'', defendant:'', attorney:'',
     complaintFiledDate:'',
-    employerType:'private', claimType:'both',
+    employerType:'private', claimType:'both', statutoryBasis:'title_vii',
     benefitsMethod:'estimate', customBenefitsRate:'',
     scenarios:[{id:sid, name:'To Trial', trialDate:'', flsaWillful:true}],
     activeScenarioId: sid,
@@ -453,6 +453,7 @@ function scrubDate(obj, field) {
 function migrateCase(c) {
   if (!c || typeof c !== 'object') return c;
   if (c.complaintFiledDate === undefined) c.complaintFiledDate = '';
+  if (c.statutoryBasis === undefined) c.statutoryBasis = 'title_vii';
   scrubDate(c, 'complaintFiledDate');
   if (Array.isArray(c.scenarios)) {
     c.scenarios = c.scenarios.map(s => {
@@ -1025,7 +1026,11 @@ function computeDiscrimination(state, trialDate) {
     const netBP=Math.max(0,expWages-mitWages);
     const benefits=state.benefitsMethod==='w2'?w2Ben*(dd/365):netBP*bRate;
     const mid=new Date((unit.start.getTime()+unit.end.getTime())/2);
-    const interest=calcInterest(netBP+benefits, mid.toISOString().slice(0,10), trialDate, state.customRates);
+    // ADEA: liquidated damages substitute for prejudgment interest. Lorillard v. Pons,
+    // 434 U.S. 575, 581 (1978); Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990).
+    const interest = (state.statutoryBasis === 'adea')
+      ? 0
+      : calcInterest(netBP+benefits, mid.toISOString().slice(0,10), trialDate, state.customRates);
     totBP+=netBP; totMit+=mitWages; totBen+=benefits; totInt+=interest;
     rows.push({label:unit.label,start:unit.start,end:unit.end,dd:Math.round(dd),expWages,mitWages,netBP,benefits,interest,sub:netBP+benefits+interest});
   }
@@ -1282,7 +1287,12 @@ function buildScenarioExcelSheets(wb,res,scenarioName,state){
   sRow++;
   const summaryItems=[];
   if(res.disc){
-    summaryItems.push(['Back Pay (net)',res.disc.totBP],['Lost Benefits',res.disc.totBen],['Prejudgment Interest',res.disc.totInt],['Discrimination Subtotal',res.disc.discTotal]);
+    // ADEA: liquidated damages substitute for prejudgment interest. Lorillard v. Pons,
+    // 434 U.S. 575, 581 (1978); Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990).
+    const xNoInt = (state.statutoryBasis === 'adea');
+    summaryItems.push(['Back Pay (net)',res.disc.totBP],['Lost Benefits',res.disc.totBen]);
+    if (!xNoInt) summaryItems.push(['Prejudgment Interest',res.disc.totInt]);
+    summaryItems.push(['Discrimination Subtotal',res.disc.discTotal]);
   }
   if(res.flsa){
     // FLSA: liquidated damages serve in lieu of prejudgment interest (Brooklyn Sav. Bank v. O'Neil) — no separate interest line.
@@ -1306,25 +1316,39 @@ function buildScenarioExcelSheets(wb,res,scenarioName,state){
 
   // Back wages sheet
   if(res.disc&&res.disc.rows.length){
+    const xNoInt = (state.statutoryBasis === 'adea');
     const ws2=wb.addWorksheet('Back Wages'+suffix);
-    xlSectionTitle(ws2,1,'Estimated Back Wages — '+state.displayPeriod.charAt(0).toUpperCase()+state.displayPeriod.slice(1)+' Breakdown',9);
-    const hdr=['Period','Days','Expected Wages','Mitigation (-)','Net Back Pay','Benefits','Interest','Subtotal','Running Total'];
+    const colSpan = xNoInt ? 8 : 9;
+    xlSectionTitle(ws2,1,'Estimated Back Wages — '+state.displayPeriod.charAt(0).toUpperCase()+state.displayPeriod.slice(1)+' Breakdown',colSpan);
+    const hdr = xNoInt
+      ? ['Period','Days','Expected Wages','Mitigation (-)','Net Back Pay','Benefits','Subtotal','Running Total']
+      : ['Period','Days','Expected Wages','Mitigation (-)','Net Back Pay','Benefits','Interest','Subtotal','Running Total'];
     const hdrRow=ws2.getRow(3);
     hdr.forEach((h,i)=>{hdrRow.getCell(i+1).value=h;});
     xlStyleHeader(hdrRow);
     let runTotal=0;
     res.disc.rows.forEach((r,i)=>{
-      runTotal+=r.sub;
+      const sub = xNoInt ? (r.netBP + r.benefits) : r.sub;
+      runTotal += sub;
       const row=ws2.getRow(4+i);
-      [r.label,r.dd,r.expWages,r.mitWages,r.netBP,r.benefits,r.interest,r.sub,runTotal].forEach((v,j)=>{row.getCell(j+1).value=v;});
+      const vals = xNoInt
+        ? [r.label,r.dd,r.expWages,r.mitWages,r.netBP,r.benefits,sub,runTotal]
+        : [r.label,r.dd,r.expWages,r.mitWages,r.netBP,r.benefits,r.interest,sub,runTotal];
+      vals.forEach((v,j)=>{row.getCell(j+1).value=v;});
     });
     xlStyleBody(ws2,4,3+res.disc.rows.length);
-    xlNumFmt(ws2,[3,4,5,6,7,8,9],4,3+res.disc.rows.length);
+    const numCols = xNoInt ? [3,4,5,6,7,8] : [3,4,5,6,7,8,9];
+    xlNumFmt(ws2,numCols,4,3+res.disc.rows.length);
     const totRow=ws2.getRow(4+res.disc.rows.length);
-    ['TOTALS','',res.disc.rows.reduce((a,r)=>a+r.expWages,0),res.disc.totMit,res.disc.totBP,res.disc.totBen,res.disc.totInt,res.disc.discTotal,res.disc.discTotal].forEach((v,j)=>{totRow.getCell(j+1).value=v;});
+    const totVals = xNoInt
+      ? ['TOTALS','',res.disc.rows.reduce((a,r)=>a+r.expWages,0),res.disc.totMit,res.disc.totBP,res.disc.totBen,res.disc.discTotal,res.disc.discTotal]
+      : ['TOTALS','',res.disc.rows.reduce((a,r)=>a+r.expWages,0),res.disc.totMit,res.disc.totBP,res.disc.totBen,res.disc.totInt,res.disc.discTotal,res.disc.discTotal];
+    totVals.forEach((v,j)=>{totRow.getCell(j+1).value=v;});
     xlStyleTotals(totRow);
-    xlNumFmt(ws2,[3,4,5,6,7,8,9],4+res.disc.rows.length,4+res.disc.rows.length);
-    ws2.columns=[{width:20},{width:8},{width:18},{width:18},{width:18},{width:16},{width:16},{width:18},{width:18}];
+    xlNumFmt(ws2,numCols,4+res.disc.rows.length,4+res.disc.rows.length);
+    ws2.columns = xNoInt
+      ? [{width:20},{width:8},{width:18},{width:18},{width:18},{width:16},{width:18},{width:18}]
+      : [{width:20},{width:8},{width:18},{width:18},{width:18},{width:16},{width:16},{width:18},{width:18}];
   }
 
   // FLSA period summary sheet
@@ -1498,13 +1522,28 @@ function exportPDF() {
   let y=bannerY+26;
   // Back wages table
   if (res.disc&&res.disc.rows.length) {
+    // ADEA: liquidated damages substitute for prejudgment interest. Lorillard v. Pons,
+    // 434 U.S. 575, 581 (1978); Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990).
+    const xNoInt = (STATE.statutoryBasis === 'adea');
     doc.setTextColor(13,22,40); doc.setFontSize(12); doc.setFont('helvetica','bold');
     doc.text('Back Wages — '+STATE.displayPeriod.charAt(0).toUpperCase()+STATE.displayPeriod.slice(1)+' Breakdown',14,y);
     y+=6;
-    const head=[['Period','Days','Expected','Mitigation (-)','Net Back Pay','Benefits','Interest','Subtotal']];
-    const body=res.disc.rows.map(r=>[r.label,r.dd,$$(r.expWages),$$(r.mitWages),$$(r.netBP),$$(r.benefits),$$(r.interest),$$(r.sub)]);
-    body.push(['TOTALS','','',$$(res.disc.totMit),$$(res.disc.totBP),$$(res.disc.totBen),$$(res.disc.totInt),$$(res.disc.discTotal)]);
-    doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:22},1:{cellWidth:10,halign:'right'},2:{cellWidth:24,halign:'right'},3:{cellWidth:24,halign:'right'},4:{cellWidth:24,halign:'right'},5:{cellWidth:20,halign:'right'},6:{cellWidth:20,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
+    const head = xNoInt
+      ? [['Period','Days','Expected','Mitigation (-)','Net Back Pay','Benefits','Subtotal']]
+      : [['Period','Days','Expected','Mitigation (-)','Net Back Pay','Benefits','Interest','Subtotal']];
+    const body = res.disc.rows.map(r=>{
+      const sub = xNoInt ? (r.netBP + r.benefits) : r.sub;
+      return xNoInt
+        ? [r.label,r.dd,$$(r.expWages),$$(r.mitWages),$$(r.netBP),$$(r.benefits),$$(sub)]
+        : [r.label,r.dd,$$(r.expWages),$$(r.mitWages),$$(r.netBP),$$(r.benefits),$$(r.interest),$$(sub)];
+    });
+    body.push(xNoInt
+      ? ['TOTALS','','',$$(res.disc.totMit),$$(res.disc.totBP),$$(res.disc.totBen),$$(res.disc.discTotal)]
+      : ['TOTALS','','',$$(res.disc.totMit),$$(res.disc.totBP),$$(res.disc.totBen),$$(res.disc.totInt),$$(res.disc.discTotal)]);
+    const colStyles = xNoInt
+      ? {0:{cellWidth:26},1:{cellWidth:12,halign:'right'},2:{cellWidth:26,halign:'right'},3:{cellWidth:26,halign:'right'},4:{cellWidth:26,halign:'right'},5:{cellWidth:24,halign:'right'},6:{cellWidth:28,halign:'right',fontStyle:'bold'}}
+      : {0:{cellWidth:22},1:{cellWidth:10,halign:'right'},2:{cellWidth:24,halign:'right'},3:{cellWidth:24,halign:'right'},4:{cellWidth:24,halign:'right'},5:{cellWidth:20,halign:'right'},6:{cellWidth:20,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}};
+    doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:colStyles,alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
     y=doc.lastAutoTable.finalY+10;
   }
   // FLSA period summary table
@@ -1561,24 +1600,30 @@ function exportPDF() {
   if (y>200){doc.addPage();y=20;}
   const hasFlsa = !!(res.flsa && res.flsa.flsaRows && res.flsa.flsaRows.length);
   const hasDisc = !!res.disc;
-  const fnBoxH = (hasFlsa && hasDisc) ? 86 : (hasFlsa ? 70 : 52);
+  const isAdea = (STATE.statutoryBasis === 'adea') && hasDisc;
+  let fnBoxH = (hasFlsa && hasDisc) ? 86 : (hasFlsa ? 70 : 52);
+  if (isAdea) fnBoxH += 18;
   doc.setFillColor(245,242,235);
   doc.roundedRect(12,y,W-24,fnBoxH,2,2,'F');
   doc.setTextColor(30,22,16); doc.setFontSize(8); doc.setFont('helvetica','bold');
   doc.text('Notes & Sources',15,y+6);
   doc.setFont('helvetica','normal'); doc.setTextColor(70,65,58);
-  const fn1=`1. Prejudgment Interest (Title VII / ADEA / ADA back pay only): Calculated using the IRS underpayment rate under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date. This figure does not apply to FLSA overtime claims (see note 4) and will be updated through the actual date of judgment.`;
+  const fn1=`1. Prejudgment Interest (Title VII / ADA / FMLA / § 1981 back pay only): Calculated using the IRS underpayment rate under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date. Does not apply to ADEA (see note 6) or FLSA overtime claims (see note 4); updated through the actual date of judgment.`;
   const fn2=`2. Lost Benefits: Estimated at ${(parseFloat(STATE.customBenefitsRate)||BLS[STATE.employerType]||32.5).toFixed(1)}% of gross back wages, reflecting supplementary (voluntary) employer-paid benefits per U.S. Bureau of Labor Statistics, Employer Costs for Employee Compensation (ECEC), Table 1, Q4 2024 (USDL-25-0379, Mar. 2025), www.bls.gov/news.release/ecec.htm. Excludes legally-required costs (Social Security, Medicare, unemployment insurance, workers' compensation). Will be supplemented by actual plan documentation prior to trial.`;
   const fn3=`3. All figures are estimates based on currently available information and are subject to revision. Plaintiff reserves the right to update these calculations through the date of judgment.`;
   const fn4=`4. FLSA Liquidated Damages: 29 U.S.C. § 216(b) authorizes liquidated damages equal to unpaid overtime. The Supreme Court has held that liquidated damages “are not a penalty exacted by the law, but rather compensation to the employee . . . for the loss of the use of [the wages]” — i.e., they substitute for prejudgment interest. Brooklyn Sav. Bank v. O'Neil, 324 U.S. 697, 715 (1945); see Martin v. Cooper Elec. Supply Co., 940 F.2d 896, 910 (3d Cir. 1991). Accordingly, no separate prejudgment-interest line is calculated for FLSA overtime claims.`;
   const fn5=`5. FLSA Statute of Limitations & Workweek: Damages are limited to two years before the complaint filing date, or three years if the violation was willful. 29 U.S.C. § 255(a). The workweek is a fixed, recurring period of 168 consecutive hours designated by the employer. 29 C.F.R. § 778.105. Filing date${res.flsa&&res.flsa.filingDate?': '+res.flsa.filingDate:' not yet entered — SOL cap not applied to weekly calculation'}.`;
+  const fn6=`6. ADEA — No Separate Prejudgment Interest: The ADEA incorporates the FLSA's enforcement scheme. Lorillard v. Pons, 434 U.S. 575, 581 (1978). Because liquidated damages under the ADEA serve as compensation for the loss of the use of wages — substituting for prejudgment interest — courts do not award prejudgment interest in addition to liquidated damages. See Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990). Accordingly, no prejudgment-interest line is calculated for ADEA back pay.`;
   let fnY = y+13;
   doc.text(fn1,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=11;
   doc.text(fn2,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=14;
   doc.text(fn3,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=8;
   if (hasFlsa) {
     doc.text(fn4,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=18;
-    doc.text(fn5,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4});
+    doc.text(fn5,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=14;
+  }
+  if (isAdea) {
+    doc.text(fn6,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4});
   }
   // ── Addendum: Informational Sheet ──
   doc.addPage();
@@ -1794,13 +1839,28 @@ function exportAllPDF() {
     let y=bannerY+26;
     // Back wages table
     if(res.disc&&res.disc.rows.length){
+      // ADEA: liquidated damages substitute for prejudgment interest. Lorillard v. Pons,
+      // 434 U.S. 575, 581 (1978); Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990).
+      const xNoInt = (s.statutoryBasis === 'adea');
       doc.setTextColor(13,22,40); doc.setFontSize(12); doc.setFont('helvetica','bold');
       doc.text('Back Wages — '+s.displayPeriod.charAt(0).toUpperCase()+s.displayPeriod.slice(1)+' Breakdown',14,y);
       y+=6;
-      const head=[['Period','Days','Expected','Mitigation (-)','Net Back Pay','Benefits','Interest','Subtotal']];
-      const body=res.disc.rows.map(r=>[r.label,r.dd,$$(r.expWages),$$(r.mitWages),$$(r.netBP),$$(r.benefits),$$(r.interest),$$(r.sub)]);
-      body.push(['TOTALS','','',$$(res.disc.totMit),$$(res.disc.totBP),$$(res.disc.totBen),$$(res.disc.totInt),$$(res.disc.discTotal)]);
-      doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:22},1:{cellWidth:10,halign:'right'},2:{cellWidth:24,halign:'right'},3:{cellWidth:24,halign:'right'},4:{cellWidth:24,halign:'right'},5:{cellWidth:20,halign:'right'},6:{cellWidth:20,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
+      const head = xNoInt
+        ? [['Period','Days','Expected','Mitigation (-)','Net Back Pay','Benefits','Subtotal']]
+        : [['Period','Days','Expected','Mitigation (-)','Net Back Pay','Benefits','Interest','Subtotal']];
+      const body = res.disc.rows.map(r=>{
+        const sub = xNoInt ? (r.netBP + r.benefits) : r.sub;
+        return xNoInt
+          ? [r.label,r.dd,$$(r.expWages),$$(r.mitWages),$$(r.netBP),$$(r.benefits),$$(sub)]
+          : [r.label,r.dd,$$(r.expWages),$$(r.mitWages),$$(r.netBP),$$(r.benefits),$$(r.interest),$$(sub)];
+      });
+      body.push(xNoInt
+        ? ['TOTALS','','',$$(res.disc.totMit),$$(res.disc.totBP),$$(res.disc.totBen),$$(res.disc.discTotal)]
+        : ['TOTALS','','',$$(res.disc.totMit),$$(res.disc.totBP),$$(res.disc.totBen),$$(res.disc.totInt),$$(res.disc.discTotal)]);
+      const colStyles = xNoInt
+        ? {0:{cellWidth:26},1:{cellWidth:12,halign:'right'},2:{cellWidth:26,halign:'right'},3:{cellWidth:26,halign:'right'},4:{cellWidth:26,halign:'right'},5:{cellWidth:24,halign:'right'},6:{cellWidth:28,halign:'right',fontStyle:'bold'}}
+        : {0:{cellWidth:22},1:{cellWidth:10,halign:'right'},2:{cellWidth:24,halign:'right'},3:{cellWidth:24,halign:'right'},4:{cellWidth:24,halign:'right'},5:{cellWidth:20,halign:'right'},6:{cellWidth:20,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}};
+      doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:colStyles,alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
       y=doc.lastAutoTable.finalY+10;
     }
     // FLSA period summary table
@@ -1855,24 +1915,30 @@ function exportAllPDF() {
     if(y>200){doc.addPage();y=20;}
     const hasFlsa = !!(res.flsa && res.flsa.flsaRows && res.flsa.flsaRows.length);
     const hasDisc = !!res.disc;
-    const fnBoxH = (hasFlsa && hasDisc) ? 86 : (hasFlsa ? 70 : 52);
+    const isAdea = (s.statutoryBasis === 'adea') && hasDisc;
+    let fnBoxH = (hasFlsa && hasDisc) ? 86 : (hasFlsa ? 70 : 52);
+    if (isAdea) fnBoxH += 18;
     doc.setFillColor(245,242,235);
     doc.roundedRect(12,y,W-24,fnBoxH,2,2,'F');
     doc.setTextColor(30,22,16); doc.setFontSize(8); doc.setFont('helvetica','bold');
     doc.text('Notes & Sources',15,y+6);
     doc.setFont('helvetica','normal'); doc.setTextColor(70,65,58);
-    const fn1=`1. Prejudgment Interest (Title VII / ADEA / ADA back pay only): Calculated using the IRS underpayment rate under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date. This figure does not apply to FLSA overtime claims (see note 4) and will be updated through the actual date of judgment.`;
+    const fn1=`1. Prejudgment Interest (Title VII / ADA / FMLA / § 1981 back pay only): Calculated using the IRS underpayment rate under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date. Does not apply to ADEA (see note 6) or FLSA overtime claims (see note 4); updated through the actual date of judgment.`;
     const fn2=`2. Lost Benefits: Estimated at ${(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5).toFixed(1)}% of gross back wages, reflecting supplementary (voluntary) employer-paid benefits per U.S. Bureau of Labor Statistics, Employer Costs for Employee Compensation (ECEC), Table 1, Q4 2024 (USDL-25-0379, Mar. 2025), www.bls.gov/news.release/ecec.htm. Excludes legally-required costs (Social Security, Medicare, unemployment insurance, workers' compensation). Will be supplemented by actual plan documentation prior to trial.`;
     const fn3=`3. All figures are estimates based on currently available information and are subject to revision. Plaintiff reserves the right to update these calculations through the date of judgment.`;
     const fn4=`4. FLSA Liquidated Damages: 29 U.S.C. § 216(b) authorizes liquidated damages equal to unpaid overtime. The Supreme Court has held that liquidated damages “are not a penalty exacted by the law, but rather compensation to the employee . . . for the loss of the use of [the wages]” — i.e., they substitute for prejudgment interest. Brooklyn Sav. Bank v. O'Neil, 324 U.S. 697, 715 (1945); see Martin v. Cooper Elec. Supply Co., 940 F.2d 896, 910 (3d Cir. 1991). Accordingly, no separate prejudgment-interest line is calculated for FLSA overtime claims.`;
     const fn5=`5. FLSA Statute of Limitations & Workweek: Damages are limited to two years before the complaint filing date, or three years if the violation was willful. 29 U.S.C. § 255(a). The workweek is a fixed, recurring period of 168 consecutive hours designated by the employer. 29 C.F.R. § 778.105. Filing date${res.flsa&&res.flsa.filingDate?': '+res.flsa.filingDate:' not yet entered — SOL cap not applied to weekly calculation'}.`;
+    const fn6=`6. ADEA — No Separate Prejudgment Interest: The ADEA incorporates the FLSA's enforcement scheme. Lorillard v. Pons, 434 U.S. 575, 581 (1978). Because liquidated damages under the ADEA serve as compensation for the loss of the use of wages — substituting for prejudgment interest — courts do not award prejudgment interest in addition to liquidated damages. See Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990). Accordingly, no prejudgment-interest line is calculated for ADEA back pay.`;
     let fnY = y+13;
     doc.text(fn1,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=11;
     doc.text(fn2,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=14;
     doc.text(fn3,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=8;
     if (hasFlsa) {
       doc.text(fn4,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=18;
-      doc.text(fn5,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4});
+      doc.text(fn5,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=14;
+    }
+    if (isAdea) {
+      doc.text(fn6,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4});
     }
     // Addendum
     doc.addPage();
@@ -2145,8 +2211,10 @@ function renderSetup() {
       ${field('Defendant', inp(s.defendant,{dk:'defendant',placeholder:'Acme Corporation'}))}
       ${field('Employer type',sel(s.employerType,[{v:'private',l:'Private sector'},{v:'state_local',l:'State / Local government'},{v:'federal',l:'Federal government'}],{dk:'employerType',rerender:'1'}))}
       ${field('Claim type',sel(s.claimType,[{v:'both',l:'Discrimination + FLSA Overtime'},{v:'discrimination',l:'Discrimination only'},{v:'flsa',l:'FLSA Overtime only'}],{dk:'claimType',rerender:'1'}))}
+      ${s.claimType!=='flsa'?field('Statutory basis (discrimination claim)',sel(s.statutoryBasis,[{v:'title_vii',l:'Title VII'},{v:'ada',l:'ADA'},{v:'fmla',l:'FMLA'},{v:'adea',l:'ADEA'},{v:'section_1981',l:'§ 1981'},{v:'state_other',l:'State law / other'}],{dk:'statutoryBasis',rerender:'1'})):''}
       ${s.claimType!=='discrimination'?field('Complaint filing date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(s.complaintFiledDate||'')}" data-key="complaintFiledDate" data-rerender="1">`,{style:'grid-column:span 1'}):''}
     </div>
+    ${s.claimType!=='flsa' && s.statutoryBasis==='adea'?`<div class="card-sub" style="margin-top:8px"><strong>ADEA selected:</strong> prejudgment interest is excluded from back pay. Under <em>Lorillard v. Pons</em>, 434 U.S. 575, 581 (1978), the ADEA incorporates the FLSA's enforcement scheme; courts therefore hold that liquidated damages substitute for prejudgment interest. <em>See Powers v. Grinnell Corp.</em>, 915 F.2d 34, 41 (1st Cir. 1990).</div>`:''}
     ${s.claimType!=='discrimination'?`<div class="card-sub" style="margin-top:8px"><strong>Filing date</strong> anchors the FLSA statute-of-limitations cutoff under 29 U.S.C. § 255(a). ${s.complaintFiledDate?'':'<span style="color:var(--gold-d)">Not set — SOL cap will not be applied to FLSA damages.</span>'}</div>`:''}
     ${s.claimType!=='flsa'?`
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-100)">
@@ -2880,6 +2948,8 @@ function renderResults() {
 
   const {disc, flsa, discTotal, flsaTotal, grand} = activeRes;
   const incDate = disc?.rows[0]?.start;
+  // ADEA: liquidated damages substitute for prejudgment interest (Lorillard v. Pons; Powers v. Grinnell).
+  const noInt = (s.statutoryBasis === 'adea');
 
   return `
   <!-- Scenario tabs -->
@@ -2915,7 +2985,7 @@ function renderResults() {
     ${disc?`
       <div class="metric-card"><div class="metric-label">Net back pay</div><div class="metric-value">${$$(disc.totBP)}</div></div>
       <div class="metric-card"><div class="metric-label">Lost benefits</div><div class="metric-value">${$$(disc.totBen)}</div></div>
-      <div class="metric-card"><div class="metric-label">Prejudgment interest</div><div class="metric-value">${$$(disc.totInt)}</div></div>`:''}
+      ${noInt?'':`<div class="metric-card"><div class="metric-label">Prejudgment interest</div><div class="metric-value">${$$(disc.totInt)}</div></div>`}`:''}
     ${flsa?`
       <div class="metric-card"><div class="metric-label">Unpaid OT wages</div><div class="metric-value">${$$(flsa.totOT)}</div></div>
       <div class="metric-card"><div class="metric-label">Liquidated damages</div><div class="metric-value">${$$(flsa.totLiq)}</div></div>`:''}
@@ -2939,7 +3009,7 @@ function renderResults() {
       <table>
         <thead><tr>
           <th>Scenario</th><th>Trial Date</th>
-          ${disc?'<th class="r">Back Pay</th><th class="r">Benefits</th><th class="r">Interest</th>':''}
+          ${disc?`<th class="r">Back Pay</th><th class="r">Benefits</th>${noInt?'':'<th class="r">Interest</th>'}`:''}
           ${flsa?'<th class="r">FLSA OT</th><th class="r">Liquidated</th>':''}
           <th class="r">Total</th>
         </tr></thead>
@@ -2947,7 +3017,7 @@ function renderResults() {
           ${scenarioResults.map(r=>`<tr ${r.sc.id===s.activeScenarioId?'style="background:var(--gold-bg)"':''}>
             <td class="bold">${esc(r.sc.name)}</td>
             <td>${dt(r.sc.trialDate)}</td>
-            ${r.disc?`<td class="r">${$$(r.disc.totBP)}</td><td class="r">${$$(r.disc.totBen)}</td><td class="r">${$$(r.disc.totInt)}</td>`:(disc?'<td class="r">—</td><td class="r">—</td><td class="r">—</td>':'')}
+            ${r.disc?`<td class="r">${$$(r.disc.totBP)}</td><td class="r">${$$(r.disc.totBen)}</td>${noInt?'':`<td class="r">${$$(r.disc.totInt)}</td>`}`:(disc?`<td class="r">—</td><td class="r">—</td>${noInt?'':'<td class="r">—</td>'}`:'')}
             ${r.flsa?`<td class="r">${$$(r.flsa.totOT)}</td><td class="r">${$$(r.flsa.totLiq)}</td>`:(flsa?'<td class="r">—</td><td class="r">—</td>':'')}
             <td class="r gold">${$$(r.grand)}</td>
           </tr>`).join('')}
@@ -2968,19 +3038,19 @@ function renderResults() {
         <thead><tr>
           <th>Period</th><th class="r">Days</th><th class="r">Expected wages</th>
           <th class="r">Mitigation (−)</th><th class="r">Net back pay</th>
-          <th class="r">Benefits</th><th class="r">Interest</th><th class="r">Subtotal</th>
+          <th class="r">Benefits</th>${noInt?'':'<th class="r">Interest</th>'}<th class="r">Subtotal</th>
           <th class="r" style="color:var(--gold)">Running Total</th>
         </tr></thead>
         <tbody>
-          ${(()=>{let run=0;return disc.rows.map((row,i)=>{run+=row.sub;return`<tr>
+          ${(()=>{let run=0;return disc.rows.map((row,i)=>{const sub=noInt?(row.netBP+row.benefits):row.sub;run+=sub;return`<tr>
             <td class="bold">${esc(row.label)}</td>
             <td class="r" style="color:var(--gray-400)">${row.dd}</td>
             <td class="r">${$$(row.expWages)}</td>
             <td class="r" style="color:${row.mitWages>0?'var(--danger)':'var(--gray-200)'}">${row.mitWages>0?'('+$$(row.mitWages)+')':'—'}</td>
             <td class="r bold">${$$(row.netBP)}</td>
             <td class="r">${$$(row.benefits)}</td>
-            <td class="r">${$$(row.interest)}</td>
-            <td class="r gold">${$$(row.sub)}</td>
+            ${noInt?'':`<td class="r">${$$(row.interest)}</td>`}
+            <td class="r gold">${$$(sub)}</td>
             <td class="r" style="color:var(--gold-d);font-weight:600">${$$(run)}</td>
           </tr>`;}).join('');})()}
         </tbody>
@@ -2990,7 +3060,7 @@ function renderResults() {
           <td class="r" style="color:${disc.totMit>0?'#f0a0a0':'rgba(255,255,255,.3)'}">${disc.totMit>0?'('+$$(disc.totMit)+')':'—'}</td>
           <td class="r">${$$(disc.totBP)}</td>
           <td class="r">${$$(disc.totBen)}</td>
-          <td class="r">${$$(disc.totInt)}</td>
+          ${noInt?'':`<td class="r">${$$(disc.totInt)}</td>`}
           <td class="r gold">${$$(disc.discTotal)}</td>
           <td class="r gold">${$$(disc.discTotal)}</td>
         </tr></tfoot>
@@ -3041,10 +3111,10 @@ function renderResults() {
     <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Notes &amp; Sources</div>
     <div style="font-size:11.5px;color:var(--text-2);line-height:1.85">
       <p style="margin-bottom:6px">
-        <sup style="font-weight:600;color:var(--navy)">1</sup>&nbsp;<strong>Prejudgment Interest (Title VII / ADEA / ADA back pay only):</strong>
+        <sup style="font-weight:600;color:var(--navy)">1</sup>&nbsp;<strong>Prejudgment Interest (Title VII / ADA / FMLA / § 1981 back pay only):</strong>
         Calculated using the IRS underpayment rate established under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date.
         Rates are published quarterly by the Internal Revenue Service in Revenue Rulings and Notices (see <em>I.R.S. Rev. Rul.</em> for each applicable quarter).
-        Interest accrues on the sum of net back pay and lost benefits per period. <strong>Does not apply to FLSA overtime claims</strong> (see note 4). This figure will be updated and recalculated through the actual date of judgment.
+        Interest accrues on the sum of net back pay and lost benefits per period. <strong>Does not apply to ADEA</strong> (see note 6) <strong>or FLSA overtime claims</strong> (see note 4). This figure will be updated and recalculated through the actual date of judgment.
       </p>
       <p style="margin-bottom:6px">
         <sup style="font-weight:600;color:var(--navy)">2</sup>&nbsp;<strong>Lost Employer-Paid Benefits${s.benefitsMethod==='estimate'?` (BLS Estimate)`:` (Actual)`}:</strong>
@@ -3065,6 +3135,11 @@ function renderResults() {
       <p style="margin-bottom:6px">
         <sup style="font-weight:600;color:var(--navy)">5</sup>&nbsp;<strong>FLSA Statute of Limitations &amp; Workweek:</strong>
         Overtime damages are limited to two years before the complaint filing date, or three years if the violation was willful. 29 U.S.C. § 255(a). The workweek is a fixed, recurring period of 168 consecutive hours designated by the employer; the default here is Monday–Sunday but is configurable per period. 29 C.F.R. § 778.105. ${flsa.filingDate?`Filing date <strong>${dt(flsa.filingDate)}</strong>; SOL cutoff <strong>${dt(flsa.cutoff)}</strong>.`:`<span style="color:var(--gold-d)">Filing date not yet entered — SOL cap not applied to weekly calculation.</span>`}
+      </p>`:''}
+      ${noInt?`
+      <p style="margin-bottom:6px">
+        <sup style="font-weight:600;color:var(--navy)">6</sup>&nbsp;<strong>ADEA — No Separate Prejudgment Interest:</strong>
+        The ADEA incorporates the FLSA's enforcement scheme. <em>Lorillard v. Pons</em>, 434 U.S. 575, 581 (1978). Because liquidated damages under the ADEA serve as compensation for the loss of the use of wages — substituting for prejudgment interest — courts do not award prejudgment interest in addition to liquidated damages. <em>See Powers v. Grinnell Corp.</em>, 915 F.2d 34, 41 (1st Cir. 1990). Accordingly, no prejudgment-interest line is calculated for ADEA back pay in this report.
       </p>`:''}
       <p style="margin-bottom:0;font-style:italic;color:var(--gray-400)">
         All damages figures presented herein are estimates based on information currently available and are subject to revision. Plaintiff reserves the right to update and supplement these calculations as additional discovery is received, and through the date of judgment or verdict.
