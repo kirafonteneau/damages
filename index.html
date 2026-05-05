@@ -409,10 +409,21 @@ function defaultCase(name='New Case') {
 // ── Migration: bring older cases up to the current shape ──
 function migrateFlsaPeriod(fp) {
   if (!fp) return fp;
-  // Scrub any junk dates left behind by old typos (e.g. year-0002).
-  // Keep blank instead of silently rewriting — the user should retype.
-  if (fp.startDate && !isValidISODate(fp.startDate)) fp.startDate = '';
-  if (fp.endDate   && !isValidISODate(fp.endDate))   fp.endDate   = '';
+  // Repair junk dates left behind by old typos (e.g. year-0002, 0005).
+  // We *replace* with sensible defaults instead of blanking, because an empty
+  // <input type="date"> opens its calendar picker at year 0001/0005 (browser
+  // default), which is exactly the bug we're trying to kill.
+  if (fp.startDate && !isValidISODate(fp.startDate)) fp.startDate = yearsAgoISO(5);
+  if (fp.endDate   && !isValidISODate(fp.endDate))   fp.endDate   = todayISO();
+  // Repair rate-change effective dates the same way — fall back to the
+  // (now valid) period start so the picker opens in the right decade.
+  if (Array.isArray(fp.rateChanges)) {
+    fp.rateChanges.forEach(rc => {
+      if (rc && rc.effectiveDate && !isValidISODate(rc.effectiveDate)) {
+        rc.effectiveDate = fp.startDate || yearsAgoISO(5);
+      }
+    });
+  }
   if (fp.defaultWeeklyHours !== undefined) {
     // Already migrated; just ensure newer fields exist
     if (fp.workweekStart === undefined) fp.workweekStart = 1;
@@ -443,45 +454,57 @@ function migrateFlsaPeriod(fp) {
   return out;
 }
 
-// Scrub any persisted date field that fails our sanity check (e.g. year-0002
-// from a typo before min/max were enforced). Blank it out rather than rewriting
-// silently — the user should retype.
-function scrubDate(obj, field) {
-  if (obj && obj[field] && !isValidISODate(obj[field])) obj[field] = '';
+// Repair any persisted date field that fails our sanity check (e.g. year-0002
+// from a typo before min/max were enforced). We *replace* with the supplied
+// fallback rather than blanking, because empty <input type="date"> elements
+// open their calendar picker at year 0001/0005 — the very bug we're fixing.
+// Pass a fallback that makes contextual sense (e.g. yearsAgoISO(5) for a
+// period start, todayISO() for an end date, '' only when blank is meaningful).
+function scrubDate(obj, field, fallback = '') {
+  if (obj && obj[field] && !isValidISODate(obj[field])) obj[field] = fallback;
 }
 
 function migrateCase(c) {
   if (!c || typeof c !== 'object') return c;
   if (c.complaintFiledDate === undefined) c.complaintFiledDate = '';
   if (c.statutoryBasis === undefined) c.statutoryBasis = 'title_vii';
-  scrubDate(c, 'complaintFiledDate');
+  // Complaint filing date — default to today if junk; user can adjust.
+  scrubDate(c, 'complaintFiledDate', todayISO());
   if (Array.isArray(c.scenarios)) {
     c.scenarios = c.scenarios.map(s => {
       const out = {
         flsaWillful: (s && s.flsaWillful !== undefined) ? s.flsaWillful : true,
         ...s
       };
-      scrubDate(out, 'trialDate');
+      // Trial date — default to today if junk.
+      scrubDate(out, 'trialDate', todayISO());
       return out;
     });
   }
   if (Array.isArray(c.incidents)) {
-    c.incidents.forEach(inc => { scrubDate(inc, 'date'); scrubDate(inc, 'endDate'); });
+    c.incidents.forEach(inc => {
+      scrubDate(inc, 'date', todayISO());
+      // endDate is meaningfully blank when employment is ongoing — keep blank.
+      scrubDate(inc, 'endDate', '');
+    });
   }
   if (Array.isArray(c.wagePeriods)) {
-    c.wagePeriods.forEach(wp => { scrubDate(wp, 'startDate'); scrubDate(wp, 'endDate'); });
+    c.wagePeriods.forEach(wp => {
+      scrubDate(wp, 'startDate', yearsAgoISO(5));
+      // endDate blank = "runs to trial" — keep blank.
+      scrubDate(wp, 'endDate', '');
+    });
   }
   if (Array.isArray(c.mitigationPeriods)) {
-    c.mitigationPeriods.forEach(mp => { scrubDate(mp, 'startDate'); scrubDate(mp, 'endDate'); });
+    c.mitigationPeriods.forEach(mp => {
+      scrubDate(mp, 'startDate', yearsAgoISO(5));
+      // endDate blank = "runs to trial" — keep blank.
+      scrubDate(mp, 'endDate', '');
+    });
   }
   if (Array.isArray(c.flsaPeriods)) {
     c.flsaPeriods = c.flsaPeriods.map(migrateFlsaPeriod);
-    // Also scrub any rate-change effective dates within each period
-    c.flsaPeriods.forEach(fp => {
-      if (Array.isArray(fp.rateChanges)) {
-        fp.rateChanges.forEach(rc => scrubDate(rc, 'effectiveDate'));
-      }
-    });
+    // Rate-change effective dates are reseeded inside migrateFlsaPeriod above.
   }
   return c;
 }
@@ -2086,6 +2109,59 @@ function attachInputListeners() {
     el.addEventListener('change',handleChange);
     if (el.tagName==='INPUT'&&el.type!=='radio'&&el.type!=='checkbox') el.addEventListener('input',handleChange);
   });
+  // Anchor empty date pickers to a recent year so the calendar widget opens
+  // in the right decade instead of at year 0001/0005 (browser default for
+  // empty <input type="date"> fields). We seed the value on focus, then
+  // clear it on blur if the user didn't actually pick something — so blank
+  // remains a meaningful state ("runs to trial", "ongoing").
+  document.querySelectorAll('#tab-content input[type="date"]').forEach(el => {
+    el.addEventListener('focus', () => {
+      if (!el.value) {
+        // Pick an anchor inside [min, max] — prefer today, fall back to max, then min.
+        const max = el.getAttribute('max');
+        const min = el.getAttribute('min');
+        const today = todayISO();
+        let anchor = today;
+        if (max && today > max) anchor = max;
+        else if (min && today < min) anchor = min;
+        el.dataset.anchored = '1';
+        el.value = anchor;
+      }
+    });
+    el.addEventListener('blur', () => {
+      // If we anchored an empty field and the user didn't actually change it,
+      // restore blank so the field's "runs to trial / ongoing" semantics survive.
+      if (el.dataset.anchored === '1') {
+        delete el.dataset.anchored;
+        // If the underlying STATE never received this value (handleChange writes it),
+        // we can detect that by reading STATE for the input's data-list/data-field.
+        // Simpler heuristic: if the value still equals the anchor we set AND the
+        // user never typed/picked, clear it. We can't perfectly detect "didn't pick",
+        // so we always clear on blur — if they DID pick the same date as the anchor,
+        // change event already fired and STATE is updated; renderTab() will repaint
+        // it back. The clear here only affects the visible DOM until next render.
+        // Safest: only clear if STATE says the field is empty.
+        const list = el.getAttribute('data-list');
+        const idx = el.getAttribute('data-idx');
+        const field = el.getAttribute('data-field');
+        const key = el.getAttribute('data-key');
+        const rcId = el.getAttribute('data-rate-change-id');
+        let stored = null;
+        try {
+          if (key) stored = STATE[key];
+          else if (list && idx !== null && field) {
+            const item = STATE[list]?.[Number(idx)];
+            if (rcId && Array.isArray(item?.rateChanges)) {
+              stored = item.rateChanges.find(r => r.id === rcId)?.[field];
+            } else if (item) {
+              stored = item[field];
+            }
+          }
+        } catch {}
+        if (!stored) el.value = '';
+      }
+    });
+  });
 }
 
 function pruneOverride(weekOverrides, weekKey){
@@ -2103,7 +2179,16 @@ function handleChange(e) {
   const field=el.dataset.field;
   const overridesKey=el.dataset.overridesKey;
   const rateChangeId=el.dataset.rateChangeId;
-  const val=el.type==='checkbox'?el.checked:el.value;
+  let val=el.type==='checkbox'?el.checked:el.value;
+  // Reject obvious year-typo dates (e.g. 0002-01-24 from typing "2-1-24" into
+  // a date field). The browser's min/max only blocks on form submit; on
+  // 'input' events we have to gate it ourselves. Empty string passes — blank
+  // is meaningful for end-date fields ("runs to trial").
+  if (el.type === 'date' && val && !isValidISODate(val)) {
+    // Don't write the bad value to STATE — just ignore until they finish typing
+    // a valid date.
+    return;
+  }
   // Per-week override (FLSA weekly grid): list=flsaPeriods, idx, data-overrides-key=weekKey, data-field
   if (list==='flsaPeriods' && idx!==null && overridesKey && field) {
     const fp = STATE.flsaPeriods[idx];
