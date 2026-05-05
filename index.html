@@ -176,6 +176,38 @@ tfoot td.gold{color:var(--gold)}
 .wage-type-btn{padding:6px 12px;border:none;background:none;font-size:12px;cursor:pointer;color:var(--gray-400)}
 .wage-type-btn.active{background:var(--navy);color:#fff}
 
+/* ── FLSA weekly grid ── */
+.flsa-weekly-banner{background:var(--gray-50);border:1px solid var(--gray-100);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--text-2);margin:10px 0;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.flsa-weekly-banner .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px}
+.flsa-weekly-banner .pill strong{color:var(--text)}
+.flsa-weekly-banner.warn{background:var(--gold-bg);border-color:var(--gold-border);color:var(--navy-2)}
+.flsa-bulk-bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;background:var(--gray-50);border:1px solid var(--gray-100);border-radius:var(--r);margin-bottom:8px;position:sticky;top:0;z-index:5}
+.flsa-bulk-bar .sel-count{font-size:11.5px;color:var(--gray-400);margin-right:6px}
+.flsa-bulk-bar input[type=number],.flsa-bulk-bar input[type=text]{width:90px;padding:4px 6px;font-size:12px;border:1px solid var(--gray-200);border-radius:4px}
+.flsa-bulk-bar select{padding:4px 6px;font-size:12px;border:1px solid var(--gray-200);border-radius:4px;background:#fff}
+.flsa-week-table{width:100%;border-collapse:collapse;font-size:12px}
+.flsa-week-table th{background:var(--gray-50);text-align:left;padding:6px 8px;font-weight:600;color:var(--text-2);font-size:11px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--gray-100);position:sticky;top:42px;z-index:4}
+.flsa-week-table th.r,.flsa-week-table td.r{text-align:right}
+.flsa-week-table td{padding:5px 8px;border-bottom:1px solid var(--gray-50);vertical-align:middle}
+.flsa-week-table tr.counted-inherit td{color:var(--gray-400)}
+.flsa-week-table tr.counted-overridden td{color:var(--text)}
+.flsa-week-table tr.counted-overridden td.ovr{color:var(--gold-d);font-weight:600}
+.flsa-week-table tr.user-excluded td{color:var(--gray-400);background:repeating-linear-gradient(45deg,var(--gray-50),var(--gray-50) 6px,transparent 6px,transparent 12px)}
+.flsa-week-table tr.sol-excluded td,.flsa-week-table tr.post-trial td{color:#999;background:#f4f2ee}
+.flsa-week-table tr.partial td.days-cell{color:var(--gold-d);font-style:italic}
+.flsa-week-table input.cell-input{width:70px;padding:2px 5px;font-size:12px;border:1px solid var(--gray-100);border-radius:3px;background:#fff;text-align:right}
+.flsa-week-table input.cell-input:focus{border-color:var(--gold);outline:none}
+.flsa-week-table input.cell-input.is-default{color:var(--gray-400);font-style:italic;background:transparent;border-color:transparent}
+.flsa-week-table select.cell-input{width:auto;text-align:left}
+.flsa-week-table .tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;background:var(--gray-100);color:var(--gray-400);margin-left:4px}
+.flsa-week-table .tag.gold{background:var(--gold-bg);color:var(--gold-d)}
+.flsa-week-table .tag.warn{background:#fff1d6;color:#92400e}
+.flsa-week-table .tag.muted{background:#f4f2ee;color:#888}
+.flsa-month-group{margin-bottom:10px}
+.flsa-month-header{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:var(--gray-50);border:1px solid var(--gray-100);border-radius:var(--r);cursor:pointer;font-size:12px;font-weight:600;color:var(--text-2)}
+.flsa-month-header:hover{background:var(--gold-bg);color:var(--navy-2)}
+.rate-change-row{display:grid;grid-template-columns:1fr 1fr 2fr auto;gap:8px;align-items:end;margin-bottom:6px}
+
 /* ── Export bar ── */
 .export-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
 
@@ -346,9 +378,10 @@ function defaultCase(name='New Case') {
     name,
     savedAt: null,
     caseName:'', plaintiff:'', defendant:'', attorney:'',
+    complaintFiledDate:'',
     employerType:'private', claimType:'both',
     benefitsMethod:'estimate', customBenefitsRate:'',
-    scenarios:[{id:sid, name:'To Trial', trialDate:''}],
+    scenarios:[{id:sid, name:'To Trial', trialDate:'', flsaWillful:true}],
     activeScenarioId: sid,
     displayPeriod:'annual',
     incidents:[{id:uid(), date:'', endDate:'', type:'termination', description:''}],
@@ -356,9 +389,59 @@ function defaultCase(name='New Case') {
       annualSalary:'', hourlyRate:'', hoursPerWeek:'40', annualIncrease:'0',
       source:'paystub', bonus:'', bonusType:'fixed', commissionRate:'', commissions:'', employerBenefitsW2:''}],
     mitigationPeriods:[{id:uid(), startDate:'', endDate:'', annualWages:'', employer:'', notes:''}],
-    flsaPeriods:[{id:uid(), startDate:'', endDate:'', regularRate:'', weeklyHours:'', weeksWorked:'', description:'', otMethod:'half'}],
+    flsaPeriods:[{id:uid(), startDate:'', endDate:'', description:'', otMethod:'half',
+      workweekStart:1, defaultRegularRate:'', defaultWeeklyHours:'',
+      rateChanges:[], weekOverrides:{}}],
     customRates:{}
   };
+}
+
+// ── Migration: bring older cases up to the current shape ──
+function migrateFlsaPeriod(fp) {
+  if (!fp) return fp;
+  if (fp.defaultWeeklyHours !== undefined) {
+    // Already migrated; just ensure newer fields exist
+    if (fp.workweekStart === undefined) fp.workweekStart = 1;
+    if (!Array.isArray(fp.rateChanges)) fp.rateChanges = [];
+    if (!fp.weekOverrides || typeof fp.weekOverrides !== 'object') fp.weekOverrides = {};
+    return fp;
+  }
+  const out = {
+    id: fp.id || uid(),
+    startDate: fp.startDate || '',
+    endDate: fp.endDate || '',
+    description: fp.description || '',
+    otMethod: fp.otMethod || 'half',
+    workweekStart: 1,
+    defaultRegularRate: fp.regularRate || '',
+    defaultWeeklyHours: fp.weeklyHours || '',
+    rateChanges: [],
+    weekOverrides: {}
+  };
+  if (!out.endDate && out.startDate && fp.weeksWorked) {
+    const wks = parseInt(fp.weeksWorked, 10);
+    if (Number.isFinite(wks) && wks > 0) {
+      const d = new Date(out.startDate + 'T12:00:00');
+      d.setDate(d.getDate() + wks * 7 - 1);
+      out.endDate = d.toISOString().slice(0, 10);
+    }
+  }
+  return out;
+}
+
+function migrateCase(c) {
+  if (!c || typeof c !== 'object') return c;
+  if (c.complaintFiledDate === undefined) c.complaintFiledDate = '';
+  if (Array.isArray(c.scenarios)) {
+    c.scenarios = c.scenarios.map(s => ({
+      flsaWillful: (s && s.flsaWillful !== undefined) ? s.flsaWillful : true,
+      ...s
+    }));
+  }
+  if (Array.isArray(c.flsaPeriods)) {
+    c.flsaPeriods = c.flsaPeriods.map(migrateFlsaPeriod);
+  }
+  return c;
 }
 
 let STATE = defaultCase();
@@ -562,14 +645,30 @@ async function loadCase(id) {
   if (!id) { newCase(); return; }
   const data = await store.get('case:'+id);
   if (!data) return;
-  STATE = data;
+  STATE = migrateCase(data);
   currentCaseId = id;
-  if (!STATE.scenarios) STATE.scenarios = [{id:uid(),name:'To Trial',trialDate:''}];
+  if (!STATE.scenarios) STATE.scenarios = [{id:uid(),name:'To Trial',trialDate:'',flsaWillful:true}];
   if (!STATE.activeScenarioId) STATE.activeScenarioId = STATE.scenarios[0].id;
   if (!STATE.displayPeriod) STATE.displayPeriod = 'annual';
   updateSaveIndicator(true);
+  maybeShowFlsaInterestNotice(data);
   renderTab();
   updateHeaderTotal();
+}
+
+// One-time toast for cases that previously had FLSA prejudgment interest baked in.
+// Detected by the legacy `regularRate` field on any flsaPeriod.
+function maybeShowFlsaInterestNotice(rawData) {
+  try {
+    const had = Array.isArray(rawData?.flsaPeriods)
+      && rawData.flsaPeriods.some(p => p && p.regularRate !== undefined && p.defaultWeeklyHours === undefined);
+    if (had) {
+      showToast(
+        'FLSA prejudgment interest has been removed \u2014 liquidated damages already account for the time-value of money under 29 U.S.C. \u00a7 216(b). Total may differ from prior exports.',
+        'warning'
+      );
+    }
+  } catch {}
 }
 
 async function loadCaseIndex() {
@@ -730,10 +829,11 @@ function importJSON(input) {
   reader.onload = e => {
     try {
       const data = JSON.parse(e.target.result);
-      STATE = data;
-      if(!STATE.scenarios) STATE.scenarios=[{id:uid(),name:'To Trial',trialDate:''}];
+      STATE = migrateCase(data);
+      if(!STATE.scenarios) STATE.scenarios=[{id:uid(),name:'To Trial',trialDate:'',flsaWillful:true}];
       if(!STATE.activeScenarioId) STATE.activeScenarioId=STATE.scenarios[0].id;
       currentCaseId = null;
+      maybeShowFlsaInterestNotice(data);
       renderTab(); updateHeaderTotal(); updateSaveIndicator(false);
     } catch { alert('Invalid JSON file.'); }
   };
@@ -891,22 +991,161 @@ function computeDiscrimination(state, trialDate) {
   return {rows,totBP,totMit,totBen,totInt,discTotal:totBP+totBen+totInt};
 }
 
-function computeFlsa(state, trialDate) {
-  let flsaRows=[],totOT=0,totLiq=0,totFInt=0;
-  for (const fp of state.flsaPeriods) {
-    if (!fp.startDate||!fp.regularRate||!fp.weeklyHours||!fp.weeksWorked) continue;
-    const rate=parseFloat(fp.regularRate)||0;
-    const wkHrs=parseFloat(fp.weeklyHours)||0;
-    const wks=parseFloat(fp.weeksWorked)||0;
-    const mult=fp.otMethod==='full'?1.5:0.5;
-    const otHrs=Math.max(0,wkHrs-40)*wks;
-    const ot=otHrs*rate*mult;
-    const liq=ot;
-    const fi=calcInterest(ot, fp.startDate, trialDate, state.customRates);
-    totOT+=ot; totLiq+=liq; totFInt+=fi;
-    flsaRows.push({...fp,otHrs,ot,liq,fi,sub:ot+liq+fi});
+// ── FLSA helpers ──
+const DOW_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DOW_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function weekStartOf(dStr, startDow=1) {
+  const d = new Date(dStr+'T12:00:00');
+  const dow = d.getDay();
+  const offset = ((dow - startDow) + 7) % 7;
+  d.setDate(d.getDate() - offset);
+  return d.toISOString().slice(0,10);
+}
+
+function* weeklyIterator(periodStart, periodEnd, startDow=1) {
+  if (!periodStart || !periodEnd) return;
+  const end = new Date(periodEnd+'T12:00:00');
+  const ps  = new Date(periodStart+'T12:00:00');
+  if (end < ps) return;
+  let cursor = new Date(weekStartOf(periodStart, startDow)+'T12:00:00');
+  // Safety cap: hard stop at 520 weeks (10 yrs) to prevent infinite loops on bad data
+  let guard = 0;
+  while (cursor <= end && guard++ < 520) {
+    const wkStart = new Date(cursor);
+    const wkEnd   = new Date(cursor); wkEnd.setDate(wkEnd.getDate()+6);
+    const overlapStart = wkStart < ps  ? ps  : wkStart;
+    const overlapEnd   = wkEnd   > end ? end : wkEnd;
+    const days = Math.round((overlapEnd - overlapStart)/86400000) + 1;
+    yield {
+      weekKey: wkStart.toISOString().slice(0,10),
+      daysInPeriod: days,
+      isPartial: days < 7
+    };
+    cursor.setDate(cursor.getDate()+7);
   }
-  return {flsaRows,totOT,totLiq,totFInt,flsaTotal:totOT+totLiq+totFInt};
+}
+
+function rateForWeek(weekKey, period) {
+  const sorted = [...(period.rateChanges||[])]
+    .filter(r => r && r.effectiveDate && r.rate !== '' && r.rate != null)
+    .sort((a,b) => a.effectiveDate.localeCompare(b.effectiveDate));
+  let r = parseFloat(period.defaultRegularRate) || 0;
+  for (const change of sorted) {
+    if (change.effectiveDate <= weekKey) r = parseFloat(change.rate) || r;
+    else break;
+  }
+  return r;
+}
+
+// SOL cutoff date (YYYY-MM-DD) for a given scenario, or '' if no filing date is set.
+function flsaCutoff(state, scenario) {
+  if (!state || !state.complaintFiledDate) return '';
+  const yrs = (scenario && scenario.flsaWillful === false) ? 2 : 3;
+  const d = new Date(state.complaintFiledDate+'T12:00:00');
+  d.setFullYear(d.getFullYear() - yrs);
+  return d.toISOString().slice(0,10);
+}
+
+function computeFlsa(state, trialDate) {
+  // trialDate is the active scenario's trial date; weeks STARTING after it are dropped.
+  const scenario = state.scenarios.find(s => s.id === state.activeScenarioId)
+                || state.scenarios[0]
+                || {flsaWillful:true};
+  const cutoff = flsaCutoff(state, scenario);
+  const willful = scenario.flsaWillful !== false;
+  const flsaRows = [];
+  const weeklyRows = [];
+  let totOT = 0, totLiq = 0;
+
+  for (const fp of state.flsaPeriods) {
+    if (!fp.startDate || !fp.endDate) continue;
+    const hasRate = (fp.defaultRegularRate !== '' && fp.defaultRegularRate != null)
+                 || (Array.isArray(fp.rateChanges) && fp.rateChanges.some(r => r && r.rate));
+    const hasHours = (fp.defaultWeeklyHours !== '' && fp.defaultWeeklyHours != null)
+                  || (fp.weekOverrides && Object.keys(fp.weekOverrides).length > 0);
+    if (!hasRate || !hasHours) continue;
+
+    const startDow = (typeof fp.workweekStart === 'number') ? fp.workweekStart : 1;
+    let pOT=0, pLiq=0, pOtHrs=0, pWeeks=0, pExcluded=0, pSolDropped=0, pPostTrialDropped=0;
+
+    for (const w of weeklyIterator(fp.startDate, fp.endDate, startDow)) {
+      // SOL gate (front edge): drop weeks whose start is BEFORE the cutoff
+      if (cutoff && w.weekKey < cutoff) {
+        weeklyRows.push({
+          periodId: fp.id, weekKey: w.weekKey, description: fp.description||'',
+          status: 'sol_excluded',
+          solReason: willful ? '3-yr SOL' : '2-yr SOL',
+          isPartial: w.isPartial, daysInPeriod: w.daysInPeriod
+        });
+        pSolDropped++; continue;
+      }
+      // Trial gate (back edge): drop weeks that start AFTER the trial date
+      if (trialDate && w.weekKey > trialDate) {
+        weeklyRows.push({
+          periodId: fp.id, weekKey: w.weekKey, description: fp.description||'',
+          status: 'post_trial',
+          isPartial: w.isPartial, daysInPeriod: w.daysInPeriod
+        });
+        pPostTrialDropped++; continue;
+      }
+
+      const ov = (fp.weekOverrides||{})[w.weekKey] || {};
+      if (ov.excluded) {
+        weeklyRows.push({
+          periodId: fp.id, weekKey: w.weekKey, description: fp.description||'',
+          hours: 0, rate: 0, otMethod: fp.otMethod, otHrs: 0, ot: 0, liq: 0,
+          status: 'user_excluded',
+          exclusionReason: ov.exclusionReason || 'other',
+          isPartial: w.isPartial, daysInPeriod: w.daysInPeriod,
+          note: ov.note || ''
+        });
+        pExcluded++; continue;
+      }
+
+      const overrideHours = (ov.hours !== undefined && ov.hours !== '');
+      const overrideRate  = (ov.rate  !== undefined && ov.rate  !== '');
+      const overrideMeth  = (ov.otMethod !== undefined && ov.otMethod !== '');
+      const hours = overrideHours ? (parseFloat(ov.hours)||0) : (parseFloat(fp.defaultWeeklyHours)||0);
+      const rate  = overrideRate  ? (parseFloat(ov.rate)||0)  : rateForWeek(w.weekKey, fp);
+      const meth  = overrideMeth  ? ov.otMethod : (fp.otMethod || 'half');
+      const mult = meth === 'full' ? 1.5 : 0.5;
+
+      // Honest proration for partial weeks
+      const threshold = 40 * (w.daysInPeriod / 7);
+      const effHours  = hours * (w.daysInPeriod / 7);
+      const otHrs = Math.max(0, effHours - threshold);
+      const ot = otHrs * rate * mult;
+      const liq = ot;
+
+      weeklyRows.push({
+        periodId: fp.id, weekKey: w.weekKey, description: fp.description||'',
+        hours, rate, otMethod: meth, otHrs, ot, liq,
+        status: 'counted',
+        overridden: overrideHours || overrideRate || overrideMeth,
+        isPartial: w.isPartial, daysInPeriod: w.daysInPeriod,
+        note: ov.note || ''
+      });
+      pOT += ot; pLiq += liq; pOtHrs += otHrs; pWeeks++;
+    }
+
+    flsaRows.push({
+      ...fp,
+      otHrs: pOtHrs, ot: pOT, liq: pLiq, sub: pOT + pLiq, fi: 0,
+      weeksCounted: pWeeks, weeksExcluded: pExcluded,
+      weeksDroppedBySOL: pSolDropped, weeksDroppedPostTrial: pPostTrialDropped
+    });
+    totOT += pOT; totLiq += pLiq;
+  }
+
+  return {
+    flsaRows, weeklyRows,
+    totOT, totLiq,
+    totFInt: 0,                 // back-compat for any legacy consumer; always 0
+    flsaTotal: totOT + totLiq,
+    cutoff, willful,
+    filingDate: state.complaintFiledDate || ''
+  };
 }
 
 function computeAll(state) {
@@ -1003,7 +1242,8 @@ function buildScenarioExcelSheets(wb,res,scenarioName,state){
     summaryItems.push(['Back Pay (net)',res.disc.totBP],['Lost Benefits',res.disc.totBen],['Prejudgment Interest',res.disc.totInt],['Discrimination Subtotal',res.disc.discTotal]);
   }
   if(res.flsa){
-    summaryItems.push(['Unpaid OT Wages',res.flsa.totOT],['Liquidated Damages',res.flsa.totLiq],['FLSA Interest',res.flsa.totFInt],['FLSA Subtotal',res.flsa.flsaTotal]);
+    // FLSA: liquidated damages serve in lieu of prejudgment interest (Brooklyn Sav. Bank v. O'Neil) — no separate interest line.
+    summaryItems.push(['Unpaid OT Wages',res.flsa.totOT],['Liquidated Damages',res.flsa.totLiq],['FLSA Subtotal',res.flsa.flsaTotal]);
   }
   summaryItems.push(['TOTAL DAMAGES',res.grand]);
   summaryItems.forEach((item,i)=>{
@@ -1044,25 +1284,77 @@ function buildScenarioExcelSheets(wb,res,scenarioName,state){
     ws2.columns=[{width:20},{width:8},{width:18},{width:18},{width:18},{width:16},{width:16},{width:18},{width:18}];
   }
 
-  // FLSA sheet
+  // FLSA period summary sheet
   if(res.flsa&&res.flsa.flsaRows.length){
     const ws3=wb.addWorksheet('FLSA Overtime'+suffix);
-    xlSectionTitle(ws3,1,'FLSA Overtime Breakdown',6);
-    const hdr=['Period / Position','OT Hours','OT Wages','Liquidated','Interest','Subtotal'];
+    xlSectionTitle(ws3,1,'FLSA Overtime — Period Summary',7);
+    const hdr=['Period / Position','Weeks Counted','Excluded','Dropped (SOL/Trial)','OT Hours','OT Wages','Liquidated','Subtotal'];
     const hdrRow=ws3.getRow(3);
     hdr.forEach((h,i)=>{hdrRow.getCell(i+1).value=h;});
     xlStyleHeader(hdrRow);
     res.flsa.flsaRows.forEach((r,i)=>{
       const row=ws3.getRow(4+i);
-      [`${r.startDate} – ${r.endDate||'present'}${r.description?' · '+r.description:''}`,r.otHrs,r.ot,r.liq,r.fi,r.sub].forEach((v,j)=>{row.getCell(j+1).value=v;});
+      const dropped = (r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0);
+      [`${r.startDate} – ${r.endDate||'present'}${r.description?' · '+r.description:''}`,r.weeksCounted||0,r.weeksExcluded||0,dropped,r.otHrs,r.ot,r.liq,r.sub].forEach((v,j)=>{row.getCell(j+1).value=v;});
     });
     xlStyleBody(ws3,4,3+res.flsa.flsaRows.length);
-    xlNumFmt(ws3,[3,4,5,6],4,3+res.flsa.flsaRows.length);
+    xlNumFmt(ws3,[5,6,7,8],4,3+res.flsa.flsaRows.length);
     const totRow=ws3.getRow(4+res.flsa.flsaRows.length);
-    ['FLSA TOTAL','',res.flsa.totOT,res.flsa.totLiq,res.flsa.totFInt,res.flsa.flsaTotal].forEach((v,j)=>{totRow.getCell(j+1).value=v;});
+    const totWeeks = res.flsa.flsaRows.reduce((a,r)=>a+(r.weeksCounted||0),0);
+    const totExcl = res.flsa.flsaRows.reduce((a,r)=>a+(r.weeksExcluded||0),0);
+    const totDrop = res.flsa.flsaRows.reduce((a,r)=>a+(r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0),0);
+    const totHrs  = res.flsa.flsaRows.reduce((a,r)=>a+(r.otHrs||0),0);
+    ['FLSA TOTAL',totWeeks,totExcl,totDrop,totHrs,res.flsa.totOT,res.flsa.totLiq,res.flsa.flsaTotal].forEach((v,j)=>{totRow.getCell(j+1).value=v;});
     xlStyleTotals(totRow);
-    xlNumFmt(ws3,[3,4,5,6],4+res.flsa.flsaRows.length,4+res.flsa.flsaRows.length);
-    ws3.columns=[{width:34},{width:12},{width:16},{width:16},{width:16},{width:16}];
+    xlNumFmt(ws3,[5,6,7,8],4+res.flsa.flsaRows.length,4+res.flsa.flsaRows.length);
+    ws3.columns=[{width:34},{width:14},{width:12},{width:18},{width:12},{width:16},{width:16},{width:16}];
+
+    // Settings block — workweek + filing date + willfulness
+    const sStartRow = 5+res.flsa.flsaRows.length+1;
+    xlSectionTitle(ws3,sStartRow,'FLSA Settings',8);
+    const settings=[
+      ['Complaint filing date', res.flsa.filingDate || '(not set — SOL cap NOT applied)'],
+      ['Statute of limitations', res.flsa.willful ? 'Willful — 3 years (29 U.S.C. § 255(a))' : 'Non-willful — 2 years (29 U.S.C. § 255(a))'],
+      ['SOL cutoff (earliest counted week)', res.flsa.cutoff || '(none)']
+    ];
+    state.flsaPeriods.forEach((fp,i)=>{
+      const dowName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][typeof fp.workweekStart==='number'?fp.workweekStart:1];
+      settings.push([`Workweek begins (Period ${i+1})`, `${dowName} (29 C.F.R. § 778.105)`]);
+    });
+    settings.forEach((m,i)=>{
+      const r=ws3.getRow(sStartRow+1+i);
+      r.getCell(1).value=m[0]; r.getCell(1).font={bold:true,color:{argb:'FF666666'},size:10};
+      r.getCell(2).value=m[1]; r.getCell(2).font={size:10};
+    });
+  }
+
+  // FLSA Weekly Detail sheet — every week the engine considered
+  if(res.flsa&&res.flsa.weeklyRows&&res.flsa.weeklyRows.length){
+    const ws4=wb.addWorksheet('FLSA Weekly Detail'+suffix);
+    xlSectionTitle(ws4,1,'FLSA Overtime — Weekly Breakdown',10);
+    const hdr=['Week Of','Position','Status','Days','Hours','Rate ($/hr)','OT Method','OT Hours','OT Wages','Liquidated','Note / Reason'];
+    const hdrRow=ws4.getRow(3);
+    hdr.forEach((h,i)=>{hdrRow.getCell(i+1).value=h;});
+    xlStyleHeader(hdrRow);
+    const reasonLabels = {vacation:'Vacation',fmla:'FMLA',sick:'Sick leave',suspension:'Suspension',no_work:'No work',other:'Other'};
+    const statusLabels = {counted:'Counted',user_excluded:'Excluded',sol_excluded:'Dropped — SOL',post_trial:'Dropped — post-trial'};
+    res.flsa.weeklyRows.forEach((w,i)=>{
+      const row=ws4.getRow(4+i);
+      const meth = w.otMethod==='full' ? '1.5×' : (w.otMethod==='half' ? '0.5×' : '');
+      let note = w.note || '';
+      if (w.status==='user_excluded') note = (reasonLabels[w.exclusionReason]||'Excluded')+(note?' — '+note:'');
+      else if (w.status==='sol_excluded') note = w.solReason || 'SOL';
+      else if (w.status==='post_trial') note = 'After trial date';
+      else if (w.isPartial) note = (note?note+' — ':'')+'Partial week (prorated)';
+      [w.weekKey, w.description||'', statusLabels[w.status]||w.status, w.daysInPeriod||7, w.hours||0, w.rate||0, meth, w.otHrs||0, w.ot||0, w.liq||0, note].forEach((v,j)=>{row.getCell(j+1).value=v;});
+      // Soft row tinting for non-counted statuses
+      if (w.status !== 'counted') {
+        for (let c=1;c<=11;c++) row.getCell(c).font={size:9,color:{argb:'FF888888'},italic:true};
+      }
+    });
+    xlStyleBody(ws4,4,3+res.flsa.weeklyRows.length);
+    xlNumFmt(ws4,[5,6,8,9,10],4,3+res.flsa.weeklyRows.length);
+    ws4.columns=[{width:13},{width:18},{width:18},{width:7},{width:9},{width:11},{width:11},{width:10},{width:14},{width:14},{width:28}];
   }
 }
 
@@ -1172,31 +1464,79 @@ function exportPDF() {
     doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:22},1:{cellWidth:10,halign:'right'},2:{cellWidth:24,halign:'right'},3:{cellWidth:24,halign:'right'},4:{cellWidth:24,halign:'right'},5:{cellWidth:20,halign:'right'},6:{cellWidth:20,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
     y=doc.lastAutoTable.finalY+10;
   }
-  // FLSA table
+  // FLSA period summary table
   if (res.flsa&&res.flsa.flsaRows.length) {
     if (y>220){doc.addPage();y=20;}
     doc.setTextColor(13,22,40); doc.setFontSize(12); doc.setFont('helvetica','bold');
-    doc.text('FLSA Overtime Breakdown',14,y);
+    doc.text('FLSA Overtime — Period Summary',14,y);
     y+=6;
-    const head=[['Period / Position','OT Hours','OT Wages','Liquidated','Interest','Subtotal']];
-    const body=res.flsa.flsaRows.map(r=>[`${r.startDate} – ${r.endDate||'present'}${r.description?' · '+r.description:''}`,r.otHrs.toFixed(1),$$(r.ot),$$(r.liq),$$(r.fi),$$(r.sub)]);
-    body.push(['FLSA TOTAL','','',$$(res.flsa.totLiq),$$(res.flsa.totFInt),$$(res.flsa.flsaTotal)]);
-    doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
+    // SOL/willfulness banner line
+    doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.setTextColor(90,80,60);
+    const solLine = `Filing date: ${res.flsa.filingDate||'(not set — SOL not applied)'}   |   ${res.flsa.willful?'Willful (3-yr)':'Non-willful (2-yr)'}   |   SOL cutoff: ${res.flsa.cutoff||'—'}`;
+    doc.text(solLine,14,y);
+    doc.setFont('helvetica','normal'); doc.setTextColor(13,22,40);
+    y+=4;
+    const head=[['Period / Position','Wks Counted','Excluded','Dropped','OT Hours','OT Wages','Liquidated','Subtotal']];
+    const body=res.flsa.flsaRows.map(r=>[
+      `${r.startDate} – ${r.endDate||'present'}${r.description?' · '+r.description:''}`,
+      String(r.weeksCounted||0), String(r.weeksExcluded||0), String((r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0)),
+      r.otHrs.toFixed(1), $$(r.ot), $$(r.liq), $$(r.sub)
+    ]);
+    const sumWks=res.flsa.flsaRows.reduce((a,r)=>a+(r.weeksCounted||0),0);
+    const sumExcl=res.flsa.flsaRows.reduce((a,r)=>a+(r.weeksExcluded||0),0);
+    const sumDrop=res.flsa.flsaRows.reduce((a,r)=>a+(r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0),0);
+    const sumHrs=res.flsa.flsaRows.reduce((a,r)=>a+(r.otHrs||0),0);
+    body.push(['FLSA TOTAL',String(sumWks),String(sumExcl),String(sumDrop),sumHrs.toFixed(1),$$(res.flsa.totOT),$$(res.flsa.totLiq),$$(res.flsa.flsaTotal)]);
+    doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:54},1:{cellWidth:18,halign:'right'},2:{cellWidth:16,halign:'right'},3:{cellWidth:16,halign:'right'},4:{cellWidth:18,halign:'right'},5:{cellWidth:22,halign:'right'},6:{cellWidth:22,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
     y=doc.lastAutoTable.finalY+10;
+
+    // FLSA weekly detail — only the counted/excluded weeks (skip pure SOL/post-trial drops to keep it short)
+    const wkRows = (res.flsa.weeklyRows||[]).filter(w => w.status==='counted' || w.status==='user_excluded');
+    if (wkRows.length) {
+      if (y>220){doc.addPage();y=20;}
+      doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+      doc.text('FLSA Overtime — Weekly Breakdown',14,y);
+      y+=5;
+      const reasonLabels = {vacation:'Vacation',fmla:'FMLA',sick:'Sick',suspension:'Suspension',no_work:'No work',other:'Other'};
+      const wHead=[['Week Of','Position','Status','Days','Hours','Rate','OT Hrs','OT Wages','Liq.','Note']];
+      const wBody=wkRows.map(w=>{
+        const meth = w.otMethod==='full'?'1.5×':(w.otMethod==='half'?'0.5×':'');
+        let note = w.note||'';
+        if (w.status==='user_excluded') note = (reasonLabels[w.exclusionReason]||'Excluded')+(note?' — '+note:'');
+        else if (w.isPartial) note = (note?note+' — ':'')+'Partial';
+        return [
+          w.weekKey, w.description||'', w.status==='counted'?'Counted':'Excluded',
+          String(w.daysInPeriod||7), (w.hours||0).toFixed(1), '$'+(w.rate||0).toFixed(2),
+          (w.otHrs||0).toFixed(1), $$(w.ot||0), $$(w.liq||0), note
+        ];
+      });
+      doc.autoTable({head:wHead,body:wBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7,cellPadding:1.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:18},1:{cellWidth:24},2:{cellWidth:18},3:{cellWidth:10,halign:'right'},4:{cellWidth:12,halign:'right'},5:{cellWidth:14,halign:'right'},6:{cellWidth:13,halign:'right'},7:{cellWidth:20,halign:'right'},8:{cellWidth:20,halign:'right'},9:{cellWidth:'auto'}},alternateRowStyles:{fillColor:[248,245,238]},didParseCell:function(data){if(data.section==='body'&&wkRows[data.row.index]&&wkRows[data.row.index].status==='user_excluded'){data.cell.styles.textColor=[136,136,136];data.cell.styles.fontStyle='italic';}}});
+      y=doc.lastAutoTable.finalY+10;
+    }
   }
   // Footnotes
-  if (y>230){doc.addPage();y=20;}
+  if (y>200){doc.addPage();y=20;}
+  const hasFlsa = !!(res.flsa && res.flsa.flsaRows && res.flsa.flsaRows.length);
+  const hasDisc = !!res.disc;
+  const fnBoxH = (hasFlsa && hasDisc) ? 86 : (hasFlsa ? 70 : 52);
   doc.setFillColor(245,242,235);
-  doc.roundedRect(12,y,W-24,52,2,2,'F');
+  doc.roundedRect(12,y,W-24,fnBoxH,2,2,'F');
   doc.setTextColor(30,22,16); doc.setFontSize(8); doc.setFont('helvetica','bold');
   doc.text('Notes & Sources',15,y+6);
   doc.setFont('helvetica','normal'); doc.setTextColor(70,65,58);
-  const fn1=`1. Prejudgment Interest: Calculated using the IRS underpayment rate under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date (IRS Rev. Rul., applicable quarters). This figure will be updated through the actual date of judgment.`;
+  const fn1=`1. Prejudgment Interest (Title VII / ADEA / ADA back pay only): Calculated using the IRS underpayment rate under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date. This figure does not apply to FLSA overtime claims (see note 4) and will be updated through the actual date of judgment.`;
   const fn2=`2. Lost Benefits: Estimated at ${(parseFloat(STATE.customBenefitsRate)||BLS[STATE.employerType]||32.5).toFixed(1)}% of gross back wages, reflecting supplementary (voluntary) employer-paid benefits per U.S. Bureau of Labor Statistics, Employer Costs for Employee Compensation (ECEC), Table 1, Q4 2024 (USDL-25-0379, Mar. 2025), www.bls.gov/news.release/ecec.htm. Excludes legally-required costs (Social Security, Medicare, unemployment insurance, workers' compensation). Will be supplemented by actual plan documentation prior to trial.`;
   const fn3=`3. All figures are estimates based on currently available information and are subject to revision. Plaintiff reserves the right to update these calculations through the date of judgment.`;
-  doc.text(fn1,15,y+13,{maxWidth:W-28,lineHeightFactor:1.4});
-  doc.text(fn2,15,y+24,{maxWidth:W-28,lineHeightFactor:1.4});
-  doc.text(fn3,15,y+38,{maxWidth:W-28,lineHeightFactor:1.4});
+  const fn4=`4. FLSA Liquidated Damages: 29 U.S.C. § 216(b) authorizes liquidated damages equal to unpaid overtime. The Supreme Court has held that liquidated damages “are not a penalty exacted by the law, but rather compensation to the employee . . . for the loss of the use of [the wages]” — i.e., they substitute for prejudgment interest. Brooklyn Sav. Bank v. O'Neil, 324 U.S. 697, 715 (1945); see Martin v. Cooper Elec. Supply Co., 940 F.2d 896, 910 (3d Cir. 1991). Accordingly, no separate prejudgment-interest line is calculated for FLSA overtime claims.`;
+  const fn5=`5. FLSA Statute of Limitations & Workweek: Damages are limited to two years before the complaint filing date, or three years if the violation was willful. 29 U.S.C. § 255(a). The workweek is a fixed, recurring period of 168 consecutive hours designated by the employer. 29 C.F.R. § 778.105. Filing date${res.flsa&&res.flsa.filingDate?': '+res.flsa.filingDate:' not yet entered — SOL cap not applied to weekly calculation'}.`;
+  let fnY = y+13;
+  doc.text(fn1,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=11;
+  doc.text(fn2,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=14;
+  doc.text(fn3,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=8;
+  if (hasFlsa) {
+    doc.text(fn4,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=18;
+    doc.text(fn5,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4});
+  }
   // ── Addendum: Informational Sheet ──
   doc.addPage();
   y=12;
@@ -1420,31 +1760,77 @@ function exportAllPDF() {
       doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:22},1:{cellWidth:10,halign:'right'},2:{cellWidth:24,halign:'right'},3:{cellWidth:24,halign:'right'},4:{cellWidth:24,halign:'right'},5:{cellWidth:20,halign:'right'},6:{cellWidth:20,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
       y=doc.lastAutoTable.finalY+10;
     }
-    // FLSA table
+    // FLSA period summary table
     if(res.flsa&&res.flsa.flsaRows.length){
       if(y>220){doc.addPage();y=20;}
       doc.setTextColor(13,22,40); doc.setFontSize(12); doc.setFont('helvetica','bold');
-      doc.text('FLSA Overtime Breakdown',14,y);
+      doc.text('FLSA Overtime — Period Summary',14,y);
       y+=6;
-      const head=[['Period / Position','OT Hours','OT Wages','Liquidated','Interest','Subtotal']];
-      const body=res.flsa.flsaRows.map(r=>[`${r.startDate} – ${r.endDate||'present'}${r.description?' · '+r.description:''}`,r.otHrs.toFixed(1),$$(r.ot),$$(r.liq),$$(r.fi),$$(r.sub)]);
-      body.push(['FLSA TOTAL','','',$$(res.flsa.totLiq),$$(res.flsa.totFInt),$$(res.flsa.flsaTotal)]);
-      doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
+      doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.setTextColor(90,80,60);
+      const solLine = `Filing date: ${res.flsa.filingDate||'(not set — SOL not applied)'}   |   ${res.flsa.willful?'Willful (3-yr)':'Non-willful (2-yr)'}   |   SOL cutoff: ${res.flsa.cutoff||'—'}`;
+      doc.text(solLine,14,y);
+      doc.setFont('helvetica','normal'); doc.setTextColor(13,22,40);
+      y+=4;
+      const head=[['Period / Position','Wks Counted','Excluded','Dropped','OT Hours','OT Wages','Liquidated','Subtotal']];
+      const body=res.flsa.flsaRows.map(r=>[
+        `${r.startDate} – ${r.endDate||'present'}${r.description?' · '+r.description:''}`,
+        String(r.weeksCounted||0), String(r.weeksExcluded||0), String((r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0)),
+        r.otHrs.toFixed(1), $$(r.ot), $$(r.liq), $$(r.sub)
+      ]);
+      const sumWks=res.flsa.flsaRows.reduce((a,r)=>a+(r.weeksCounted||0),0);
+      const sumExcl=res.flsa.flsaRows.reduce((a,r)=>a+(r.weeksExcluded||0),0);
+      const sumDrop=res.flsa.flsaRows.reduce((a,r)=>a+(r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0),0);
+      const sumHrs=res.flsa.flsaRows.reduce((a,r)=>a+(r.otHrs||0),0);
+      body.push(['FLSA TOTAL',String(sumWks),String(sumExcl),String(sumDrop),sumHrs.toFixed(1),$$(res.flsa.totOT),$$(res.flsa.totLiq),$$(res.flsa.flsaTotal)]);
+      doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:54},1:{cellWidth:18,halign:'right'},2:{cellWidth:16,halign:'right'},3:{cellWidth:16,halign:'right'},4:{cellWidth:18,halign:'right'},5:{cellWidth:22,halign:'right'},6:{cellWidth:22,halign:'right'},7:{cellWidth:24,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[248,245,238]},footStyles:{fillColor:[13,22,40],textColor:255,fontStyle:'bold'}});
       y=doc.lastAutoTable.finalY+10;
+
+      const wkRows = (res.flsa.weeklyRows||[]).filter(w => w.status==='counted' || w.status==='user_excluded');
+      if (wkRows.length) {
+        if (y>220){doc.addPage();y=20;}
+        doc.setTextColor(13,22,40); doc.setFontSize(11); doc.setFont('helvetica','bold');
+        doc.text('FLSA Overtime — Weekly Breakdown',14,y);
+        y+=5;
+        const reasonLabels = {vacation:'Vacation',fmla:'FMLA',sick:'Sick',suspension:'Suspension',no_work:'No work',other:'Other'};
+        const wHead=[['Week Of','Position','Status','Days','Hours','Rate','OT Hrs','OT Wages','Liq.','Note']];
+        const wBody=wkRows.map(w=>{
+          const meth = w.otMethod==='full'?'1.5×':(w.otMethod==='half'?'0.5×':'');
+          let note = w.note||'';
+          if (w.status==='user_excluded') note = (reasonLabels[w.exclusionReason]||'Excluded')+(note?' — '+note:'');
+          else if (w.isPartial) note = (note?note+' — ':'')+'Partial';
+          return [
+            w.weekKey, w.description||'', w.status==='counted'?'Counted':'Excluded',
+            String(w.daysInPeriod||7), (w.hours||0).toFixed(1), '$'+(w.rate||0).toFixed(2),
+            (w.otHrs||0).toFixed(1), $$(w.ot||0), $$(w.liq||0), note
+          ];
+        });
+        doc.autoTable({head:wHead,body:wBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7,cellPadding:1.5},headStyles:{fillColor:[13,22,40],textColor:[200,165,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:18},1:{cellWidth:24},2:{cellWidth:18},3:{cellWidth:10,halign:'right'},4:{cellWidth:12,halign:'right'},5:{cellWidth:14,halign:'right'},6:{cellWidth:13,halign:'right'},7:{cellWidth:20,halign:'right'},8:{cellWidth:20,halign:'right'},9:{cellWidth:'auto'}},alternateRowStyles:{fillColor:[248,245,238]},didParseCell:function(data){if(data.section==='body'&&wkRows[data.row.index]&&wkRows[data.row.index].status==='user_excluded'){data.cell.styles.textColor=[136,136,136];data.cell.styles.fontStyle='italic';}}});
+        y=doc.lastAutoTable.finalY+10;
+      }
     }
     // Footnotes
-    if(y>230){doc.addPage();y=20;}
+    if(y>200){doc.addPage();y=20;}
+    const hasFlsa = !!(res.flsa && res.flsa.flsaRows && res.flsa.flsaRows.length);
+    const hasDisc = !!res.disc;
+    const fnBoxH = (hasFlsa && hasDisc) ? 86 : (hasFlsa ? 70 : 52);
     doc.setFillColor(245,242,235);
-    doc.roundedRect(12,y,W-24,52,2,2,'F');
+    doc.roundedRect(12,y,W-24,fnBoxH,2,2,'F');
     doc.setTextColor(30,22,16); doc.setFontSize(8); doc.setFont('helvetica','bold');
     doc.text('Notes & Sources',15,y+6);
     doc.setFont('helvetica','normal'); doc.setTextColor(70,65,58);
-    const fn1=`1. Prejudgment Interest: Calculated using the IRS underpayment rate under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date (IRS Rev. Rul., applicable quarters). This figure will be updated through the actual date of judgment.`;
+    const fn1=`1. Prejudgment Interest (Title VII / ADEA / ADA back pay only): Calculated using the IRS underpayment rate under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date. This figure does not apply to FLSA overtime claims (see note 4) and will be updated through the actual date of judgment.`;
     const fn2=`2. Lost Benefits: Estimated at ${(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5).toFixed(1)}% of gross back wages, reflecting supplementary (voluntary) employer-paid benefits per U.S. Bureau of Labor Statistics, Employer Costs for Employee Compensation (ECEC), Table 1, Q4 2024 (USDL-25-0379, Mar. 2025), www.bls.gov/news.release/ecec.htm. Excludes legally-required costs (Social Security, Medicare, unemployment insurance, workers' compensation). Will be supplemented by actual plan documentation prior to trial.`;
     const fn3=`3. All figures are estimates based on currently available information and are subject to revision. Plaintiff reserves the right to update these calculations through the date of judgment.`;
-    doc.text(fn1,15,y+13,{maxWidth:W-28,lineHeightFactor:1.4});
-    doc.text(fn2,15,y+24,{maxWidth:W-28,lineHeightFactor:1.4});
-    doc.text(fn3,15,y+38,{maxWidth:W-28,lineHeightFactor:1.4});
+    const fn4=`4. FLSA Liquidated Damages: 29 U.S.C. § 216(b) authorizes liquidated damages equal to unpaid overtime. The Supreme Court has held that liquidated damages “are not a penalty exacted by the law, but rather compensation to the employee . . . for the loss of the use of [the wages]” — i.e., they substitute for prejudgment interest. Brooklyn Sav. Bank v. O'Neil, 324 U.S. 697, 715 (1945); see Martin v. Cooper Elec. Supply Co., 940 F.2d 896, 910 (3d Cir. 1991). Accordingly, no separate prejudgment-interest line is calculated for FLSA overtime claims.`;
+    const fn5=`5. FLSA Statute of Limitations & Workweek: Damages are limited to two years before the complaint filing date, or three years if the violation was willful. 29 U.S.C. § 255(a). The workweek is a fixed, recurring period of 168 consecutive hours designated by the employer. 29 C.F.R. § 778.105. Filing date${res.flsa&&res.flsa.filingDate?': '+res.flsa.filingDate:' not yet entered — SOL cap not applied to weekly calculation'}.`;
+    let fnY = y+13;
+    doc.text(fn1,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=11;
+    doc.text(fn2,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=14;
+    doc.text(fn3,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=8;
+    if (hasFlsa) {
+      doc.text(fn4,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=18;
+      doc.text(fn5,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4});
+    }
     // Addendum
     doc.addPage();
     y=12;
@@ -1593,14 +1979,48 @@ function attachInputListeners() {
   });
 }
 
+function pruneOverride(weekOverrides, weekKey){
+  if (!weekOverrides || !weekOverrides[weekKey]) return;
+  const ov = weekOverrides[weekKey];
+  const empty = Object.keys(ov).every(k => ov[k] === '' || ov[k] === undefined || ov[k] === null);
+  if (empty) delete weekOverrides[weekKey];
+}
+
 function handleChange(e) {
   const el=e.target;
   const key=el.dataset.key;
   const idx=el.dataset.idx!==undefined?Number(el.dataset.idx):null;
   const list=el.dataset.list;
   const field=el.dataset.field;
+  const overridesKey=el.dataset.overridesKey;
+  const rateChangeId=el.dataset.rateChangeId;
   const val=el.type==='checkbox'?el.checked:el.value;
-  if (list&&field&&idx!==null) {
+  // Per-week override (FLSA weekly grid): list=flsaPeriods, idx, data-overrides-key=weekKey, data-field
+  if (list==='flsaPeriods' && idx!==null && overridesKey && field) {
+    const fp = STATE.flsaPeriods[idx];
+    if (fp) {
+      if (!fp.weekOverrides) fp.weekOverrides = {};
+      if (!fp.weekOverrides[overridesKey]) fp.weekOverrides[overridesKey] = {};
+      fp.weekOverrides[overridesKey][field] = val;
+      pruneOverride(fp.weekOverrides, overridesKey);
+    }
+  }
+  // Rate-change row (FLSA rate timeline): list=flsaPeriods, idx, data-rate-change-id=rcId, data-field
+  else if (list==='flsaPeriods' && idx!==null && rateChangeId && field) {
+    const fp = STATE.flsaPeriods[idx];
+    if (fp && Array.isArray(fp.rateChanges)) {
+      const rc = fp.rateChanges.find(r => r.id === rateChangeId);
+      if (rc) {
+        // Snap effectiveDate to the period's workweek start day
+        if (field === 'effectiveDate' && val) {
+          rc[field] = weekStartOf(val, fp.workweekStart || 1);
+        } else {
+          rc[field] = val;
+        }
+      }
+    }
+  }
+  else if (list&&field&&idx!==null) {
     STATE[list][idx][field]=val;
   } else if (key) {
     setNested(STATE,key,val);
@@ -1682,7 +2102,9 @@ function renderSetup() {
       ${field('Defendant', inp(s.defendant,{dk:'defendant',placeholder:'Acme Corporation'}))}
       ${field('Employer type',sel(s.employerType,[{v:'private',l:'Private sector'},{v:'state_local',l:'State / Local government'},{v:'federal',l:'Federal government'}],{dk:'employerType',rerender:'1'}))}
       ${field('Claim type',sel(s.claimType,[{v:'both',l:'Discrimination + FLSA Overtime'},{v:'discrimination',l:'Discrimination only'},{v:'flsa',l:'FLSA Overtime only'}],{dk:'claimType',rerender:'1'}))}
+      ${s.claimType!=='discrimination'?field('Complaint filing date',`<input type="date" value="${esc(s.complaintFiledDate||'')}" data-key="complaintFiledDate" data-rerender="1">`,{style:'grid-column:span 1'}):''}
     </div>
+    ${s.claimType!=='discrimination'?`<div class="card-sub" style="margin-top:8px"><strong>Filing date</strong> anchors the FLSA statute-of-limitations cutoff under 29 U.S.C. § 255(a). ${s.complaintFiledDate?'':'<span style="color:var(--gold-d)">Not set — SOL cap will not be applied to FLSA damages.</span>'}</div>`:''}
     ${s.claimType!=='flsa'?`
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-100)">
       <span class="section-label" style="margin-bottom:8px;display:block">Benefits calculation method</span>
@@ -1703,13 +2125,21 @@ function renderSetup() {
     <div class="card-title">Damage Scenarios</div>
     <div class="card-sub">Model multiple trial dates simultaneously — e.g., backpay to date, mediation, trial</div>
     ${s.scenarios.map((sc,i)=>`
-      <div style="border:1px solid var(--gray-100);border-radius:var(--r);padding:12px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-end">
-        <div style="flex:1">
+      <div style="border:1px solid var(--gray-100);border-radius:var(--r);padding:12px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+        <div style="flex:1;min-width:160px">
           ${field('Scenario name', `<input type="text" value="${esc(sc.name)}" placeholder="e.g. Backpay to Date" data-list="scenarios" data-idx="${i}" data-field="name">`)}
         </div>
-        <div style="flex:1">
+        <div style="flex:1;min-width:160px">
           ${field('Trial / end date', `<input type="date" value="${esc(sc.trialDate)}" data-list="scenarios" data-idx="${i}" data-field="trialDate">`)}
         </div>
+        ${s.claimType!=='discrimination'?`
+        <div style="flex:1;min-width:200px">
+          <span class="section-label">FLSA lookback</span>
+          <div style="display:flex;gap:0;border:1px solid var(--gray-100);border-radius:var(--r);overflow:hidden">
+            <button type="button" class="btn btn-sm" style="flex:1;border-radius:0;background:${sc.flsaWillful!==false?'var(--navy)':'transparent'};color:${sc.flsaWillful!==false?'var(--gold)':'var(--text-2)'};border:none;font-size:11px" onclick="STATE.scenarios[${i}].flsaWillful=true;renderTab();updateHeaderTotal();scheduleSave()" title="3-year lookback under 29 U.S.C. § 255(a) for willful violations">Willful — 3 yr</button>
+            <button type="button" class="btn btn-sm" style="flex:1;border-radius:0;background:${sc.flsaWillful===false?'var(--navy)':'transparent'};color:${sc.flsaWillful===false?'var(--gold)':'var(--text-2)'};border:none;border-left:1px solid var(--gray-100);font-size:11px" onclick="STATE.scenarios[${i}].flsaWillful=false;renderTab();updateHeaderTotal();scheduleSave()" title="2-year lookback under 29 U.S.C. § 255(a) for non-willful violations">Non-willful — 2 yr</button>
+          </div>
+        </div>`:''}
         <div>
           <span class="section-label">&nbsp;</span>
           <div style="display:flex;gap:6px">
@@ -1722,7 +2152,7 @@ function renderSetup() {
         </div>
       </div>
     `).join('')}
-    <button class="btn-add" onclick="STATE.scenarios.push({id:uid(),name:'Scenario '+(STATE.scenarios.length+1),trialDate:''});renderTab()">
+    <button class="btn-add" onclick="STATE.scenarios.push({id:uid(),name:'Scenario '+(STATE.scenarios.length+1),trialDate:'',flsaWillful:true});renderTab()">
       + Add scenario (compare different trial dates)
     </button>
     <div class="info-box" style="margin-top:12px;margin-bottom:0">
@@ -1928,59 +2358,422 @@ function renderMitigation() {
 }
 
 // ── FLSA TAB ──
+// ── FLSA per-period UI state (selection, expanded months) ──
+const FLSA_UI = {
+  selected: {},   // periodId -> Set<weekKey>
+  collapsed: {},  // periodId -> Set<'YYYY-MM'> (collapsed months)
+  showWeekly: {}, // periodId -> bool (toggle visibility of weekly grid)
+  bulkExclusionReason: 'vacation'
+};
+
+function flsaSelected(pid){ FLSA_UI.selected[pid] ||= new Set(); return FLSA_UI.selected[pid]; }
+function flsaCollapsed(pid){ FLSA_UI.collapsed[pid] ||= new Set(); return FLSA_UI.collapsed[pid]; }
+
+function flsaToggleSelect(pid, weekKey, checked){
+  const sel = flsaSelected(pid);
+  if (checked) sel.add(weekKey); else sel.delete(weekKey);
+  // Update the selection-count display without a full re-render
+  const el = document.getElementById('sel-count-'+pid);
+  if (el) el.textContent = sel.size + ' selected';
+}
+function flsaSelectAllVisible(pid){
+  const boxes = document.querySelectorAll(`input.wk-sel-${pid}:not([disabled])`);
+  const sel = flsaSelected(pid);
+  boxes.forEach(b => { b.checked = true; sel.add(b.dataset.weekKey); });
+  const el = document.getElementById('sel-count-'+pid); if (el) el.textContent = sel.size + ' selected';
+}
+function flsaClearSelection(pid){
+  const sel = flsaSelected(pid);
+  sel.clear();
+  document.querySelectorAll(`input.wk-sel-${pid}`).forEach(b => b.checked = false);
+  const el = document.getElementById('sel-count-'+pid); if (el) el.textContent = '0 selected';
+}
+
+function flsaBulkSetHours(pid){
+  const sel = flsaSelected(pid); if (!sel.size) { showToast('Select weeks first','warning'); return; }
+  const v = document.getElementById('bulk-hours-'+pid).value;
+  if (v === '') return;
+  const period = STATE.flsaPeriods.find(p => p.id === pid); if (!period) return;
+  period.weekOverrides ||= {};
+  sel.forEach(wk => {
+    period.weekOverrides[wk] ||= {};
+    period.weekOverrides[wk].hours = v;
+    delete period.weekOverrides[wk].excluded;
+    delete period.weekOverrides[wk].exclusionReason;
+  });
+  flsaClearSelection(pid); renderTab(); updateHeaderTotal(); scheduleSave();
+}
+function flsaBulkSetRate(pid){
+  const sel = flsaSelected(pid); if (!sel.size) { showToast('Select weeks first','warning'); return; }
+  const v = document.getElementById('bulk-rate-'+pid).value;
+  if (v === '') return;
+  const period = STATE.flsaPeriods.find(p => p.id === pid); if (!period) return;
+  period.weekOverrides ||= {};
+  sel.forEach(wk => {
+    period.weekOverrides[wk] ||= {};
+    period.weekOverrides[wk].rate = v;
+    delete period.weekOverrides[wk].excluded;
+    delete period.weekOverrides[wk].exclusionReason;
+  });
+  flsaClearSelection(pid); renderTab(); updateHeaderTotal(); scheduleSave();
+}
+function flsaBulkExclude(pid){
+  const sel = flsaSelected(pid); if (!sel.size) { showToast('Select weeks first','warning'); return; }
+  const reason = document.getElementById('bulk-reason-'+pid).value;
+  const period = STATE.flsaPeriods.find(p => p.id === pid); if (!period) return;
+  period.weekOverrides ||= {};
+  sel.forEach(wk => {
+    period.weekOverrides[wk] = { excluded:true, exclusionReason:reason };
+  });
+  flsaClearSelection(pid); renderTab(); updateHeaderTotal(); scheduleSave();
+}
+function flsaBulkReset(pid){
+  const sel = flsaSelected(pid); if (!sel.size) { showToast('Select weeks first','warning'); return; }
+  const period = STATE.flsaPeriods.find(p => p.id === pid); if (!period || !period.weekOverrides) { flsaClearSelection(pid); renderTab(); return; }
+  sel.forEach(wk => { delete period.weekOverrides[wk]; });
+  flsaClearSelection(pid); renderTab(); updateHeaderTotal(); scheduleSave();
+}
+
+function flsaResetWeek(pid, weekKey){
+  const period = STATE.flsaPeriods.find(p => p.id === pid); if (!period || !period.weekOverrides) return;
+  delete period.weekOverrides[weekKey];
+  renderTab(); updateHeaderTotal(); scheduleSave();
+}
+function flsaExcludeWeek(pid, weekKey, reason){
+  const period = STATE.flsaPeriods.find(p => p.id === pid); if (!period) return;
+  period.weekOverrides ||= {};
+  period.weekOverrides[weekKey] = { excluded:true, exclusionReason:reason||'vacation' };
+  renderTab(); updateHeaderTotal(); scheduleSave();
+}
+
+function flsaAddRateChange(pidx){
+  const fp = STATE.flsaPeriods[pidx]; if (!fp) return;
+  fp.rateChanges ||= [];
+  // Default effective date = period start, snapped to workweek start
+  const startDow = (typeof fp.workweekStart === 'number') ? fp.workweekStart : 1;
+  const eff = fp.startDate ? weekStartOf(fp.startDate, startDow) : '';
+  fp.rateChanges.push({ id:uid(), effectiveDate:eff, rate:'', note:'' });
+  renderTab();
+}
+function flsaRemoveRateChange(pidx, rcId){
+  const fp = STATE.flsaPeriods[pidx]; if (!fp || !fp.rateChanges) return;
+  fp.rateChanges = fp.rateChanges.filter(r => r.id !== rcId);
+  renderTab(); updateHeaderTotal(); scheduleSave();
+}
+
+// Workweek change guard: if overrides or rate changes exist, confirm before clearing.
+function flsaChangeWorkweek(pidx, newDow){
+  const fp = STATE.flsaPeriods[pidx]; if (!fp) return;
+  newDow = parseInt(newDow,10);
+  if (fp.workweekStart === newDow) return;
+  const ovCount = fp.weekOverrides ? Object.keys(fp.weekOverrides).length : 0;
+  const rcCount = (fp.rateChanges||[]).length;
+  if (ovCount + rcCount > 0) {
+    const msg = `Changing the workweek will clear ${ovCount} weekly override${ovCount===1?'':'s'} and re-snap ${rcCount} rate-change date${rcCount===1?'':'s'} to the new workweek's start day.\n\nContinue?`;
+    if (!confirm(msg)) {
+      // Revert the dropdown
+      const sel = document.querySelector(`select.workweek-sel-${fp.id}`);
+      if (sel) sel.value = String(fp.workweekStart);
+      return;
+    }
+    fp.weekOverrides = {};
+    (fp.rateChanges||[]).forEach(rc => {
+      if (rc.effectiveDate) rc.effectiveDate = weekStartOf(rc.effectiveDate, newDow);
+    });
+  }
+  fp.workweekStart = newDow;
+  flsaClearSelection(fp.id);
+  renderTab(); updateHeaderTotal(); scheduleSave();
+}
+
+function flsaToggleWeekly(pid){
+  FLSA_UI.showWeekly[pid] = !FLSA_UI.showWeekly[pid];
+  renderTab();
+}
+function flsaToggleMonth(pid, ym){
+  const c = flsaCollapsed(pid);
+  if (c.has(ym)) c.delete(ym); else c.add(ym);
+  renderTab();
+}
+
 function renderFlsa() {
   const s=STATE;
   if (s.claimType==='discrimination') return `<div class="card"><div class="info-box">FLSA overtime applies to overtime claims. Switch claim type to "FLSA" or "Both" in Case Setup.</div></div>`;
+
+  const scenario = s.scenarios.find(sc=>sc.id===s.activeScenarioId)||s.scenarios[0]||{};
+  const willful = scenario.flsaWillful !== false;
+  const cutoff = flsaCutoff(s, scenario);
+  const trial = scenario.trialDate || '';
+  const flsa = computeFlsa(s, trial);
+
+  const dowOpts = DOW_NAMES.map((n,i)=>({v:String(i), l:`${DOW_FULL[i]} (${n})`}));
+  const reasonOpts = [
+    {v:'vacation',l:'Vacation / PTO'},
+    {v:'fmla',l:'FMLA leave'},
+    {v:'sick',l:'Sick leave'},
+    {v:'suspension',l:'Suspension'},
+    {v:'no_work',l:'Did not work'},
+    {v:'other',l:'Other'}
+  ];
+  const reasonLabel = v => (reasonOpts.find(r=>r.v===v)||{l:v||'other'}).l;
+
+  const banner = `
+    <div class="info-box">
+      <strong>FLSA overtime:</strong> Damages = unpaid OT wages + equal liquidated damages.
+      Liquidated damages stand in for prejudgment interest under 29 U.S.C. § 216(b); no separate FLSA interest is calculated.
+      The <strong>regular rate</strong> must include all remuneration (base pay + non-discretionary bonuses + commissions ÷ hours worked).
+    </div>
+    ${!s.complaintFiledDate?`<div class="info-box" style="background:var(--gold-bg);border-color:var(--gold-border);color:var(--navy-2)">⚠ <strong>No complaint filing date set.</strong> The FLSA statute-of-limitations cutoff cannot be applied. Set the filing date in <a href="#" onclick="showTab('setup');return false" style="color:var(--gold-d);font-weight:600">Case Setup</a> to cap damages at the ${willful?'3-year willful':'2-year non-willful'} period under 29 U.S.C. § 255(a).</div>`:''}
+  `;
+
+  const periodsHtml = s.flsaPeriods.map((fp,i)=>renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts, reasonOpts, reasonLabel)).join('');
+
   return `
-  <div class="info-box">
-    <strong>FLSA overtime:</strong> Damages = unpaid OT wages + equal liquidated damages + prejudgment interest. The <strong>regular rate</strong> must include all remuneration (base pay + non-discretionary bonuses + commissions ÷ hours worked).
-  </div>
-  ${s.flsaPeriods.map((fp,i)=>{
-    const rate=parseFloat(fp.regularRate)||0, wkHrs=parseFloat(fp.weeklyHours)||0, wks=parseFloat(fp.weeksWorked)||0;
-    const mult=fp.otMethod==='full'?1.5:0.5;
-    const otHrs=Math.max(0,wkHrs-40)*wks;
-    const otWages=otHrs*rate*mult;
-    return `
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <div class="card-title" style="font-size:14px">FLSA Period #${i+1}${fp.description?' — '+esc(fp.description):''}</div>
-        ${s.flsaPeriods.length>1?`<button class="btn-remove" onclick="STATE.flsaPeriods.splice(${i},1);renderTab()">×</button>`:''}
+    ${banner}
+    ${periodsHtml}
+    <button class="btn-add" onclick="STATE.flsaPeriods.push({id:uid(),startDate:'',endDate:'',description:'',otMethod:'half',workweekStart:1,defaultRegularRate:'',defaultWeeklyHours:'',rateChanges:[],weekOverrides:{}});renderTab()">
+      + Add FLSA period (different position or pay rate)
+    </button>`;
+}
+
+function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts, reasonOpts, reasonLabel) {
+  const periodSummary = (flsa.flsaRows||[]).find(r => r.id === fp.id);
+  const periodWeeks = (flsa.weeklyRows||[]).filter(w => w.periodId === fp.id);
+  const showWeekly = FLSA_UI.showWeekly[fp.id] !== false; // default open
+  const collapseByMonth = periodWeeks.length > 104;
+  const startDow = (typeof fp.workweekStart === 'number') ? fp.workweekStart : 1;
+  const startDowName = DOW_NAMES[startDow];
+  const startDowEnd = DOW_NAMES[(startDow+6)%7];
+
+  const counts = {
+    counted: periodWeeks.filter(w=>w.status==='counted').length,
+    excluded: periodWeeks.filter(w=>w.status==='user_excluded').length,
+    sol: periodWeeks.filter(w=>w.status==='sol_excluded').length,
+    post: periodWeeks.filter(w=>w.status==='post_trial').length
+  };
+
+  const headerCard = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div class="card-title" style="font-size:14px">FLSA Period #${i+1}${fp.description?' — '+esc(fp.description):''}</div>
+      ${STATE.flsaPeriods.length>1?`<button class="btn-remove" onclick="STATE.flsaPeriods.splice(${i},1);renderTab()">×</button>`:''}
+    </div>
+    <div class="g3">
+      ${field('Period start date',`<input type="date" value="${esc(fp.startDate)}" data-list="flsaPeriods" data-idx="${i}" data-field="startDate" data-rerender="1">`)}
+      ${field('Period end date',`<input type="date" value="${esc(fp.endDate)}" data-list="flsaPeriods" data-idx="${i}" data-field="endDate" data-rerender="1">`)}
+      ${field('Position / job title',`<input type="text" value="${esc(fp.description||'')}" placeholder="Warehouse associate" data-list="flsaPeriods" data-idx="${i}" data-field="description">`)}
+      ${field('Default regular rate ($/hr)',`<input type="number" value="${esc(fp.defaultRegularRate)}" placeholder="18.50" min="0" step="0.01" data-list="flsaPeriods" data-idx="${i}" data-field="defaultRegularRate" data-rerender="1">`)}
+      ${field('Default weekly hours',`<input type="number" value="${esc(fp.defaultWeeklyHours)}" placeholder="50" min="0" step="0.5" data-list="flsaPeriods" data-idx="${i}" data-field="defaultWeeklyHours" data-rerender="1">`)}
+      ${field('Workweek begins',`<select class="workweek-sel-${fp.id}" onchange="flsaChangeWorkweek(${i}, this.value)" title="29 C.F.R. § 778.105 — employer designates the workweek">${dowOpts.map(o=>`<option value="${o.v}" ${parseInt(o.v,10)===startDow?'selected':''}>${esc(o.l)}</option>`).join('')}</select>`)}
+    </div>
+    ${field('OT payment received from employer',sel(fp.otMethod||'half',[
+      {v:'half',l:'Straight time paid for OT hours — claiming half-time premium (0.5× rate)'},
+      {v:'full',l:'No compensation received for OT hours — claiming full OT pay (1.5× rate)'}
+    ],{list:'flsaPeriods',idx:i,field:'otMethod',rerender:'1'}),'margin-top:12px')}
+    <div style="font-size:11px;color:var(--gray-400);margin-top:6px">Workweek defaults to Mon–Sun. The default rate and weekly hours are inherited by every workweek below unless you override the row. 29 C.F.R. § 778.105.</div>
+  `;
+
+  // Rate timeline subsection
+  const rateChanges = (fp.rateChanges||[]).slice().sort((a,b)=>(a.effectiveDate||'').localeCompare(b.effectiveDate||''));
+  const rateTimelineHtml = `
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--gray-100)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span class="section-label">Rate changes over time</span>
+        <button class="btn btn-ghost btn-sm" onclick="flsaAddRateChange(${i})">+ Add rate change</button>
       </div>
-      <div class="g3">
-        ${field('Period start date',`<input type="date" value="${esc(fp.startDate)}" data-list="flsaPeriods" data-idx="${i}" data-field="startDate">`)}
-        ${field('Period end date',`<input type="date" value="${esc(fp.endDate)}" data-list="flsaPeriods" data-idx="${i}" data-field="endDate">`)}
-        ${field('Position / job title',`<input type="text" value="${esc(fp.description||'')}" placeholder="Warehouse associate" data-list="flsaPeriods" data-idx="${i}" data-field="description">`)}
-        ${field('Regular rate of pay ($/hr)',`<input type="number" value="${esc(fp.regularRate)}" placeholder="18.50" min="0" step="0.01" data-list="flsaPeriods" data-idx="${i}" data-field="regularRate">`)}
-        ${field('Avg weekly hours worked (total)',`<input type="number" value="${esc(fp.weeklyHours)}" placeholder="50" min="40" step="0.5" data-list="flsaPeriods" data-idx="${i}" data-field="weeklyHours">`)}
-        ${field('Number of weeks in period',`<input type="number" value="${esc(fp.weeksWorked)}" placeholder="52" min="1" data-list="flsaPeriods" data-idx="${i}" data-field="weeksWorked">`)}
+      ${rateChanges.length===0?`<div style="font-size:11.5px;color:var(--gray-400)">No rate changes. The default rate above applies to every workweek unless added.</div>`:''}
+      ${rateChanges.map(rc=>`
+        <div class="rate-change-row">
+          ${field('Effective (workweek start)',`<input type="date" value="${esc(rc.effectiveDate||'')}" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="effectiveDate" data-rerender="1">`)}
+          ${field('New rate ($/hr)',`<input type="number" value="${esc(rc.rate||'')}" placeholder="22.50" min="0" step="0.01" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="rate" data-rerender="1">`)}
+          ${field('Note (optional)',`<input type="text" value="${esc(rc.note||'')}" placeholder="Promotion raise" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="note">`)}
+          <button class="btn-remove" onclick="flsaRemoveRateChange(${i},'${rc.id}')" title="Remove rate change">×</button>
+        </div>`).join('')}
+    </div>
+  `;
+
+  // Period totals row
+  const totalsHtml = periodSummary && (periodSummary.ot > 0 || periodSummary.weeksCounted > 0) ? `
+    <div class="g3" style="margin-top:14px">
+      <div class="metric-card">
+        <div class="metric-label">Total OT hours</div>
+        <div class="metric-value">${periodSummary.otHrs.toFixed(1)} hrs</div>
+        <div class="metric-sub">${periodSummary.weeksCounted} workweek${periodSummary.weeksCounted===1?'':'s'} counted</div>
       </div>
-      ${field('OT payment received from employer',sel(fp.otMethod||'half',[
-        {v:'half',l:'Straight time paid for OT hours — claiming half-time premium (0.5× rate)'},
-        {v:'full',l:'No compensation received for OT hours — claiming full OT pay (1.5× rate)'}
-      ],{list:'flsaPeriods',idx:i,field:'otMethod'}),'margin-top:12px')}
-      ${rate>0&&wkHrs>40&&wks>0?`
-      <div class="g3" style="margin-top:12px">
-        <div class="metric-card">
-          <div class="metric-label">Total OT hours</div>
-          <div class="metric-value">${otHrs.toFixed(1)} hrs</div>
-          <div class="metric-sub">${(wkHrs-40).toFixed(1)} OT hrs/wk × ${wks} weeks</div>
+      <div class="metric-card">
+        <div class="metric-label">Unpaid OT wages</div>
+        <div class="metric-value">${$$(periodSummary.ot)}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">+ Liquidated damages</div>
+        <div class="metric-value gold">${$$(periodSummary.liq)}</div>
+        <div class="metric-sub">Equal amount (§216(b))</div>
+      </div>
+    </div>` : '';
+
+  // Weekly grid
+  const hasDates = fp.startDate && fp.endDate;
+  const hasInputs = (fp.defaultRegularRate || (fp.rateChanges||[]).some(r=>r.rate)) && (fp.defaultWeeklyHours || Object.keys(fp.weekOverrides||{}).length);
+  let weeklyHtml = '';
+  if (hasDates && hasInputs) {
+    const weeklyBanner = `
+      <div class="flsa-weekly-banner">
+        <span class="pill">Workweek: <strong>${startDowName}–${startDowEnd}</strong></span>
+        ${cutoff?`<span class="pill">SOL cutoff: <strong>${dt(cutoff)}</strong> (${willful?'3-yr willful':'2-yr non-willful'})</span>`:`<span class="pill" style="color:var(--gold-d)">No SOL applied</span>`}
+        ${trial?`<span class="pill">Trial cap: <strong>${dt(trial)}</strong></span>`:''}
+        <span class="pill" style="margin-left:auto">${counts.counted} counted${counts.excluded?` · ${counts.excluded} user-excluded`:''}${counts.sol?` · ${counts.sol} dropped by SOL`:''}${counts.post?` · ${counts.post} after trial`:''}</span>
+      </div>`;
+
+    const bulkBar = `
+      <div class="flsa-bulk-bar">
+        <span class="sel-count" id="sel-count-${fp.id}">${flsaSelected(fp.id).size} selected</span>
+        <button class="btn btn-ghost btn-sm" onclick="flsaSelectAllVisible('${fp.id}')">Select all visible</button>
+        <button class="btn btn-ghost btn-sm" onclick="flsaClearSelection('${fp.id}')">Clear</button>
+        <span style="width:1px;height:18px;background:var(--gray-100);margin:0 4px"></span>
+        <input type="number" id="bulk-hours-${fp.id}" placeholder="Hours" min="0" step="0.5">
+        <button class="btn btn-ghost btn-sm" onclick="flsaBulkSetHours('${fp.id}')">Set hours</button>
+        <input type="number" id="bulk-rate-${fp.id}" placeholder="Rate $/hr" min="0" step="0.01">
+        <button class="btn btn-ghost btn-sm" onclick="flsaBulkSetRate('${fp.id}')">Set rate</button>
+        <select id="bulk-reason-${fp.id}">${reasonOpts.map(r=>`<option value="${r.v}">${esc(r.l)}</option>`).join('')}</select>
+        <button class="btn btn-ghost btn-sm" onclick="flsaBulkExclude('${fp.id}')">Exclude</button>
+        <button class="btn btn-ghost btn-sm" onclick="flsaBulkReset('${fp.id}')">Reset to defaults</button>
+      </div>`;
+
+    const tableHeader = `
+      <thead><tr>
+        <th style="width:24px"></th>
+        <th>Week of (${startDowName})</th>
+        <th class="r">Days</th>
+        <th class="r">Hours</th>
+        <th class="r">Rate</th>
+        <th>OT method</th>
+        <th class="r">OT hrs</th>
+        <th class="r">Unpaid OT</th>
+        <th>Status</th>
+        <th style="width:36px"></th>
+      </tr></thead>`;
+
+    const renderRow = (w) => {
+      const ov = (fp.weekOverrides||{})[w.weekKey] || {};
+      const overrideHours = (ov.hours !== undefined && ov.hours !== '');
+      const overrideRate  = (ov.rate  !== undefined && ov.rate  !== '');
+      const overrideMeth  = (ov.otMethod !== undefined && ov.otMethod !== '');
+      const isLocked = w.status==='sol_excluded' || w.status==='post_trial';
+      const isUserExcluded = w.status==='user_excluded';
+      const cls = isLocked ? (w.status==='sol_excluded' ? 'sol-excluded' : 'post-trial')
+                  : isUserExcluded ? 'user-excluded'
+                  : (overrideHours||overrideRate||overrideMeth) ? 'counted-overridden'
+                  : 'counted-inherit';
+      const partialCls = w.isPartial ? ' partial' : '';
+      const daysCell = w.isPartial
+        ? `<span title="${w.daysInPeriod} of 7 days inside the period">${w.daysInPeriod} of 7</span>`
+        : `7`;
+
+      const inheritedRate = rateForWeek(w.weekKey, fp);
+      const inheritedHours = parseFloat(fp.defaultWeeklyHours)||0;
+      const inheritedMeth = fp.otMethod || 'half';
+
+      let hoursCell, rateCell, methCell, otCell, otWagesCell, statusCell, rowMenu;
+
+      if (isLocked) {
+        hoursCell = rateCell = methCell = otCell = otWagesCell = '—';
+        statusCell = w.status==='sol_excluded'
+          ? `<span class="tag muted">Outside ${w.solReason}</span>`
+          : `<span class="tag muted">After trial date</span>`;
+        rowMenu = '';
+      } else if (isUserExcluded) {
+        hoursCell = rateCell = methCell = otCell = otWagesCell = '—';
+        statusCell = `<span class="tag warn">Excluded — ${esc(reasonLabel(w.exclusionReason))}</span>`;
+        rowMenu = `<button class="btn-remove" onclick="flsaResetWeek('${fp.id}','${w.weekKey}')" title="Restore to defaults">↻</button>`;
+      } else {
+        hoursCell = `<input type="number" class="cell-input ${overrideHours?'':'is-default'}" value="${overrideHours?esc(ov.hours):''}" placeholder="${inheritedHours||0}" min="0" step="0.5" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="hours">`;
+        rateCell  = `<input type="number" class="cell-input ${overrideRate?'':'is-default'}" value="${overrideRate?esc(ov.rate):''}" placeholder="${inheritedRate.toFixed(2)}" min="0" step="0.01" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="rate">`;
+        methCell  = `<select class="cell-input" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="otMethod" data-rerender="1"><option value="" ${!overrideMeth?'selected':''}>(default: ${inheritedMeth==='full'?'1.5×':'0.5×'})</option><option value="half" ${ov.otMethod==='half'?'selected':''}>0.5×</option><option value="full" ${ov.otMethod==='full'?'selected':''}>1.5×</option></select>`;
+        otCell    = w.otHrs.toFixed(1);
+        otWagesCell = $$(w.ot);
+        statusCell = (overrideHours||overrideRate||overrideMeth)
+          ? `<span class="tag gold">✎ Override</span>`
+          : `<span class="tag muted">Default</span>`;
+        if (w.isPartial) statusCell += `<span class="tag">Partial</span>`;
+        rowMenu = `<button class="btn-remove" onclick="flsaResetWeek('${fp.id}','${w.weekKey}')" title="Reset to defaults">↻</button>`;
+      }
+
+      const checked = flsaSelected(fp.id).has(w.weekKey);
+      const checkbox = isLocked
+        ? '<input type="checkbox" disabled>'
+        : `<input type="checkbox" class="wk-sel-${fp.id}" data-week-key="${w.weekKey}" ${checked?'checked':''} onchange="flsaToggleSelect('${fp.id}','${w.weekKey}',this.checked)">`;
+
+      return `<tr class="${cls}${partialCls}">
+        <td>${checkbox}</td>
+        <td>${dt(w.weekKey)}${w.note?`<span class="tag" title="${esc(w.note)}">note</span>`:''}</td>
+        <td class="r days-cell">${daysCell}</td>
+        <td class="r ${overrideHours?'ovr':''}">${hoursCell}</td>
+        <td class="r ${overrideRate?'ovr':''}">${rateCell}</td>
+        <td>${methCell}</td>
+        <td class="r">${otCell}</td>
+        <td class="r ${overrideHours||overrideRate||overrideMeth?'ovr':''}">${otWagesCell}</td>
+        <td>${statusCell}</td>
+        <td>${rowMenu}</td>
+      </tr>`;
+    };
+
+    let tableBody;
+    if (collapseByMonth) {
+      // Group by YYYY-MM
+      const groups = {};
+      periodWeeks.forEach(w => {
+        const ym = (w.weekKey||'').slice(0,7);
+        groups[ym] ||= [];
+        groups[ym].push(w);
+      });
+      const sortedMonths = Object.keys(groups).sort();
+      // Auto-open first 3 months by default
+      const collapsed = flsaCollapsed(fp.id);
+      if (collapsed.size === 0 && sortedMonths.length > 3) {
+        sortedMonths.slice(3).forEach(m => collapsed.add(m));
+      }
+      tableBody = sortedMonths.map(ym => {
+        const monthWeeks = groups[ym];
+        const monthOt = monthWeeks.reduce((a,w)=>a+(w.ot||0),0);
+        const monthOtHrs = monthWeeks.reduce((a,w)=>a+(w.otHrs||0),0);
+        const isCollapsed = collapsed.has(ym);
+        const monthLabel = new Date(ym+'-01T12:00:00').toLocaleDateString('en-US',{month:'long',year:'numeric'});
+        return `<tbody>
+          <tr class="flsa-month-row"><td colspan="10" style="padding:0">
+            <div class="flsa-month-header" onclick="flsaToggleMonth('${fp.id}','${ym}')">
+              <span>${isCollapsed?'▶':'▼'} ${esc(monthLabel)} · ${monthWeeks.length} workweek${monthWeeks.length===1?'':'s'}</span>
+              <span>${monthOtHrs.toFixed(1)} OT hrs · ${$$(monthOt)}</span>
+            </div>
+          </td></tr>
+          ${isCollapsed?'':monthWeeks.map(renderRow).join('')}
+        </tbody>`;
+      }).join('');
+    } else {
+      tableBody = `<tbody>${periodWeeks.map(renderRow).join('')}</tbody>`;
+    }
+
+    weeklyHtml = `
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--gray-100)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="section-label">Weekly breakdown (${periodWeeks.length} workweek${periodWeeks.length===1?'':'s'})</span>
+          <button class="btn btn-ghost btn-sm" onclick="flsaToggleWeekly('${fp.id}')">${showWeekly?'Hide':'Show'} weekly grid</button>
         </div>
-        <div class="metric-card">
-          <div class="metric-label">Unpaid OT wages</div>
-          <div class="metric-value">${$$(otWages)}</div>
-          <div class="metric-sub">${mult}× × $${rate.toFixed(2)}/hr</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-label">+ Liquidated damages</div>
-          <div class="metric-value gold">${$$(otWages)}</div>
-          <div class="metric-sub">Equal amount (§216(b))</div>
-        </div>
-      </div>`:''}
-    </div>`;
-  }).join('')}
-  <button class="btn-add" onclick="STATE.flsaPeriods.push({id:uid(),startDate:'',endDate:'',regularRate:'',weeklyHours:'',weeksWorked:'',description:'',otMethod:'half'});renderTab()">
-    + Add FLSA period (different position or pay rate)
-  </button>`;
+        ${showWeekly?`
+          ${weeklyBanner}
+          ${bulkBar}
+          <div style="max-height:600px;overflow:auto;border:1px solid var(--gray-100);border-radius:var(--r)">
+            <table class="flsa-week-table">
+              ${tableHeader}
+              ${tableBody}
+            </table>
+          </div>
+        `:''}
+      </div>
+    `;
+  } else if (hasDates) {
+    weeklyHtml = `<div class="info-box" style="margin-top:12px">Enter a default regular rate and default weekly hours to see the weekly breakdown.</div>`;
+  }
+
+  return `<div class="card">${headerCard}${rateTimelineHtml}${totalsHtml}${weeklyHtml}</div>`;
 }
 
 // ── DOL RATES TAB ──
@@ -2075,15 +2868,14 @@ function renderResults() {
   </div>
 
   <!-- Metric cards -->
-  <div class="${disc&&flsa?'g4':'g3'}" style="margin-bottom:14px">
+  <div class="${disc&&flsa?'g3':(disc?'g3':'g2')}" style="margin-bottom:14px">
     ${disc?`
       <div class="metric-card"><div class="metric-label">Net back pay</div><div class="metric-value">${$$(disc.totBP)}</div></div>
       <div class="metric-card"><div class="metric-label">Lost benefits</div><div class="metric-value">${$$(disc.totBen)}</div></div>
       <div class="metric-card"><div class="metric-label">Prejudgment interest</div><div class="metric-value">${$$(disc.totInt)}</div></div>`:''}
     ${flsa?`
       <div class="metric-card"><div class="metric-label">Unpaid OT wages</div><div class="metric-value">${$$(flsa.totOT)}</div></div>
-      <div class="metric-card"><div class="metric-label">Liquidated damages</div><div class="metric-value">${$$(flsa.totLiq)}</div></div>
-      <div class="metric-card"><div class="metric-label">FLSA interest</div><div class="metric-value">${$$(flsa.totFInt)}</div></div>`:''}
+      <div class="metric-card"><div class="metric-label">Liquidated damages</div><div class="metric-value">${$$(flsa.totLiq)}</div></div>`:''}
   </div>
 
   <!-- Total banner -->
@@ -2167,26 +2959,35 @@ function renderResults() {
   ${flsa&&flsa.flsaRows.length?`
   <div class="card">
     <div class="card-title">FLSA Overtime Breakdown</div>
-    <div class="card-sub">Unpaid OT wages + equal liquidated damages + prejudgment interest</div>
+    <div class="card-sub">Unpaid OT wages plus an equal amount of liquidated damages (no separate prejudgment interest — see note 4)<sup style="font-weight:600;color:var(--navy)">4</sup>. SOL${flsa.cutoff?' cutoff: '+dt(flsa.cutoff):' not applied (no filing date)'} · ${flsa.willful?'Willful (3-yr)':'Non-willful (2-yr)'}<sup style="font-weight:600;color:var(--navy)">5</sup></div>
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th>Period / Position</th><th class="r">OT Hours</th><th class="r">OT Wages</th>
-          <th class="r">Liquidated</th><th class="r">Interest</th><th class="r">Subtotal</th>
+          <th>Period / Position</th>
+          <th class="r">Wks Counted</th><th class="r">Excluded</th><th class="r">Dropped</th>
+          <th class="r">OT Hours</th><th class="r">OT Wages</th>
+          <th class="r">Liquidated</th><th class="r">Subtotal</th>
         </tr></thead>
         <tbody>
           ${flsa.flsaRows.map(row=>`<tr>
             <td>${esc(row.startDate)} – ${esc(row.endDate||'present')}${row.description?' · '+esc(row.description):''}</td>
+            <td class="r">${row.weeksCounted||0}</td>
+            <td class="r">${row.weeksExcluded||0}</td>
+            <td class="r">${(row.weeksDroppedBySOL||0)+(row.weeksDroppedPostTrial||0)}</td>
             <td class="r">${row.otHrs.toFixed(1)}</td>
             <td class="r">${$$(row.ot)}</td>
             <td class="r">${$$(row.liq)}</td>
-            <td class="r">${$$(row.fi)}</td>
             <td class="r gold">${$$(row.sub)}</td>
           </tr>`).join('')}
         </tbody>
         <tfoot><tr>
-          <td>FLSA Total</td><td class="r">—</td><td class="r">${$$(flsa.totOT)}</td>
-          <td class="r">${$$(flsa.totLiq)}</td><td class="r">${$$(flsa.totFInt)}</td>
+          <td>FLSA Total</td>
+          <td class="r">${flsa.flsaRows.reduce((a,r)=>a+(r.weeksCounted||0),0)}</td>
+          <td class="r">${flsa.flsaRows.reduce((a,r)=>a+(r.weeksExcluded||0),0)}</td>
+          <td class="r">${flsa.flsaRows.reduce((a,r)=>a+(r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0),0)}</td>
+          <td class="r">${flsa.flsaRows.reduce((a,r)=>a+(r.otHrs||0),0).toFixed(1)}</td>
+          <td class="r">${$$(flsa.totOT)}</td>
+          <td class="r">${$$(flsa.totLiq)}</td>
           <td class="r gold">${$$(flsa.flsaTotal)}</td>
         </tr></tfoot>
       </table>
@@ -2197,10 +2998,10 @@ function renderResults() {
     <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Notes &amp; Sources</div>
     <div style="font-size:11.5px;color:var(--text-2);line-height:1.85">
       <p style="margin-bottom:6px">
-        <sup style="font-weight:600;color:var(--navy)">1</sup>&nbsp;<strong>Prejudgment Interest:</strong>
+        <sup style="font-weight:600;color:var(--navy)">1</sup>&nbsp;<strong>Prejudgment Interest (Title VII / ADEA / ADA back pay only):</strong>
         Calculated using the IRS underpayment rate established under 26 U.S.C. § 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date.
         Rates are published quarterly by the Internal Revenue Service in Revenue Rulings and Notices (see <em>I.R.S. Rev. Rul.</em> for each applicable quarter).
-        Interest accrues on the sum of net back pay and lost benefits per period. This figure will be updated and recalculated through the actual date of judgment.
+        Interest accrues on the sum of net back pay and lost benefits per period. <strong>Does not apply to FLSA overtime claims</strong> (see note 4). This figure will be updated and recalculated through the actual date of judgment.
       </p>
       <p style="margin-bottom:6px">
         <sup style="font-weight:600;color:var(--navy)">2</sup>&nbsp;<strong>Lost Employer-Paid Benefits${s.benefitsMethod==='estimate'?` (BLS Estimate)`:` (Actual)`}:</strong>
@@ -2213,6 +3014,15 @@ function renderResults() {
         <sup style="font-weight:600;color:var(--navy)">3</sup>&nbsp;<strong>Back Pay Calculation Methodology:</strong>
         Expected wages are calculated based on the plaintiff's documented compensation as of the date of the adverse employment action, compounded by applicable annual increases through the projected trial date. Mitigation earnings are deducted on a pro-rata daily basis for all periods of overlapping employment. All figures reflect gross compensation before applicable taxes.
       </p>
+      ${flsa?`
+      <p style="margin-bottom:6px">
+        <sup style="font-weight:600;color:var(--navy)">4</sup>&nbsp;<strong>FLSA Liquidated Damages:</strong>
+        29 U.S.C. § 216(b) authorizes liquidated damages equal to unpaid overtime. The Supreme Court has held that liquidated damages “are not a penalty exacted by the law, but rather compensation to the employee . . . for the loss of the use of [the wages]” — i.e., they substitute for prejudgment interest. <em>Brooklyn Sav. Bank v. O'Neil</em>, 324 U.S. 697, 715 (1945); see <em>Martin v. Cooper Elec. Supply Co.</em>, 940 F.2d 896, 910 (3d Cir. 1991). Accordingly, no separate prejudgment-interest line is calculated for FLSA overtime claims.
+      </p>
+      <p style="margin-bottom:6px">
+        <sup style="font-weight:600;color:var(--navy)">5</sup>&nbsp;<strong>FLSA Statute of Limitations &amp; Workweek:</strong>
+        Overtime damages are limited to two years before the complaint filing date, or three years if the violation was willful. 29 U.S.C. § 255(a). The workweek is a fixed, recurring period of 168 consecutive hours designated by the employer; the default here is Monday–Sunday but is configurable per period. 29 C.F.R. § 778.105. ${flsa.filingDate?`Filing date <strong>${dt(flsa.filingDate)}</strong>; SOL cutoff <strong>${dt(flsa.cutoff)}</strong>.`:`<span style="color:var(--gold-d)">Filing date not yet entered — SOL cap not applied to weekly calculation.</span>`}
+      </p>`:''}
       <p style="margin-bottom:0;font-style:italic;color:var(--gray-400)">
         All damages figures presented herein are estimates based on information currently available and are subject to revision. Plaintiff reserves the right to update and supplement these calculations as additional discovery is received, and through the date of judgment or verdict.
       </p>
