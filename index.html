@@ -367,6 +367,16 @@ const uid = () => Math.random().toString(36).slice(2,9);
 const $$ = n => n==null?'—':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(n);
 const pct = n => n==null?'—':`${Number(n).toFixed(1)}%`;
 const dt = d => {try{return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}catch{return d}};
+// Date input helpers — used to constrain <input type="date"> to recent dates
+// and to seed sensible defaults so a typo can't slip a year-0002 date through.
+const todayISO = () => new Date().toISOString().slice(0,10);
+const yearsAgoISO = (n) => { const d = new Date(); d.setFullYear(d.getFullYear() - n); return d.toISOString().slice(0,10); };
+const yearsAheadISO = (n) => { const d = new Date(); d.setFullYear(d.getFullYear() + n); return d.toISOString().slice(0,10); };
+// Sanity floor for any persisted date — anything older than this is treated as junk
+// and ignored by compute (prevents runaway weekly iteration if a year-0002 date
+// somehow survives in localStorage).
+const MIN_VALID_DATE = '1900-01-01';
+const isValidISODate = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s >= MIN_VALID_DATE;
 
 // ─────────────────────────────────────────────
 // 2. STATE
@@ -389,7 +399,7 @@ function defaultCase(name='New Case') {
       annualSalary:'', hourlyRate:'', hoursPerWeek:'40', annualIncrease:'0',
       source:'paystub', bonus:'', bonusType:'fixed', commissionRate:'', commissions:'', employerBenefitsW2:''}],
     mitigationPeriods:[{id:uid(), startDate:'', endDate:'', annualWages:'', employer:'', notes:''}],
-    flsaPeriods:[{id:uid(), startDate:'', endDate:'', description:'', otMethod:'half',
+    flsaPeriods:[{id:uid(), startDate:yearsAgoISO(5), endDate:todayISO(), description:'', otMethod:'half',
       workweekStart:1, defaultRegularRate:'', defaultWeeklyHours:'',
       rateChanges:[], weekOverrides:{}}],
     customRates:{}
@@ -399,6 +409,10 @@ function defaultCase(name='New Case') {
 // ── Migration: bring older cases up to the current shape ──
 function migrateFlsaPeriod(fp) {
   if (!fp) return fp;
+  // Scrub any junk dates left behind by old typos (e.g. year-0002).
+  // Keep blank instead of silently rewriting — the user should retype.
+  if (fp.startDate && !isValidISODate(fp.startDate)) fp.startDate = '';
+  if (fp.endDate   && !isValidISODate(fp.endDate))   fp.endDate   = '';
   if (fp.defaultWeeklyHours !== undefined) {
     // Already migrated; just ensure newer fields exist
     if (fp.workweekStart === undefined) fp.workweekStart = 1;
@@ -429,17 +443,44 @@ function migrateFlsaPeriod(fp) {
   return out;
 }
 
+// Scrub any persisted date field that fails our sanity check (e.g. year-0002
+// from a typo before min/max were enforced). Blank it out rather than rewriting
+// silently — the user should retype.
+function scrubDate(obj, field) {
+  if (obj && obj[field] && !isValidISODate(obj[field])) obj[field] = '';
+}
+
 function migrateCase(c) {
   if (!c || typeof c !== 'object') return c;
   if (c.complaintFiledDate === undefined) c.complaintFiledDate = '';
+  scrubDate(c, 'complaintFiledDate');
   if (Array.isArray(c.scenarios)) {
-    c.scenarios = c.scenarios.map(s => ({
-      flsaWillful: (s && s.flsaWillful !== undefined) ? s.flsaWillful : true,
-      ...s
-    }));
+    c.scenarios = c.scenarios.map(s => {
+      const out = {
+        flsaWillful: (s && s.flsaWillful !== undefined) ? s.flsaWillful : true,
+        ...s
+      };
+      scrubDate(out, 'trialDate');
+      return out;
+    });
+  }
+  if (Array.isArray(c.incidents)) {
+    c.incidents.forEach(inc => { scrubDate(inc, 'date'); scrubDate(inc, 'endDate'); });
+  }
+  if (Array.isArray(c.wagePeriods)) {
+    c.wagePeriods.forEach(wp => { scrubDate(wp, 'startDate'); scrubDate(wp, 'endDate'); });
+  }
+  if (Array.isArray(c.mitigationPeriods)) {
+    c.mitigationPeriods.forEach(mp => { scrubDate(mp, 'startDate'); scrubDate(mp, 'endDate'); });
   }
   if (Array.isArray(c.flsaPeriods)) {
     c.flsaPeriods = c.flsaPeriods.map(migrateFlsaPeriod);
+    // Also scrub any rate-change effective dates within each period
+    c.flsaPeriods.forEach(fp => {
+      if (Array.isArray(fp.rateChanges)) {
+        fp.rateChanges.forEach(rc => scrubDate(rc, 'effectiveDate'));
+      }
+    });
   }
   return c;
 }
@@ -1060,6 +1101,8 @@ function computeFlsa(state, trialDate) {
 
   for (const fp of state.flsaPeriods) {
     if (!fp.startDate || !fp.endDate) continue;
+    // Guard against junk persisted dates (e.g. year-0002 from a typo).
+    if (!isValidISODate(fp.startDate) || !isValidISODate(fp.endDate)) continue;
     const hasRate = (fp.defaultRegularRate !== '' && fp.defaultRegularRate != null)
                  || (Array.isArray(fp.rateChanges) && fp.rateChanges.some(r => r && r.rate));
     const hasHours = (fp.defaultWeeklyHours !== '' && fp.defaultWeeklyHours != null)
@@ -2102,7 +2145,7 @@ function renderSetup() {
       ${field('Defendant', inp(s.defendant,{dk:'defendant',placeholder:'Acme Corporation'}))}
       ${field('Employer type',sel(s.employerType,[{v:'private',l:'Private sector'},{v:'state_local',l:'State / Local government'},{v:'federal',l:'Federal government'}],{dk:'employerType',rerender:'1'}))}
       ${field('Claim type',sel(s.claimType,[{v:'both',l:'Discrimination + FLSA Overtime'},{v:'discrimination',l:'Discrimination only'},{v:'flsa',l:'FLSA Overtime only'}],{dk:'claimType',rerender:'1'}))}
-      ${s.claimType!=='discrimination'?field('Complaint filing date',`<input type="date" value="${esc(s.complaintFiledDate||'')}" data-key="complaintFiledDate" data-rerender="1">`,{style:'grid-column:span 1'}):''}
+      ${s.claimType!=='discrimination'?field('Complaint filing date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(s.complaintFiledDate||'')}" data-key="complaintFiledDate" data-rerender="1">`,{style:'grid-column:span 1'}):''}
     </div>
     ${s.claimType!=='discrimination'?`<div class="card-sub" style="margin-top:8px"><strong>Filing date</strong> anchors the FLSA statute-of-limitations cutoff under 29 U.S.C. § 255(a). ${s.complaintFiledDate?'':'<span style="color:var(--gold-d)">Not set — SOL cap will not be applied to FLSA damages.</span>'}</div>`:''}
     ${s.claimType!=='flsa'?`
@@ -2130,7 +2173,7 @@ function renderSetup() {
           ${field('Scenario name', `<input type="text" value="${esc(sc.name)}" placeholder="e.g. Backpay to Date" data-list="scenarios" data-idx="${i}" data-field="name">`)}
         </div>
         <div style="flex:1;min-width:160px">
-          ${field('Trial / end date', `<input type="date" value="${esc(sc.trialDate)}" data-list="scenarios" data-idx="${i}" data-field="trialDate">`)}
+          ${field('Trial / end date', `<input type="date" min="${yearsAgoISO(10)}" max="${yearsAheadISO(2)}" value="${esc(sc.trialDate)}" data-list="scenarios" data-idx="${i}" data-field="trialDate">`)}
         </div>
         ${s.claimType!=='discrimination'?`
         <div style="flex:1;min-width:200px">
@@ -2181,9 +2224,9 @@ function renderIncidents() {
         ${s.incidents.length>1?`<button class="btn-remove" onclick="STATE.incidents.splice(${i},1);renderTab()">×</button>`:''}
       </div>
       <div class="g3">
-        ${field('Date of incident',`<input type="date" value="${esc(inc.date)}" data-list="incidents" data-idx="${i}" data-field="date">`)}
+        ${field('Date of incident',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(inc.date)}" data-list="incidents" data-idx="${i}" data-field="date">`)}
         ${field('Resolution / end date <span style="font-size:10px;color:var(--gray-400)">(leave blank if ongoing)</span>',
-          `<input type="date" value="${esc(inc.endDate)}" data-list="incidents" data-idx="${i}" data-field="endDate" data-rerender="1">`)}
+          `<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(inc.endDate)}" data-list="incidents" data-idx="${i}" data-field="endDate" data-rerender="1">`)}
         ${field('Type of action',sel(inc.type,INC_TYPES,{list:'incidents',idx:i,field:'type'}))}
       </div>
       ${inc.endDate?`<div class="info-box" style="margin-top:10px;margin-bottom:0;font-size:11.5px">
@@ -2219,8 +2262,8 @@ function renderWages() {
         ${s.wagePeriods.length>1?`<button class="btn-remove" onclick="STATE.wagePeriods.splice(${i},1);renderTab()">×</button>`:''}
       </div>
       <div class="g3">
-        ${field('Period start date',`<input type="date" value="${esc(wp.startDate)}" data-list="wagePeriods" data-idx="${i}" data-field="startDate">`)}
-        ${field('Period end date (blank = trial date)',`<input type="date" value="${esc(wp.endDate)}" data-list="wagePeriods" data-idx="${i}" data-field="endDate">`)}
+        ${field('Period start date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(wp.startDate)}" data-list="wagePeriods" data-idx="${i}" data-field="startDate">`)}
+        ${field('Period end date (blank = trial date)',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(wp.endDate)}" data-list="wagePeriods" data-idx="${i}" data-field="endDate">`)}
         ${field('Source / documentation',sel(wp.source,[{v:'paystub',l:'Paystub'},{v:'w2',l:'W-2 (Box 1)'},{v:'offer_letter',l:'Offer letter / Contract'},{v:'estimate',l:'Estimate'}],{list:'wagePeriods',idx:i,field:'source'}))}
       </div>
       <div style="margin:12px 0 6px">
@@ -2344,8 +2387,8 @@ function renderMitigation() {
         ${s.mitigationPeriods.length>1?`<button class="btn-remove" onclick="STATE.mitigationPeriods.splice(${i},1);renderTab()">×</button>`:''}
       </div>
       <div class="g3">
-        ${field('Start date',`<input type="date" value="${esc(mp.startDate)}" data-list="mitigationPeriods" data-idx="${i}" data-field="startDate">`)}
-        ${field('End date (blank = trial date)',`<input type="date" value="${esc(mp.endDate)}" data-list="mitigationPeriods" data-idx="${i}" data-field="endDate">`)}
+        ${field('Start date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(mp.startDate)}" data-list="mitigationPeriods" data-idx="${i}" data-field="startDate">`)}
+        ${field('End date (blank = trial date)',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(mp.endDate)}" data-list="mitigationPeriods" data-idx="${i}" data-field="endDate">`)}
         ${field('Employer / income source',`<input type="text" value="${esc(mp.employer)}" placeholder="Employer name or 'Self-employed'" data-list="mitigationPeriods" data-idx="${i}" data-field="employer">`)}
         ${field('Annual gross wages ($)',`<input type="number" value="${esc(mp.annualWages)}" placeholder="48,000" min="0" step="500" data-list="mitigationPeriods" data-idx="${i}" data-field="annualWages">`, 'grid-column:span 2')}
         ${field('Notes',`<input type="text" value="${esc(mp.notes)}" placeholder="Part-time, seasonal, comparable / non-comparable role, etc." data-list="mitigationPeriods" data-idx="${i}" data-field="notes">`)}
@@ -2558,8 +2601,8 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
       ${STATE.flsaPeriods.length>1?`<button class="btn-remove" onclick="STATE.flsaPeriods.splice(${i},1);renderTab()">×</button>`:''}
     </div>
     <div class="g3">
-      ${field('Period start date',`<input type="date" value="${esc(fp.startDate)}" data-list="flsaPeriods" data-idx="${i}" data-field="startDate" data-rerender="1">`)}
-      ${field('Period end date',`<input type="date" value="${esc(fp.endDate)}" data-list="flsaPeriods" data-idx="${i}" data-field="endDate" data-rerender="1">`)}
+      ${field('Period start date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(fp.startDate)}" data-list="flsaPeriods" data-idx="${i}" data-field="startDate" data-rerender="1">`)}
+      ${field('Period end date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(fp.endDate)}" data-list="flsaPeriods" data-idx="${i}" data-field="endDate" data-rerender="1">`)}
       ${field('Position / job title',`<input type="text" value="${esc(fp.description||'')}" placeholder="Warehouse associate" data-list="flsaPeriods" data-idx="${i}" data-field="description">`)}
       ${field('Default regular rate ($/hr)',`<input type="number" value="${esc(fp.defaultRegularRate)}" placeholder="18.50" min="0" step="0.01" data-list="flsaPeriods" data-idx="${i}" data-field="defaultRegularRate" data-rerender="1">`)}
       ${field('Default weekly hours',`<input type="number" value="${esc(fp.defaultWeeklyHours)}" placeholder="50" min="0" step="0.5" data-list="flsaPeriods" data-idx="${i}" data-field="defaultWeeklyHours" data-rerender="1">`)}
@@ -2583,7 +2626,7 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
       ${rateChanges.length===0?`<div style="font-size:11.5px;color:var(--gray-400)">No rate changes. The default rate above applies to every workweek unless added.</div>`:''}
       ${rateChanges.map(rc=>`
         <div class="rate-change-row">
-          ${field('Effective (workweek start)',`<input type="date" value="${esc(rc.effectiveDate||'')}" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="effectiveDate" data-rerender="1">`)}
+          ${field('Effective (workweek start)',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(rc.effectiveDate||'')}" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="effectiveDate" data-rerender="1">`)}
           ${field('New rate ($/hr)',`<input type="number" value="${esc(rc.rate||'')}" placeholder="22.50" min="0" step="0.01" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="rate" data-rerender="1">`)}
           ${field('Note (optional)',`<input type="text" value="${esc(rc.note||'')}" placeholder="Promotion raise" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="note">`)}
           <button class="btn-remove" onclick="flsaRemoveRateChange(${i},'${rc.id}')" title="Remove rate change">×</button>
