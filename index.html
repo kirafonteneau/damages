@@ -2442,7 +2442,7 @@ function renderIncidents() {
       </div>
       <div class="g3">
         ${field('Date of incident',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(inc.date)}" data-list="incidents" data-idx="${i}" data-field="date">`)}
-                ${inc.type==='failure_hire'?`<p style="font-size:11px;color:var(--gray-400);margin:2px 0 8px;">Enter the date the position was filled by a candidate outside the protected class. If unknown, use
+                ${inc.type==='failure_hire'?`<p style="font-size:11px;color:var(--gray-400);margin:2px 0 8px;">Enter the date the position was filled by a candidate outside the protected class. If unknown, use the decision date as a conservative estimate.</p>`:``}
         ${field('Resolution / end date <span style="font-size:10px;color:var(--gray-400)">(leave blank if ongoing)</span>',
           `<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(inc.endDate)}" data-list="incidents" data-idx="${i}" data-field="endDate" data-rerender="1">`)}
         ${field('Type of action',sel(inc.type,INC_TYPES,{list:'incidents',idx:i,field:'type'}))}
