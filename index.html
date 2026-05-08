@@ -2167,7 +2167,16 @@ function renderTab() {
   attachInputListeners();
   updateHeaderTotal();
   updateSidebarDots();
-  if (el) el.scrollTop = prevScroll;
+  if (el) {
+    const _ps = prevScroll;
+    requestAnimationFrame(() => {
+      el.scrollTop = _ps;
+      if (FLSA_UI.editWeek) {
+        const _tr = document.querySelector('[data-week-row="' + FLSA_UI.editWeek.weekKey + '"]');
+        if (_tr) { _tr.scrollIntoView({block:'nearest'}); const _hi=_tr.querySelector('input[data-field="hours"]'); if(_hi)_hi.focus(); }
+      }
+    });
+  }
 }
 
 function attachInputListeners() {
@@ -2465,9 +2474,9 @@ function renderIncidents() {
         <div style="font-size:11px;font-weight:600;margin-bottom:8px;color:var(--dark)">Wage Differential (auto-calculated)</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           ${field('Pre-demotion rate ($/hr)',`<input type="number" min="0" step="any" value="${esc(inc.preDemotionRate||'')}" data-list="incidents" data-idx="${i}" data-field="preDemotionRate" data-rerender="1">`)}
-          ${field('Pre-demotion hrs/wk',`<input type="number" min="0" step="0.5" value="${esc(inc.preDemotionHrs||'')}" data-list="incidents" data-idx="${i}" data-field="preDemotionHrs" data-rerender="1">`)}
+          ${field('Pre-demotion hrs/wk',`<input type="number" min="0" step="any" value="${esc(inc.preDemotionHrs||'')}" data-list="incidents" data-idx="${i}" data-field="preDemotionHrs" data-rerender="1">`)}
           ${field('Post-demotion rate ($/hr)',`<input type="number" min="0" step="any" value="${esc(inc.postDemotionRate||'')}" data-list="incidents" data-idx="${i}" data-field="postDemotionRate" data-rerender="1">`)}
-          ${field('Post-demotion hrs/wk',`<input type="number" min="0" step="0.5" value="${esc(inc.postDemotionHrs||'')}" data-list="incidents" data-idx="${i}" data-field="postDemotionHrs" data-rerender="1">`)}
+          ${field('Post-demotion hrs/wk',`<input type="number" min="0" step="any" value="${esc(inc.postDemotionHrs||'')}" data-list="incidents" data-idx="${i}" data-field="postDemotionHrs" data-rerender="1">`)}
         </div>
         ${(()=>{const pre=(parseFloat(inc.preDemotionRate)||0)*(parseFloat(inc.preDemotionHrs)||0);const post=(parseFloat(inc.postDemotionRate)||0)*(parseFloat(inc.postDemotionHrs)||0);const diff=pre-post;return diff>0?`<div style="margin-top:8px;font-size:11.5px;color:#1E6B3C">Weekly diff: $${diff.toFixed(2)} × 52 = <strong>$${(diff*52).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}/yr</strong></div>`:''})()}
       </div>`:''}      ${inc.endDate?`<div class="info-box" style="margin-top:10px;margin-bottom:0;font-size:11.5px">
@@ -2652,7 +2661,8 @@ const FLSA_UI = {
   selected: {},   // periodId -> Set<weekKey>
   collapsed: {},  // periodId -> Set<'YYYY-MM'> (collapsed months)
   showWeekly: {}, // periodId -> bool (toggle visibility of weekly grid)
-  bulkExclusionReason: 'vacation'
+  bulkExclusionReason: 'vacation',
+  editWeek: null
 };
 
 function flsaSelected(pid){ FLSA_UI.selected[pid] ||= new Set(); return FLSA_UI.selected[pid]; }
@@ -2736,6 +2746,8 @@ function flsaExcludeWeek(pid, weekKey, reason){
 }
 
 
+function flsaEditWeek(fpId,weekKey){FLSA_UI.editWeek={fpId,weekKey};renderTab();}
+function flsaEndEditWeek(){FLSA_UI.editWeek=null;renderTab();}
 function flsaWwAdd(pidx){
   const fp=STATE.flsaPeriods[pidx]; if(!fp)return;
   fp.workweeks=fp.workweeks||[];
@@ -2870,7 +2882,7 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
       ${field('Period end date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(fp.endDate)}" data-list="flsaPeriods" data-idx="${i}" data-field="endDate" data-rerender="1">`)}
       ${field('Position / job title',`<input type="text" value="${esc(fp.description||'')}" placeholder="Warehouse associate" data-list="flsaPeriods" data-idx="${i}" data-field="description">`)}
       ${field('Default regular rate ($/hr)',`<input type="number" value="${esc(fp.defaultRegularRate)}" placeholder="18.50" min="0" step="any" data-list="flsaPeriods" data-idx="${i}" data-field="defaultRegularRate" data-rerender="1">`)}
-      ${field('Default weekly hours',`<input type="number" value="${esc(fp.defaultWeeklyHours)}" placeholder="50" min="0" step="0.5" data-list="flsaPeriods" data-idx="${i}" data-field="defaultWeeklyHours" data-rerender="1">`)}
+      ${field('Default weekly hours',`<input type="number" value="${esc(fp.defaultWeeklyHours)}" placeholder="50" min="0" step="any" data-list="flsaPeriods" data-idx="${i}" data-field="defaultWeeklyHours" data-rerender="1">`)}
       ${field('Workweek begins',`<select class="workweek-sel-${fp.id}" onchange="flsaChangeWorkweek(${i}, this.value)" title="29 C.F.R. § 778.105 — employer designates the workweek">${dowOpts.map(o=>`<option value="${o.v}" ${parseInt(o.v,10)===startDow?'selected':''}>${esc(o.l)}</option>`).join('')}</select>`)}
     </div>
     ${field('OT payment received from employer',sel(fp.otMethod||'half',[
@@ -2946,8 +2958,8 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
           const otOwed=Math.max(0,otWage-otPaid);
           return `<tr>
             <td><input type="date" value="${esc(wk.weekStart||'')}" onchange="flsaWwChange(${i},'${wk.id}','weekStart',this.value)" class="input-base" style="width:130px"></td>
-            <td><input type="number" min="0" max="168" step="0.5" value="${esc(wk.regHours||'')}" placeholder="${fp.defaultWeeklyHours||40}" onchange="flsaWwChange(${i},'${wk.id}','regHours',this.value)" class="input-base" style="width:75px;text-align:right"></td>
-            <td><input type="number" min="0" max="168" step="0.5" value="${esc(wk.otHours||'')}" onchange="flsaWwChange(${i},'${wk.id}','otHours',this.value)" class="input-base" style="width:75px;text-align:right"></td>
+            <td><input type="number" min="0" max="168" step="any" value="${esc(wk.regHours||'')}" placeholder="${fp.defaultWeeklyHours||40}" onchange="flsaWwChange(${i},'${wk.id}','regHours',this.value)" class="input-base" style="width:75px;text-align:right"></td>
+            <td><input type="number" min="0" max="168" step="any" value="${esc(wk.otHours||'')}" onchange="flsaWwChange(${i},'${wk.id}','otHours',this.value)" class="input-base" style="width:75px;text-align:right"></td>
             <td><input type="number" min="0" step="any" value="${esc(wk.rate||'')}" placeholder="${fp.defaultRegularRate||''}" onchange="flsaWwChange(${i},'${wk.id}','rate',this.value)" class="input-base" style="width:85px;text-align:right"></td>
             <td><input type="number" min="0" step="any" value="${esc(wk.otReceived||'')}" onchange="flsaWwChange(${i},'${wk.id}','otReceived',this.value)" class="input-base" style="width:100px;text-align:right"></td>
             <td style="text-align:right;font-weight:600;padding-right:8px">${$$(otOwed)}</td>
@@ -2982,7 +2994,7 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
         <button class="btn btn-ghost btn-sm" onclick="flsaSelectAllVisible('${fp.id}')">Select all visible</button>
         <button class="btn btn-ghost btn-sm" onclick="flsaClearSelection('${fp.id}')">Clear</button>
         <span style="width:1px;height:18px;background:var(--gray-100);margin:0 4px"></span>
-        <input type="number" id="bulk-hours-${fp.id}" placeholder="Hours" min="0" step="0.5">
+        <input type="number" id="bulk-hours-${fp.id}" placeholder="Hours" min="0" step="any">
         <button class="btn btn-ghost btn-sm" onclick="flsaBulkSetHours('${fp.id}')">Set hours</button>
         <input type="number" id="bulk-rate-${fp.id}" placeholder="Rate $/hr" min="0" step="any">
         <button class="btn btn-ghost btn-sm" onclick="flsaBulkSetRate('${fp.id}')">Set rate</button>
@@ -3038,24 +3050,33 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
         statusCell = `<span class="tag warn">Excluded — ${esc(reasonLabel(w.exclusionReason))}</span>`;
         rowMenu = `<button class="btn-remove" onclick="flsaResetWeek('${fp.id}','${w.weekKey}')" title="Restore to defaults">↻</button>`;
       } else {
-        hoursCell = `<input type="number" class="cell-input ${overrideHours?'':'is-default'}" value="${overrideHours?esc(ov.hours):''}" placeholder="${inheritedHours||0}" min="0" step="0.5" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="hours">`;
-        rateCell  = `<input type="number" class="cell-input ${overrideRate?'':'is-default'}" value="${overrideRate?esc(ov.rate):''}" placeholder="${inheritedRate.toFixed(2)}" min="0" step="any" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="rate">`;
+        const isActive = FLSA_UI.editWeek && FLSA_UI.editWeek.fpId===fp.id && FLSA_UI.editWeek.weekKey===w.weekKey;
+        if (isActive) {
+        hoursCell = `<input type="number" class="cell-input ${overrideHours?'':'is-default'}" value="${overrideHours?esc(ov.hours):''}" placeholder="${inheritedHours||0}" min="0" step="any" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="hours" onkeydown="if(event.key==='Enter'||event.key==='Escape')flsaEndEditWeek()">`;
+        rateCell  = `<input type="number" class="cell-input ${overrideRate?'':'is-default'}" value="${overrideRate?esc(ov.rate):''}" placeholder="${inheritedRate.toFixed(2)}" min="0" step="any" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="rate" onkeydown="if(event.key==='Enter'||event.key==='Escape')flsaEndEditWeek()">`;
         methCell  = `<select class="cell-input" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="otMethod" data-rerender="1"><option value="" ${!overrideMeth?'selected':''}>(default: ${inheritedMeth==='full'?'1.5×':'0.5×'})</option><option value="half" ${ov.otMethod==='half'?'selected':''}>0.5×</option><option value="full" ${ov.otMethod==='full'?'selected':''}>1.5×</option></select>`;
         otCell    = w.otHrs.toFixed(1);
         otWagesCell = $$(w.ot);
-        statusCell = (overrideHours||overrideRate||overrideMeth)
-          ? `<span class="tag gold">✎ Override</span>`
-          : `<span class="tag muted">Default</span>`;
+        statusCell = (overrideHours||overrideRate||overrideMeth)?`<span class="tag gold">✎ Override</span>`:`<span class="tag muted">Editing…</span>`;
         if (w.isPartial) statusCell += `<span class="tag">Partial</span>`;
-        rowMenu = `<button class="btn-remove" onclick="flsaResetWeek('${fp.id}','${w.weekKey}')" title="Reset to defaults">↻</button>`;
+        rowMenu = `<button class="btn btn-ghost btn-sm" onclick="flsaEndEditWeek()" title="Done" style="color:var(--green,#22c55e);font-size:14px">✓</button>${(overrideHours||overrideRate||overrideMeth)?`<button class="btn-remove" onclick="flsaResetWeek('${fp.id}','${w.weekKey}')" title="Reset">↻</button>`:''}`;
+        } else {
+          const _dh = overrideHours?`<strong>${ov.hours}</strong>`:`<span style="color:var(--text-3)">${inheritedHours||40}</span>`;
+          const _dr = overrideRate?`<strong>$${parseFloat(ov.rate).toFixed(2)}</strong>`:`<span style="color:var(--text-3)">$${inheritedRate.toFixed(2)}</span>`;
+          const _dm = overrideMeth?(ov.otMethod==='full'?'1.5×':'0.5×'):`<span style="color:var(--text-3)">${inheritedMeth==='full'?'1.5×':'0.5×'}</span>`;
+          hoursCell=_dh; rateCell=_dr; methCell=_dm;
+          otCell=w.otHrs.toFixed(1); otWagesCell=$$(w.ot);
+          statusCell=(overrideHours||overrideRate||overrideMeth)?`<span class="tag gold">✎ Override</span>`:`<span class="tag muted">Default</span>`;
+          if(w.isPartial)statusCell+=`<span class="tag">Partial</span>`;
+          rowMenu=`<button class="btn btn-ghost btn-sm" onclick="flsaEditWeek('${fp.id}','${w.weekKey}')" title="Edit this week" style="font-size:13px">✎</button>${(overrideHours||overrideRate||overrideMeth)?`<button class="btn-remove" onclick="flsaResetWeek('${fp.id}','${w.weekKey}')" title="Reset">↻</button>`:''}`;
+        }
       }
-
       const checked = flsaSelected(fp.id).has(w.weekKey);
       const checkbox = isLocked
         ? '<input type="checkbox" disabled>'
         : `<input type="checkbox" class="wk-sel-${fp.id}" data-week-key="${w.weekKey}" ${checked?'checked':''} onchange="flsaToggleSelect('${fp.id}','${w.weekKey}',this.checked)">`;
 
-      return `<tr class="${cls}${partialCls}">
+      return `<tr class="${cls}${partialCls}" data-week-row="${w.weekKey}">
         <td>${checkbox}</td>
         <td>${dt(w.weekKey)}${w.note?`<span class="tag" title="${esc(w.note)}">note</span>`:''}</td>
         <td class="r days-cell">${daysCell}</td>
@@ -3159,7 +3180,7 @@ function renderFlsaMinWage() {
       <div class="g3">
         <div><label class="field-label">Start Date</label><input type="date" value="${esc(p.startDate||'')}" data-list="flsaMinWagePeriods" data-idx="${i}" data-field="startDate" data-rerender="1" class="input-base"></div>
         <div><label class="field-label">End Date</label><input type="date" value="${esc(p.endDate||'')}" data-list="flsaMinWagePeriods" data-idx="${i}" data-field="endDate" data-rerender="1" class="input-base"></div>
-        <div><label class="field-label">Avg Weekly Hours</label><input type="number" min="0" max="168" step="0.5" value="${esc(p.weeklyHours||'')}" data-list="flsaMinWagePeriods" data-idx="${i}" data-field="weeklyHours" class="input-base"></div>
+        <div><label class="field-label">Avg Weekly Hours</label><input type="number" min="0" max="168" step="any" value="${esc(p.weeklyHours||'')}" data-list="flsaMinWagePeriods" data-idx="${i}" data-field="weeklyHours" class="input-base"></div>
         <div><label class="field-label">Applicable Min Wage ($/hr)</label><input type="number" min="0" step="any" value="${esc(p.minWage||'')}" data-list="flsaMinWagePeriods" data-idx="${i}" data-field="minWage" class="input-base"></div>
         <div><label class="field-label">Actual Rate Paid ($/hr)</label><input type="number" min="0" step="any" value="${esc(p.actualRate||'')}" data-list="flsaMinWagePeriods" data-idx="${i}" data-field="actualRate" class="input-base"></div>
         <div style="background:var(--gray-50);padding:10px;border-radius:6px;border:1px solid var(--border)">
@@ -3343,7 +3364,7 @@ function renderResults() {
           <div class="card" style="margin-bottom:14px;padding:14px 16px;">
                 <div class="card-title" style="margin-bottom:8px;">Front Pay (Post-Trial)</div>
                       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
-                              <div><label class="field-label">Years (max 5)</label><input type="number" min="0" max="5" step="0.5" class="field-input" value="${STATE.frontPay.years||2}" oninput="STATE.frontPay.years=Math.min(5,Math.max(0,parseFloat(this.value)||0));const r=computeAll(STATE);if(r&&r.disc)document.getElementById('fp-total').textContent=$$(r.disc.frontPay);updateHeaderTotal();scheduleSave()"></div>
+                              <div><label class="field-label">Years (max 5)</label><input type="number" min="0" max="5" step="any" class="field-input" value="${STATE.frontPay.years||2}" oninput="STATE.frontPay.years=Math.min(5,Math.max(0,parseFloat(this.value)||0));const r=computeAll(STATE);if(r&&r.disc)document.getElementById('fp-total').textContent=$$(r.disc.frontPay);updateHeaderTotal();scheduleSave()"></div>
                                       <div><label class="field-label">Projected Annual Wage ($)</label><input type="text" class="field-input" value="${STATE.frontPay.projectedWage||''}" oninput="STATE.frontPay.projectedWage=this.value;const r=computeAll(STATE);if(r&&r.disc)document.getElementById('fp-total').textContent=$$(r.disc.frontPay);updateHeaderTotal();scheduleSave()"></div>
                                               <div><label class="field-label">Projected Mitigation ($)</label><input type="text" class="field-input" value="${STATE.frontPay.projectedMitigation||''}" oninput="STATE.frontPay.projectedMitigation=this.value;const r=computeAll(STATE);if(r&&r.disc)document.getElementById('fp-total').textContent=$$(r.disc.frontPay);updateHeaderTotal();scheduleSave()"></div>
                                                     </div>
