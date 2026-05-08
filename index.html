@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Workers' Firm â Employment Damages Calculator</title>
+<title>The Workers' Firm Ã¢ÂÂ Employment Damages Calculator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 <style>
 :root {
-  /* Brand palette â synced with theworkersfirm.com */
+  /* Brand palette Ã¢ÂÂ synced with theworkersfirm.com */
   --navy: #0F2327;          /* deep teal-black, primary dark */
   --navy-2: #1A3338;        /* hover / panel-darker */
   --navy-3: #284449;        /* tertiary dark */
@@ -22,17 +22,17 @@
   --gold-d: #9A7A35;
   --gold-bg: rgba(201,168,90,0.10);
   --gold-border: rgba(201,168,90,0.35);
-  --highlight: #F4FE7C;     /* signature TWF yellow â running totals, key amounts */
+  --highlight: #F4FE7C;     /* signature TWF yellow Ã¢ÂÂ running totals, key amounts */
   --mint: #BCDBDB;          /* secondary highlight */
   --teal-pale: #DFEBEC;     /* on-dark text / panels */
-  --cream: #F6F7F3;         /* page bg â matches site */
+  --cream: #F6F7F3;         /* page bg Ã¢ÂÂ matches site */
   --white: #FFFFFF;
   --gray-50: #EFF1F0;
   --gray-100: #DCDFDD;
   --gray-200: #B6BBB9;
   --gray-400: #69727B;      /* body muted text */
   --gray-600: #3D4549;
-  --text: #0F2327;          /* primary text â matches site body */
+  --text: #0F2327;          /* primary text Ã¢ÂÂ matches site body */
   --text-2: #69727B;
   --danger: #AC3939;        /* matches site CTA red */
   --danger-bg: rgba(172,57,57,0.08);
@@ -48,7 +48,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:var(--font-body);background:var(--cream);color:var(--text);font-size:14px;line-height:1.55}
 
-/* ââ Header ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Header Ã¢ÂÂÃ¢ÂÂ */
 .app-header{background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:54px;flex-shrink:0;border-bottom:2px solid var(--gold)}
 .logo{display:flex;align-items:center;gap:10px}
 .logo-mark{width:32px;height:32px;background:var(--gold);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:600;font-size:18px;color:var(--navy)}
@@ -58,14 +58,14 @@ html,body{height:100%;font-family:var(--font-body);background:var(--cream);color
 .save-indicator{font-size:11px;color:var(--gray-200);padding:3px 10px;border:1px solid rgba(255,255,255,.15);border-radius:20px}
 .save-indicator.saved{color:#7AE09A;border-color:rgba(122,224,154,.3)}
 
-/* ââ Case bar ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Case bar Ã¢ÂÂÃ¢ÂÂ */
 .case-bar{background:var(--white);border-bottom:1px solid var(--gray-100);padding:8px 20px;display:flex;align-items:center;gap:10px;flex-shrink:0}
 .case-select{font-size:13px;font-weight:500;padding:6px 10px;border:1px solid var(--gray-100);border-radius:var(--r);background:#fff;cursor:pointer;min-width:220px}
 .case-bar-total{margin-left:auto;text-align:right}
 .case-bar-total-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-400)}
 .case-bar-total-value{font-family:var(--font-display);font-size:24px;font-weight:500;color:var(--gold-d);letter-spacing:.01em}
 
-/* ââ Layout ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Layout Ã¢ÂÂÃ¢ÂÂ */
 .app-wrap{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 .main-area{display:flex;flex:1;overflow:hidden}
 .tab-sidebar{width:168px;flex-shrink:0;background:var(--navy-2);border-right:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;padding:12px 0;overflow-y:auto}
@@ -76,7 +76,7 @@ html,body{height:100%;font-family:var(--font-body);background:var(--cream);color
 .tab-section-label{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.25);padding:16px 16px 6px}
 .tab-content{flex:1;overflow-y:auto;padding:20px}
 
-/* ââ Cards ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Cards Ã¢ÂÂÃ¢ÂÂ */
 .card{background:var(--white);border:1px solid var(--gray-100);border-radius:var(--r-lg);padding:20px;margin-bottom:14px;box-shadow:var(--shadow)}
 .card-title{font-family:var(--font-display);font-size:20px;font-weight:500;color:var(--navy);margin-bottom:4px;letter-spacing:.005em}
 .card-sub{font-size:12px;color:var(--gray-400);margin-bottom:14px}
@@ -84,14 +84,14 @@ html,body{height:100%;font-family:var(--font-body);background:var(--cream);color
 .info-box{background:var(--gold-bg);border-left:3px solid var(--gold);padding:10px 14px;border-radius:0 var(--r) var(--r) 0;font-size:12.5px;color:var(--navy-2);margin-bottom:14px;line-height:1.6}
 .danger-box{background:var(--danger-bg);border-left:3px solid var(--danger);padding:10px 14px;border-radius:0 var(--r) var(--r) 0;font-size:12px;color:var(--danger);margin-bottom:14px}
 
-/* ââ Grid ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Grid Ã¢ÂÂÃ¢ÂÂ */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .col-span-2{grid-column:span 2}
 .col-span-3{grid-column:span 3}
 
-/* ââ Inputs ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Inputs Ã¢ÂÂÃ¢ÂÂ */
 input[type=text],input[type=number],input[type=date],select,textarea{
   width:100%;border:1px solid var(--gray-100);border-radius:var(--r);padding:8px 10px;font-size:13px;font-family:var(--font-body);color:var(--text);background:#fff;transition:border-color .15s
 }
@@ -99,7 +99,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);bo
 input[type=radio],input[type=checkbox]{width:auto}
 input::placeholder{color:var(--gray-200)}
 
-/* ââ Buttons ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Buttons Ã¢ÂÂÃ¢ÂÂ */
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:var(--font-body)}
 .btn-gold{background:var(--gold);color:var(--navy);font-weight:600}
 .btn-gold:hover{background:var(--gold-h)}
@@ -114,24 +114,24 @@ input::placeholder{color:var(--gray-200)}
 .btn-remove{background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:18px;line-height:1;padding:2px 6px;border-radius:4px}
 .btn-remove:hover{color:var(--danger);background:var(--danger-bg)}
 
-/* ââ Incident cards ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Incident cards Ã¢ÂÂÃ¢ÂÂ */
 .incident-card{border:1px solid var(--gray-100);border-radius:var(--r);padding:14px;margin-bottom:10px;position:relative}
 .incident-card.has-end{border-color:var(--gold-border);background:linear-gradient(135deg,#fff,#FDFBF5)}
 
-/* ââ Metric cards ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Metric cards Ã¢ÂÂÃ¢ÂÂ */
 .metric-card{background:var(--gray-50);border-radius:var(--r);padding:12px 14px}
 .metric-label{font-size:10px;color:var(--gray-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
 .metric-value{font-size:22px;font-weight:500;color:var(--text);font-family:var(--font-display);letter-spacing:.005em}
 .metric-value.gold{color:var(--gold-d)}
 .metric-sub{font-size:11px;color:var(--gray-400);margin-top:2px}
 
-/* ââ Total banner ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Total banner Ã¢ÂÂÃ¢ÂÂ */
 .total-banner{background:var(--navy);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
 .total-banner-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
 .total-banner-sub{font-size:12px;color:rgba(255,255,255,.55);margin-top:4px}
 .total-banner-amount{font-family:var(--font-display);font-size:48px;font-weight:500;color:var(--highlight);letter-spacing:.005em}
 
-/* ââ Tables ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Tables Ã¢ÂÂÃ¢ÂÂ */
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:12.5px;font-family:var(--font-data);font-variant-numeric:tabular-nums}
 thead th{padding:8px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-400);border-bottom:1.5px solid var(--gray-100);white-space:nowrap}
@@ -145,23 +145,23 @@ td.gold{color:var(--gold-d);font-weight:500}
 tfoot td{padding:10px 10px;font-weight:600;background:var(--navy);color:#fff;border-top:2px solid var(--navy-3)}
 tfoot td.gold{color:var(--gold)}
 
-/* ââ Scenario tabs ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Scenario tabs Ã¢ÂÂÃ¢ÂÂ */
 .scenario-tabs{display:flex;gap:2px;margin-bottom:16px;background:var(--gray-50);border-radius:var(--r);padding:3px}
 .scenario-tab{flex:1;padding:7px 14px;border:none;background:none;border-radius:6px;cursor:pointer;font-size:12.5px;font-weight:400;color:var(--gray-400);transition:all .15s;text-align:center}
 .scenario-tab.active{background:#fff;color:var(--navy);font-weight:500;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 
-/* ââ Period toggle ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Period toggle Ã¢ÂÂÃ¢ÂÂ */
 .period-toggle{display:inline-flex;border:1px solid var(--gray-100);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
 .period-btn{padding:6px 14px;border:none;background:none;font-size:12px;cursor:pointer;color:var(--gray-400);font-weight:400;transition:all .15s}
 .period-btn.active{background:var(--navy);color:#fff;font-weight:500}
 
-/* ââ Radio cards ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Radio cards Ã¢ÂÂÃ¢ÂÂ */
 .radio-card{display:flex;gap:10px;padding:12px 14px;border:1px solid var(--gray-100);border-radius:var(--r);cursor:pointer;transition:all .15s;align-items:flex-start}
 .radio-card.selected{border-color:var(--gold);background:var(--gold-bg)}
 .radio-card-label{font-size:13px;font-weight:500;color:var(--navy)}
 .radio-card-desc{font-size:11.5px;color:var(--gray-400);margin-top:2px}
 
-/* ââ Case modal ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Case modal Ã¢ÂÂÃ¢ÂÂ */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center}
 .modal{background:#fff;border-radius:var(--r-lg);padding:24px;width:560px;max-width:90vw;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
 .modal-title{font-family:var(--font-display);font-size:24px;font-weight:500;color:var(--navy);margin-bottom:4px;letter-spacing:.005em}
@@ -171,21 +171,21 @@ tfoot td.gold{color:var(--gold)}
 .case-list-name{font-size:13px;font-weight:500;flex:1}
 .case-list-date{font-size:11px;color:var(--gray-400)}
 
-/* ââ Disclaimer ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Disclaimer Ã¢ÂÂÃ¢ÂÂ */
 .disclaimer{background:var(--gray-50);border-radius:var(--r);padding:12px 14px;font-size:11px;color:var(--gray-400);line-height:1.7;margin-top:10px}
 
-/* ââ DOL rate grid ââ */
+/* Ã¢ÂÂÃ¢ÂÂ DOL rate grid Ã¢ÂÂÃ¢ÂÂ */
 .rate-cell{background:var(--gray-50);border-radius:var(--r);padding:10px;border:1px solid var(--gray-100)}
 .rate-cell.custom{border-color:var(--gold-border);background:var(--gold-bg)}
 .rate-cell input{border:none;background:transparent;font-size:15px;font-weight:500;color:var(--text);width:48px;padding:0;outline:none}
 .rate-cell input:focus{color:var(--gold-d)}
 
-/* ââ Wage type toggle ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Wage type toggle Ã¢ÂÂÃ¢ÂÂ */
 .wage-type-toggle{display:inline-flex;border:1px solid var(--gray-100);border-radius:var(--r);overflow:hidden;margin-bottom:12px}
 .wage-type-btn{padding:6px 12px;border:none;background:none;font-size:12px;cursor:pointer;color:var(--gray-400)}
 .wage-type-btn.active{background:var(--navy);color:#fff}
 
-/* ââ FLSA weekly grid ââ */
+/* Ã¢ÂÂÃ¢ÂÂ FLSA weekly grid Ã¢ÂÂÃ¢ÂÂ */
 .flsa-weekly-banner{background:var(--gray-50);border:1px solid var(--gray-100);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--text-2);margin:10px 0;display:flex;flex-wrap:wrap;gap:14px;align-items:center}
 .flsa-weekly-banner .pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px}
 .flsa-weekly-banner .pill strong{color:var(--text)}
@@ -217,13 +217,15 @@ tfoot td.gold{color:var(--gold)}
 .flsa-month-header:hover{background:var(--gold-bg);color:var(--navy-2)}
 .rate-change-row{display:grid;grid-template-columns:1fr 1fr 2fr auto;gap:8px;align-items:end;margin-bottom:6px}
 
-/* ââ Export bar ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Export bar Ã¢ÂÂÃ¢ÂÂ */
 .export-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
 
-/* ââ Scrollbar ââ */
+/* Ã¢ÂÂÃ¢ÂÂ Scrollbar Ã¢ÂÂÃ¢ÂÂ */
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--gray-200);border-radius:3px}
+.field-help-btn{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:var(--gray-200);color:var(--gray-500);font-size:9px;font-weight:700;cursor:pointer;margin-left:4px;vertical-align:middle;user-select:none;flex-shrink:0}.field-help-btn:hover{background:var(--blue);color:#fff}.field-help-tip{display:none;position:absolute;z-index:200;background:#1a2332;color:#fff;font-size:11px;line-height:1.5;padding:8px 10px;border-radius:6px;max-width:280px;box-shadow:0 4px 12px rgba(0,0,0,.25);margin-top:4px;white-space:normal}.field-help-tip.visible{display:block}.section-label{position:relative}
+.tab-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:5px;vertical-align:middle;opacity:.85}.tab-dot-green{background:#1E6B3C}.tab-dot-orange{background:#C05A00}.tab-dot-none{display:none}
 </style>
 </head>
 <body>
@@ -235,10 +237,10 @@ tfoot td.gold{color:var(--gold)}
       <div class="logo-text">The Workers' Firm<span class="logo-sub">Employment Damages Calculator</span></div>
     </div>
     <div class="header-right">
-      <span class="save-indicator" id="save-indicator">â  Not saved</span>
-      <span class="save-indicator" id="conn-status" onclick="openBlobConfigModal()" style="cursor:pointer" title="Click to configure Azure Blob Storage">â  Local only</span>
-      <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.2)" onclick="openBlobConfigModal()" title="Configure shared storage">â Storage</button>
-      <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.2)" onclick="openCasesModal()">â Cases</button>
+      <span class="save-indicator" id="save-indicator">Ã¢ÂÂ  Not saved</span>
+      <span class="save-indicator" id="conn-status" onclick="openBlobConfigModal()" style="cursor:pointer" title="Click to configure Azure Blob Storage">Ã¢ÂÂ  Local only</span>
+      <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.2)" onclick="openBlobConfigModal()" title="Configure shared storage">Ã¢ÂÂ Storage</button>
+      <button class="btn btn-ghost btn-sm" style="color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.2)" onclick="openCasesModal()">Ã¢ÂÂ Cases</button>
       <button class="btn btn-gold btn-sm" onclick="saveCurrentCase()">Save</button>
     </div>
   </div>
@@ -246,16 +248,16 @@ tfoot td.gold{color:var(--gold)}
   <!-- Case / scenario bar -->
   <div class="case-bar">
     <select class="case-select" id="case-select" onchange="loadCase(this.value)" title="Currently open case">
-      <option value="">â New case (unsaved) â</option>
+      <option value="">Ã¢ÂÂ New case (unsaved) Ã¢ÂÂ</option>
     </select>
     <button class="btn btn-ghost btn-sm" onclick="newCase()">+ New case</button>
     <div style="display:flex;gap:6px;margin-left:8px">
-      <button class="btn btn-ghost btn-sm" onclick="exportJSON()">â¬ JSON</button>
-      <label class="btn btn-ghost btn-sm" style="cursor:pointer">â¬ Import <input type="file" accept=".json" style="display:none" onchange="importJSON(this)"></label>
+      <button class="btn btn-ghost btn-sm" onclick="exportJSON()">Ã¢Â¬Â JSON</button>
+      <label class="btn btn-ghost btn-sm" style="cursor:pointer">Ã¢Â¬Â Import <input type="file" accept=".json" style="display:none" onchange="importJSON(this)"></label>
     </div>
     <div class="case-bar-total" id="header-total" style="display:none">
       <div class="case-bar-total-label">Total damages</div>
-      <div class="case-bar-total-value" id="header-total-value">â</div>
+      <div class="case-bar-total-value" id="header-total-value">Ã¢ÂÂ</div>
     </div>
   </div>
 
@@ -264,35 +266,35 @@ tfoot td.gold{color:var(--gold)}
     <div class="tab-sidebar">
       <div class="tab-section-label">Case</div>
       <button class="tab-btn active" onclick="showTab('setup')" id="tab-setup">
-        <span class="t-icon">â</span> Setup
-      </button>
+        <span class="t-icon">Ã¢ÂÂ</span> Setup
+      <span class="tab-dot tab-dot-none" id="dot-setup"></span></button>
       <button class="tab-btn" onclick="showTab('incidents')" id="tab-incidents">
-        <span class="t-icon">ð</span> Incidents
-      </button>
+        <span class="t-icon">Ã°ÂÂÂ</span> Incidents
+      <span class="tab-dot tab-dot-none" id="dot-incidents"></span></button>
       <div class="tab-section-label">Wages</div>
       <button class="tab-btn" onclick="showTab('wages')" id="tab-wages">
-        <span class="t-icon">ð°</span> Back Wages
-      </button>
+        <span class="t-icon">Ã°ÂÂÂ°</span> Back Wages
+      <span class="tab-dot tab-dot-none" id="dot-wages"></span></button>
       <button class="tab-btn" onclick="showTab('benefits')" id="tab-benefits">
-        <span class="t-icon">ð¥</span> Benefits
-      </button>
+        <span class="t-icon">Ã°ÂÂÂ¥</span> Benefits
+      <span class="tab-dot tab-dot-none" id="dot-benefits"></span></button>
       <button class="tab-btn" onclick="showTab('mitigation')" id="tab-mitigation">
-        <span class="t-icon">â</span> Mitigation
-      </button>
+        <span class="t-icon">Ã¢ÂÂ</span> Mitigation
+      <span class="tab-dot tab-dot-none" id="dot-mitigation"></span></button>
       <div class="tab-section-label">FLSA</div>
       <button class="tab-btn" onclick="showTab('flsa')" id="tab-flsa">
-        <span class="t-icon">â±</span> Overtime
-      </button>
-      <button class="tab-btn" onclick="showTab('flsa-minwage')" id="tab-flsa-minwage"><span class="t-icon">💰</span> Min Wage</button>
+        <span class="t-icon">Ã¢ÂÂ±</span> Overtime
+      <span class="tab-dot tab-dot-none" id="dot-flsa"></span></button>
+      <button class="tab-btn" onclick="showTab('flsa-minwage')" id="tab-flsa-minwage"><span class="t-icon">ð°</span> Min Wage<span class="tab-dot tab-dot-none" id="dot-flsa-minwage"></span></button>
       <div class="tab-section-label">Damages</div>
-      <button class="tab-btn" onclick="showTab('compensatory')" id="tab-compensatory"><span class="t-icon">⚖️</span> Compensatory</button>
+      <button class="tab-btn" onclick="showTab('compensatory')" id="tab-compensatory"><span class="t-icon">âï¸</span> Compensatory<span class="tab-dot tab-dot-none" id="dot-compensatory"></span></button>
       <div class="tab-section-label">Settings</div>
       <button class="tab-btn" onclick="showTab('rates')" id="tab-rates">
-        <span class="t-icon">ð</span> DOL Rates
-      </button>
+        <span class="t-icon">Ã°ÂÂÂ</span> DOL Rates
+      <span class="tab-dot tab-dot-none" id="dot-rates"></span></button>
       <button class="tab-btn" onclick="showTab('results')" id="tab-results">
-        <span class="t-icon">â¦</span> Results
-      </button>
+        <span class="t-icon">Ã¢ÂÂ¦</span> Results
+      <span class="tab-dot tab-dot-none" id="dot-results"></span></button>
     </div>
 
     <!-- Content area -->
@@ -308,12 +310,12 @@ tfoot td.gold{color:var(--gold)}
         <div class="modal-title">Saved Cases</div>
         <div class="modal-sub">Search, load, rename, or delete saved cases.</div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="closeCasesModal()">â Close</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeCasesModal()">Ã¢ÂÂ Close</button>
     </div>
     <!-- Search bar -->
     <div style="position:relative;margin-bottom:12px">
-      <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:14px">ð</span>
-      <input type="text" id="cases-search" placeholder="Search by case name, plaintiff, defendant, or attorneyâ¦"
+      <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:14px">Ã°ÂÂÂ</span>
+      <input type="text" id="cases-search" placeholder="Search by case name, plaintiff, defendant, or attorneyÃ¢ÂÂ¦"
         oninput="renderCasesList(this.value)"
         style="width:100%;padding:9px 12px 9px 32px;border:1px solid var(--gray-100);border-radius:var(--r);font-size:13px">
     </div>
@@ -327,10 +329,10 @@ tfoot td.gold{color:var(--gold)}
   <div class="modal" style="width:580px">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
       <div>
-        <div class="modal-title">â Azure Blob Storage</div>
+        <div class="modal-title">Ã¢ÂÂ Azure Blob Storage</div>
         <div class="modal-sub">Connect to shared storage so all team members see the same cases.</div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="closeBlobConfigModal()">â Close</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeBlobConfigModal()">Ã¢ÂÂ Close</button>
     </div>
     <div id="blob-modal-content"></div>
   </div>
@@ -342,9 +344,9 @@ tfoot td.gold{color:var(--gold)}
   box-shadow:0 4px 20px rgba(0,0,0,.18);max-width:340px;line-height:1.5"></div>
 
 <script>
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 // 1. CONSTANTS
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 const DOL_RATES = [
   {y:2018,q:1,r:4},{y:2018,q:2,r:5},{y:2018,q:3,r:5},{y:2018,q:4,r:5},
   {y:2019,q:1,r:6},{y:2019,q:2,r:6},{y:2019,q:3,r:5},{y:2019,q:4,r:5},
@@ -356,7 +358,7 @@ const DOL_RATES = [
   {y:2025,q:1,r:7},{y:2025,q:2,r:7},{y:2025,q:3,r:7},{y:2025,q:4,r:7},
   {y:2026,q:1,r:7},{y:2026,q:2,r:7},
 ];
-// BLS ECEC benefits rates â supplementary (voluntary) benefits only
+// BLS ECEC benefits rates Ã¢ÂÂ supplementary (voluntary) benefits only
 // Excludes legally-required costs (SS/Medicare, FUTA, workers comp) which are not "lost benefits"
 // Source: BLS ECEC Table 1, Q4 2024 (USDL-25-0379, Mar. 2025)
 // Total benefits % of wages:  private 43.7%, state_local 61.0%, federal 71.0%
@@ -376,23 +378,23 @@ const INC_TYPES = [
 ];
 
 const uid = () => Math.random().toString(36).slice(2,9);
-const $$ = n => n==null?'â':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(n);
-const pct = n => n==null?'â':`${Number(n).toFixed(1)}%`;
+const $$ = n => n==null?'Ã¢ÂÂ':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(n);
+const pct = n => n==null?'Ã¢ÂÂ':`${Number(n).toFixed(1)}%`;
 const dt = d => {try{return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}catch{return d}};
-// Date input helpers â used to constrain <input type="date"> to recent dates
+// Date input helpers Ã¢ÂÂ used to constrain <input type="date"> to recent dates
 // and to seed sensible defaults so a typo can't slip a year-0002 date through.
 const todayISO = () => new Date().toISOString().slice(0,10);
 const yearsAgoISO = (n) => { const d = new Date(); d.setFullYear(d.getFullYear() - n); return d.toISOString().slice(0,10); };
 const yearsAheadISO = (n) => { const d = new Date(); d.setFullYear(d.getFullYear() + n); return d.toISOString().slice(0,10); };
-// Sanity floor for any persisted date â anything older than this is treated as junk
+// Sanity floor for any persisted date Ã¢ÂÂ anything older than this is treated as junk
 // and ignored by compute (prevents runaway weekly iteration if a year-0002 date
 // somehow survives in localStorage).
 const MIN_VALID_DATE = '1900-01-01';
 const isValidISODate = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s >= MIN_VALID_DATE;
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 // 2. STATE
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function defaultCase(name='New Case') {
   const sid = uid();
   return {
@@ -422,7 +424,7 @@ function defaultCase(name='New Case') {
   };
 }
 
-// ââ Migration: bring older cases up to the current shape ââ
+// Ã¢ÂÂÃ¢ÂÂ Migration: bring older cases up to the current shape Ã¢ÂÂÃ¢ÂÂ
 function migrateFlsaPeriod(fp) {
   if (!fp) return fp;
   // Repair junk dates left behind by old typos (e.g. year-0002, 0005).
@@ -431,7 +433,7 @@ function migrateFlsaPeriod(fp) {
   // default), which is exactly the bug we're trying to kill.
   if (fp.startDate && !isValidISODate(fp.startDate)) fp.startDate = yearsAgoISO(5);
   if (fp.endDate   && !isValidISODate(fp.endDate))   fp.endDate   = todayISO();
-  // Repair rate-change effective dates the same way â fall back to the
+  // Repair rate-change effective dates the same way Ã¢ÂÂ fall back to the
   // (now valid) period start so the picker opens in the right decade.
   if (Array.isArray(fp.rateChanges)) {
     fp.rateChanges.forEach(rc => {
@@ -473,7 +475,7 @@ function migrateFlsaPeriod(fp) {
 // Repair any persisted date field that fails our sanity check (e.g. year-0002
 // from a typo before min/max were enforced). We *replace* with the supplied
 // fallback rather than blanking, because empty <input type="date"> elements
-// open their calendar picker at year 0001/0005 â the very bug we're fixing.
+// open their calendar picker at year 0001/0005 Ã¢ÂÂ the very bug we're fixing.
 // Pass a fallback that makes contextual sense (e.g. yearsAgoISO(5) for a
 // period start, todayISO() for an end date, '' only when blank is meaningful).
 function scrubDate(obj, field, fallback = '') {
@@ -484,7 +486,7 @@ function migrateCase(c) {
   if (!c || typeof c !== 'object') return c;
   if (c.complaintFiledDate === undefined) c.complaintFiledDate = '';
   if (c.statutoryBasis === undefined) c.statutoryBasis = 'title_vii';
-  // Complaint filing date â default to today if junk; user can adjust.
+  // Complaint filing date Ã¢ÂÂ default to today if junk; user can adjust.
   scrubDate(c, 'complaintFiledDate', todayISO());
   if (Array.isArray(c.scenarios)) {
     c.scenarios = c.scenarios.map(s => {
@@ -492,7 +494,7 @@ function migrateCase(c) {
         flsaWillful: (s && s.flsaWillful !== undefined) ? s.flsaWillful : true,
         ...s
       };
-      // Trial date â default to today if junk.
+      // Trial date Ã¢ÂÂ default to today if junk.
       scrubDate(out, 'trialDate', todayISO());
       return out;
     });
@@ -500,21 +502,21 @@ function migrateCase(c) {
   if (Array.isArray(c.incidents)) {
     c.incidents.forEach(inc => {
       scrubDate(inc, 'date', todayISO());
-      // endDate is meaningfully blank when employment is ongoing â keep blank.
+      // endDate is meaningfully blank when employment is ongoing Ã¢ÂÂ keep blank.
       scrubDate(inc, 'endDate', '');
     });
   }
   if (Array.isArray(c.wagePeriods)) {
     c.wagePeriods.forEach(wp => {
       scrubDate(wp, 'startDate', yearsAgoISO(5));
-      // endDate blank = "runs to trial" â keep blank.
+      // endDate blank = "runs to trial" Ã¢ÂÂ keep blank.
       scrubDate(wp, 'endDate', '');
     });
   }
   if (Array.isArray(c.mitigationPeriods)) {
     c.mitigationPeriods.forEach(mp => {
       scrubDate(mp, 'startDate', yearsAgoISO(5));
-      // endDate blank = "runs to trial" â keep blank.
+      // endDate blank = "runs to trial" Ã¢ÂÂ keep blank.
       scrubDate(mp, 'endDate', '');
             if(mp.annualBenefits===undefined)mp.annualBenefits=0;
     });
@@ -536,11 +538,11 @@ let currentCaseId = null;
 let saveTimeout = null;
 let activeTab = 'setup';
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
-// 3. STORAGE  â  Azure Blob Storage + localStorage fallback
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// 3. STORAGE  Ã¢ÂÂ  Azure Blob Storage + localStorage fallback
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 
-// ââ Blob config (stored per-browser in localStorage) ââ
+// Ã¢ÂÂÃ¢ÂÂ Blob config (stored per-browser in localStorage) Ã¢ÂÂÃ¢ÂÂ
 const BLOB_CFG_KEY = 'wf-blob-cfg';
 
 function getBlobCfg() {
@@ -560,7 +562,7 @@ function blobListUrl(cfg) {
 }
 function keyToBlob(key) { return key.replace(':', '-') + '.json'; }
 
-// ââ Test connection ââ
+// Ã¢ÂÂÃ¢ÂÂ Test connection Ã¢ÂÂÃ¢ÂÂ
 async function testBlobConnection(cfg) {
   try {
     const r = await fetch(blobListUrl(cfg), { method: 'GET' });
@@ -568,7 +570,7 @@ async function testBlobConnection(cfg) {
   } catch { return false; }
 }
 
-// ââ Blob operations ââ
+// Ã¢ÂÂÃ¢ÂÂ Blob operations Ã¢ÂÂÃ¢ÂÂ
 const blob = {
   async get(key) {
     const cfg = getBlobCfg(); if (!cfg) return null;
@@ -595,7 +597,7 @@ const blob = {
   }
 };
 
-// ââ Unified store: blob when configured, localStorage fallback ââ
+// Ã¢ÂÂÃ¢ÂÂ Unified store: blob when configured, localStorage fallback Ã¢ÂÂÃ¢ÂÂ
 const store = {
   async get(key) {
     if (getBlobCfg()) return blob.get(key);
@@ -611,30 +613,30 @@ const store = {
   }
 };
 
-// ââ Connection status indicator ââ
+// Ã¢ÂÂÃ¢ÂÂ Connection status indicator Ã¢ÂÂÃ¢ÂÂ
 function updateConnectionStatus() {
   const cfg = getBlobCfg();
   const el = document.getElementById('conn-status');
   if (!el) return;
   if (cfg) {
-    el.textContent = 'â ' + cfg.accountName;
+    el.textContent = 'Ã¢ÂÂ ' + cfg.accountName;
     el.style.color = '#7AE09A';
     el.style.borderColor = 'rgba(122,224,154,.3)';
-    el.title = 'Connected to Azure Blob Storage\nContainer: ' + cfg.containerName + '\nUser: ' + (cfg.userName||'â');
+    el.title = 'Connected to Azure Blob Storage\nContainer: ' + cfg.containerName + '\nUser: ' + (cfg.userName||'Ã¢ÂÂ');
   } else {
-    el.textContent = 'â  Local only';
+    el.textContent = 'Ã¢ÂÂ  Local only';
     el.style.color = '#f59e0b';
     el.style.borderColor = 'rgba(245,158,11,.3)';
     el.title = 'Cases saved locally only. Configure Azure Blob Storage to share cases across the team.';
   }
 }
 
-// ââ Blob config modal ââ
+// Ã¢ÂÂÃ¢ÂÂ Blob config modal Ã¢ÂÂÃ¢ÂÂ
 function openBlobConfigModal() {
   const cfg = getBlobCfg() || {};
   const existing = `
     <div style="background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:var(--navy-2)">
-      â <strong>Connected:</strong> ${cfg.accountName} / ${cfg.containerName} &nbsp;Â·&nbsp; User: ${cfg.userName||'(not set)'}
+      Ã¢ÂÂ <strong>Connected:</strong> ${cfg.accountName} / ${cfg.containerName} &nbsp;ÃÂ·&nbsp; User: ${cfg.userName||'(not set)'}
       <button onclick="disconnectBlob()" style="margin-left:10px;background:none;border:none;color:var(--danger);cursor:pointer;font-size:12px">Disconnect</button>
     </div>`;
   document.getElementById('blob-modal-content').innerHTML = `
@@ -665,19 +667,19 @@ async function saveBlobConfig() {
     userName: document.getElementById('bi-user').value.trim()
   };
   if (!cfg.accountName || !cfg.sasToken) {
-    document.getElementById('blob-test-result').innerHTML = '<span style="color:var(--danger)">â  Account name and SAS token are required.</span>';
+    document.getElementById('blob-test-result').innerHTML = '<span style="color:var(--danger)">Ã¢ÂÂ  Account name and SAS token are required.</span>';
     return;
   }
   const res = document.getElementById('blob-test-result');
-  res.innerHTML = '<span style="color:var(--gray-400)">â³ Testing connectionâ¦</span>';
+  res.innerHTML = '<span style="color:var(--gray-400)">Ã¢ÂÂ³ Testing connectionÃ¢ÂÂ¦</span>';
   const ok = await testBlobConnection(cfg);
   if (ok) {
     setBlobCfg(cfg);
     updateConnectionStatus();
-    res.innerHTML = '<span style="color:var(--success)">â Connected! Cases will now save to Azure Blob Storage and be shared across your team.</span>';
+    res.innerHTML = '<span style="color:var(--success)">Ã¢ÂÂ Connected! Cases will now save to Azure Blob Storage and be shared across your team.</span>';
     setTimeout(()=>{ closeBlobConfigModal(); updateCaseSelect(); }, 1800);
   } else {
-    res.innerHTML = '<span style="color:var(--danger)">â Connection failed. Check your account name, container name, SAS token, and CORS settings. See the deployment guide for help.</span>';
+    res.innerHTML = '<span style="color:var(--danger)">Ã¢ÂÂ Connection failed. Check your account name, container name, SAS token, and CORS settings. See the deployment guide for help.</span>';
   }
 }
 
@@ -765,7 +767,7 @@ async function loadCaseIndex() {
 async function updateCaseSelect() {
   const sel = document.getElementById('case-select');
   const idx = await loadCaseIndex();
-  sel.innerHTML = '<option value="">â New case (unsaved) â</option>';
+  sel.innerHTML = '<option value="">Ã¢ÂÂ New case (unsaved) Ã¢ÂÂ</option>';
   Object.values(idx).sort((a,b)=>b.savedAt?.localeCompare(a.savedAt||'')).forEach(c=>{
     const opt = document.createElement('option');
     opt.value = c.id;
@@ -818,7 +820,7 @@ async function renderCasesList(query='') {
           ${isOpen ? '<span style="font-size:10px;background:var(--gold);color:var(--navy);border-radius:10px;padding:1px 7px;font-weight:600;flex-shrink:0">Open</span>' : ''}
         </div>
         ${sub && sub !== c.name ? `<div class="case-list-date" style="margin-top:1px">${esc(sub)}</div>` : ''}
-        <div class="case-list-date">Saved ${c.savedAt ? new Date(c.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'â'}${c.savedBy && c.savedBy!=='Local' ? ' &nbsp;Â·&nbsp; <strong>'+esc(c.savedBy)+'</strong>' : ''}</div>
+        <div class="case-list-date">Saved ${c.savedAt ? new Date(c.savedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'Ã¢ÂÂ'}${c.savedBy && c.savedBy!=='Local' ? ' &nbsp;ÃÂ·&nbsp; <strong>'+esc(c.savedBy)+'</strong>' : ''}</div>
         <!-- Inline rename form (hidden by default) -->
         <div id="rename-form-${c.id}" style="display:none;margin-top:6px;display:none">
           <input type="text" id="rename-input-${c.id}" value="${esc(c.name)}"
@@ -832,7 +834,7 @@ async function renderCasesList(query='') {
       </div>
       <div style="display:flex;gap:5px;flex-shrink:0;align-items:flex-start;margin-left:8px">
         ${isOpen ? '' : `<button class="btn btn-ghost btn-sm" onclick="loadCase('${c.id}');closeCasesModal()">Load</button>`}
-        <button class="btn btn-ghost btn-sm" onclick="startRename('${c.id}')" title="Rename">â</button>
+        <button class="btn btn-ghost btn-sm" onclick="startRename('${c.id}')" title="Rename">Ã¢ÂÂ</button>
         <button class="btn btn-sm btn-danger" onclick="deleteCase('${c.id}')">Delete</button>
       </div>
     </div>`;
@@ -890,7 +892,7 @@ function newCase() {
 
 function updateSaveIndicator(saved) {
   const el = document.getElementById('save-indicator');
-  el.textContent = saved ? 'â  Saved' : 'â  Unsaved changes';
+  el.textContent = saved ? 'Ã¢ÂÂ  Saved' : 'Ã¢ÂÂ  Unsaved changes';
   el.className = 'save-indicator' + (saved ? ' saved' : '');
 }
 
@@ -928,9 +930,9 @@ function importJSON(input) {
   input.value='';
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 // 4. CALCULATIONS
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function getQRate(date, custom) {
   const d = new Date(date+'T12:00:00');
   const y=d.getFullYear(), q=Math.floor(d.getMonth()/3)+1;
@@ -1083,7 +1085,7 @@ function computeDiscrimination(state, trialDate) {
   const fp=state.frontPay||{};const fpYrs=Math.min(5,Math.max(0,parseFloat(fp.years)||2));const fpW=parseFloat(fp.projectedWage)||0;const fpM=parseFloat(fp.projectedMitigation)||0;const frontPay=Math.max(0,(fpW-fpM)*fpYrs);
   return {rows,totBP,totMit,totBen,totInt,frontPay,discTotal:totBP+totBen+totInt+frontPay};}
 
-// ââ FLSA helpers ââ
+// Ã¢ÂÂÃ¢ÂÂ FLSA helpers Ã¢ÂÂÃ¢ÂÂ
 const DOW_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const DOW_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
@@ -1255,11 +1257,11 @@ function computeAll(state) {
   return {disc,flsa,discTotal,flsaTotal,grand:discTotal+flsaTotal,scenario};
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 // 5. EXPORT FUNCTIONS
-// âââââââââââââââââââââââââââââââââââââââââââââ
-// ââ ExcelJS helpers ââ
-// Brand palette â synced with theworkersfirm.com
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
+// Ã¢ÂÂÃ¢ÂÂ ExcelJS helpers Ã¢ÂÂÃ¢ÂÂ
+// Brand palette Ã¢ÂÂ synced with theworkersfirm.com
 const XL_NAVY={argb:'FF0F2327'};   // deep teal-black, primary dark
 const XL_GOLD={argb:'FFC9A85A'};   // warm accent
 const XL_CREAM={argb:'FFF6F7F3'};  // page bg / alt rows
@@ -1315,11 +1317,11 @@ function xlNumFmt(ws,cols,startRow,endRow){
 }
 
 function buildScenarioExcelSheets(wb,res,scenarioName,state){
-  const suffix=state.scenarios.length>1?(' â '+scenarioName):'';
+  const suffix=state.scenarios.length>1?(' Ã¢ÂÂ '+scenarioName):'';
   // Summary sheet
   const ws1=wb.addWorksheet('Summary'+suffix);
   ws1.columns=[{width:35},{width:22}];
-  ws1.getRow(1).getCell(1).value="The Workers' Firm â Employment Damages Report";
+  ws1.getRow(1).getCell(1).value="The Workers' Firm Ã¢ÂÂ Employment Damages Report";
   ws1.getRow(1).getCell(1).font={bold:true,color:XL_NAVY,size:16};
   ws1.mergeCells('A1:B1');
   ws1.getRow(1).height=30;
@@ -1342,7 +1344,7 @@ function buildScenarioExcelSheets(wb,res,scenarioName,state){
     summaryItems.push(['Discrimination Subtotal',res.disc.discTotal]);
   }
   if(res.flsa){
-    // FLSA: liquidated damages serve in lieu of prejudgment interest (Brooklyn Sav. Bank v. O'Neil) â no separate interest line.
+    // FLSA: liquidated damages serve in lieu of prejudgment interest (Brooklyn Sav. Bank v. O'Neil) Ã¢ÂÂ no separate interest line.
     summaryItems.push(['Unpaid OT Wages',res.flsa.totOT],['Liquidated Damages',res.flsa.totLiq],['FLSA Subtotal',res.flsa.flsaTotal]);
   }
   summaryItems.push(['TOTAL DAMAGES',res.grand]);
@@ -1366,7 +1368,7 @@ function buildScenarioExcelSheets(wb,res,scenarioName,state){
     const xNoInt = (state.statutoryBasis === 'adea');
     const ws2=wb.addWorksheet('Back Wages'+suffix);
     const colSpan = xNoInt ? 8 : 9;
-    xlSectionTitle(ws2,1,'Estimated Back Wages â '+state.displayPeriod.charAt(0).toUpperCase()+state.displayPeriod.slice(1)+' Breakdown',colSpan);
+    xlSectionTitle(ws2,1,'Estimated Back Wages Ã¢ÂÂ '+state.displayPeriod.charAt(0).toUpperCase()+state.displayPeriod.slice(1)+' Breakdown',colSpan);
     const hdr = xNoInt
       ? ['Period','Days','Expected Wages','Mitigation (-)','Net Back Pay','Benefits','Subtotal','Running Total']
       : ['Period','Days','Expected Wages','Mitigation (-)','Net Back Pay','Benefits','Interest','Subtotal','Running Total'];
@@ -1401,7 +1403,7 @@ function buildScenarioExcelSheets(wb,res,scenarioName,state){
   // FLSA period summary sheet
   if(res.flsa&&res.flsa.flsaRows.length){
     const ws3=wb.addWorksheet('FLSA Overtime'+suffix);
-    xlSectionTitle(ws3,1,'FLSA Overtime â Period Summary',7);
+    xlSectionTitle(ws3,1,'FLSA Overtime Ã¢ÂÂ Period Summary',7);
     const hdr=['Period / Position','Weeks Counted','Excluded','Dropped (SOL/Trial)','OT Hours','OT Wages','Liquidated','Subtotal'];
     const hdrRow=ws3.getRow(3);
     hdr.forEach((h,i)=>{hdrRow.getCell(i+1).value=h;});
@@ -1409,7 +1411,7 @@ function buildScenarioExcelSheets(wb,res,scenarioName,state){
     res.flsa.flsaRows.forEach((r,i)=>{
       const row=ws3.getRow(4+i);
       const dropped = (r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0);
-      [`${r.startDate} â ${r.endDate||'present'}${r.description?' Â· '+r.description:''}`,r.weeksCounted||0,r.weeksExcluded||0,dropped,r.otHrs,r.ot,r.liq,r.sub].forEach((v,j)=>{row.getCell(j+1).value=v;});
+      [`${r.startDate} Ã¢ÂÂ ${r.endDate||'present'}${r.description?' ÃÂ· '+r.description:''}`,r.weeksCounted||0,r.weeksExcluded||0,dropped,r.otHrs,r.ot,r.liq,r.sub].forEach((v,j)=>{row.getCell(j+1).value=v;});
     });
     xlStyleBody(ws3,4,3+res.flsa.flsaRows.length);
     xlNumFmt(ws3,[5,6,7,8],4,3+res.flsa.flsaRows.length);
@@ -1423,17 +1425,17 @@ function buildScenarioExcelSheets(wb,res,scenarioName,state){
     xlNumFmt(ws3,[5,6,7,8],4+res.flsa.flsaRows.length,4+res.flsa.flsaRows.length);
     ws3.columns=[{width:34},{width:14},{width:12},{width:18},{width:12},{width:16},{width:16},{width:16}];
 
-    // Settings block â workweek + filing date + willfulness
+    // Settings block Ã¢ÂÂ workweek + filing date + willfulness
     const sStartRow = 5+res.flsa.flsaRows.length+1;
     xlSectionTitle(ws3,sStartRow,'FLSA Settings',8);
     const settings=[
-      ['Complaint filing date', res.flsa.filingDate || '(not set â SOL cap NOT applied)'],
-      ['Statute of limitations', res.flsa.willful ? 'Willful â 3 years (29 U.S.C. Â§ 255(a))' : 'Non-willful â 2 years (29 U.S.C. Â§ 255(a))'],
+      ['Complaint filing date', res.flsa.filingDate || '(not set Ã¢ÂÂ SOL cap NOT applied)'],
+      ['Statute of limitations', res.flsa.willful ? 'Willful Ã¢ÂÂ 3 years (29 U.S.C. ÃÂ§ 255(a))' : 'Non-willful Ã¢ÂÂ 2 years (29 U.S.C. ÃÂ§ 255(a))'],
       ['SOL cutoff (earliest counted week)', res.flsa.cutoff || '(none)']
     ];
     state.flsaPeriods.forEach((fp,i)=>{
       const dowName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][typeof fp.workweekStart==='number'?fp.workweekStart:1];
-      settings.push([`Workweek begins (Period ${i+1})`, `${dowName} (29 C.F.R. Â§ 778.105)`]);
+      settings.push([`Workweek begins (Period ${i+1})`, `${dowName} (29 C.F.R. ÃÂ§ 778.105)`]);
     });
     settings.forEach((m,i)=>{
       const r=ws3.getRow(sStartRow+1+i);
@@ -1442,24 +1444,24 @@ function buildScenarioExcelSheets(wb,res,scenarioName,state){
     });
   }
 
-  // FLSA Weekly Detail sheet â every week the engine considered
+  // FLSA Weekly Detail sheet Ã¢ÂÂ every week the engine considered
   if(res.flsa&&res.flsa.weeklyRows&&res.flsa.weeklyRows.length){
     const ws4=wb.addWorksheet('FLSA Weekly Detail'+suffix);
-    xlSectionTitle(ws4,1,'FLSA Overtime â Weekly Breakdown',10);
+    xlSectionTitle(ws4,1,'FLSA Overtime Ã¢ÂÂ Weekly Breakdown',10);
     const hdr=['Week Of','Position','Status','Days','Hours','Rate ($/hr)','OT Method','OT Hours','OT Wages','Liquidated','Note / Reason'];
     const hdrRow=ws4.getRow(3);
     hdr.forEach((h,i)=>{hdrRow.getCell(i+1).value=h;});
     xlStyleHeader(hdrRow);
     const reasonLabels = {vacation:'Vacation',fmla:'FMLA',sick:'Sick leave',suspension:'Suspension',no_work:'No work',other:'Other'};
-    const statusLabels = {counted:'Counted',user_excluded:'Excluded',sol_excluded:'Dropped â SOL',post_trial:'Dropped â post-trial'};
+    const statusLabels = {counted:'Counted',user_excluded:'Excluded',sol_excluded:'Dropped Ã¢ÂÂ SOL',post_trial:'Dropped Ã¢ÂÂ post-trial'};
     res.flsa.weeklyRows.forEach((w,i)=>{
       const row=ws4.getRow(4+i);
-      const meth = w.otMethod==='full' ? '1.5Ã' : (w.otMethod==='half' ? '0.5Ã' : '');
+      const meth = w.otMethod==='full' ? '1.5ÃÂ' : (w.otMethod==='half' ? '0.5ÃÂ' : '');
       let note = w.note || '';
-      if (w.status==='user_excluded') note = (reasonLabels[w.exclusionReason]||'Excluded')+(note?' â '+note:'');
+      if (w.status==='user_excluded') note = (reasonLabels[w.exclusionReason]||'Excluded')+(note?' Ã¢ÂÂ '+note:'');
       else if (w.status==='sol_excluded') note = w.solReason || 'SOL';
       else if (w.status==='post_trial') note = 'After trial date';
-      else if (w.isPartial) note = (note?note+' â ':'')+'Partial week (prorated)';
+      else if (w.isPartial) note = (note?note+' Ã¢ÂÂ ':'')+'Partial week (prorated)';
       [w.weekKey, w.description||'', statusLabels[w.status]||w.status, w.daysInPeriod||7, w.hours||0, w.rate||0, meth, w.otHrs||0, w.ot||0, w.liq||0, note].forEach((v,j)=>{row.getCell(j+1).value=v;});
       // Soft row tinting for non-counted statuses
       if (w.status !== 'counted') {
@@ -1545,7 +1547,7 @@ function exportPDF() {
   if (STATE.defendant) info.push(['Defendant',STATE.defendant]);
   if (STATE.attorney) info.push(['Attorney',STATE.attorney]);
   info.push(['Scenario',res.scenario.name]);
-  info.push(['Trial Date',res.scenario.trialDate||'â']);
+  info.push(['Trial Date',res.scenario.trialDate||'Ã¢ÂÂ']);
   info.forEach(([k,v],i)=>{
     const col=i%2===0?12:105, row=39+Math.floor(i/2)*6;
     doc.setTextColor(105,114,123); doc.text(k+':',col,row);
@@ -1573,7 +1575,7 @@ function exportPDF() {
     // 434 U.S. 575, 581 (1978); Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990).
     const xNoInt = (STATE.statutoryBasis === 'adea');
     doc.setTextColor(15,35,39); doc.setFontSize(12); doc.setFont('helvetica','bold');
-    doc.text('Back Wages â '+STATE.displayPeriod.charAt(0).toUpperCase()+STATE.displayPeriod.slice(1)+' Breakdown',14,y);
+    doc.text('Back Wages Ã¢ÂÂ '+STATE.displayPeriod.charAt(0).toUpperCase()+STATE.displayPeriod.slice(1)+' Breakdown',14,y);
     y+=6;
     const head = xNoInt
       ? [['Period','Days','Expected','Mitigation (-)','Net Back Pay','Benefits','Subtotal']]
@@ -1597,11 +1599,11 @@ function exportPDF() {
   if (res.flsa&&res.flsa.flsaRows.length) {
     if (y>220){doc.addPage();y=20;}
     doc.setTextColor(15,35,39); doc.setFontSize(12); doc.setFont('helvetica','bold');
-    doc.text('FLSA Overtime â Period Summary',14,y);
+    doc.text('FLSA Overtime Ã¢ÂÂ Period Summary',14,y);
     y+=6;
     // SOL/willfulness banner line
     doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.setTextColor(105,114,123);
-    const solLine = `Filing date: ${res.flsa.filingDate||'(not set â SOL not applied)'}   |   ${res.flsa.willful?'Willful (3-yr)':'Non-willful (2-yr)'}   |   SOL cutoff: ${res.flsa.cutoff||'â'}`;
+    const solLine = `Filing date: ${res.flsa.filingDate||'(not set Ã¢ÂÂ SOL not applied)'}   |   ${res.flsa.willful?'Willful (3-yr)':'Non-willful (2-yr)'}   |   SOL cutoff: ${res.flsa.cutoff||'Ã¢ÂÂ'}`;
     doc.text(solLine,14,y);
     doc.setFont('helvetica','normal'); doc.setTextColor(15,35,39);
     y+=4;
@@ -1609,7 +1611,7 @@ function exportPDF() {
     // page width (188 mm usable). Column widths sum to 188 mm exactly.
     const head=[['Period / Position','Weeks','Excl.','Dropped','OT Hrs','OT Wages','Liq.','Subtotal']];
     const body=res.flsa.flsaRows.map(r=>[
-      `${r.startDate} â ${r.endDate||'present'}${r.description?' Â· '+r.description:''}`,
+      `${r.startDate} Ã¢ÂÂ ${r.endDate||'present'}${r.description?' ÃÂ· '+r.description:''}`,
       String(r.weeksCounted||0), String(r.weeksExcluded||0), String((r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0)),
       r.otHrs.toFixed(1), $$(r.ot), $$(r.liq), $$(r.sub)
     ]);
@@ -1621,20 +1623,20 @@ function exportPDF() {
     doc.autoTable({head,body,startY:y,margin:{left:14,right:14},styles:{fontSize:8,cellPadding:2,overflow:'linebreak'},headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},columnStyles:{0:{cellWidth:60,halign:'left'},1:{cellWidth:14,halign:'right'},2:{cellWidth:14,halign:'right'},3:{cellWidth:18,halign:'right'},4:{cellWidth:16,halign:'right'},5:{cellWidth:22,halign:'right'},6:{cellWidth:18,halign:'right'},7:{cellWidth:26,halign:'right',fontStyle:'bold'}},alternateRowStyles:{fillColor:[246,247,243]},footStyles:{fillColor:[15,35,39],textColor:255,fontStyle:'bold'}});
     y=doc.lastAutoTable.finalY+10;
 
-    // FLSA weekly detail â only the counted/excluded weeks (skip pure SOL/post-trial drops to keep it short)
+    // FLSA weekly detail Ã¢ÂÂ only the counted/excluded weeks (skip pure SOL/post-trial drops to keep it short)
     const wkRows = (res.flsa.weeklyRows||[]).filter(w => w.status==='counted' || w.status==='user_excluded');
     if (wkRows.length) {
       if (y>220){doc.addPage();y=20;}
       doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
-      doc.text('FLSA Overtime â Weekly Breakdown',14,y);
+      doc.text('FLSA Overtime Ã¢ÂÂ Weekly Breakdown',14,y);
       y+=5;
       const reasonLabels = {vacation:'Vacation',fmla:'FMLA',sick:'Sick',suspension:'Suspension',no_work:'No work',other:'Other'};
       const wHead=[['Week Of','Position','Status','Days','Hours','Rate','OT Hrs','OT Wages','Liq.','Note']];
       const wBody=wkRows.map(w=>{
-        const meth = w.otMethod==='full'?'1.5Ã':(w.otMethod==='half'?'0.5Ã':'');
+        const meth = w.otMethod==='full'?'1.5ÃÂ':(w.otMethod==='half'?'0.5ÃÂ':'');
         let note = w.note||'';
-        if (w.status==='user_excluded') note = (reasonLabels[w.exclusionReason]||'Excluded')+(note?' â '+note:'');
-        else if (w.isPartial) note = (note?note+' â ':'')+'Partial';
+        if (w.status==='user_excluded') note = (reasonLabels[w.exclusionReason]||'Excluded')+(note?' Ã¢ÂÂ '+note:'');
+        else if (w.isPartial) note = (note?note+' Ã¢ÂÂ ':'')+'Partial';
         return [
           w.weekKey, w.description||'', w.status==='counted'?'Counted':'Excluded',
           String(w.daysInPeriod||7), (w.hours||0).toFixed(1), '$'+(w.rate||0).toFixed(2),
@@ -1657,12 +1659,12 @@ function exportPDF() {
   doc.setTextColor(15,35,39); doc.setFontSize(8); doc.setFont('helvetica','bold');
   doc.text('Notes & Sources',15,y+6);
   doc.setFont('helvetica','normal'); doc.setTextColor(61,69,73);
-  const fn1=`1. Prejudgment Interest (Title VII / ADA / FMLA / Â§ 1981 back pay only): Calculated using the IRS underpayment rate under 26 U.S.C. Â§ 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date. Does not apply to ADEA (see note 6) or FLSA overtime claims (see note 4); updated through the actual date of judgment.`;
+  const fn1=`1. Prejudgment Interest (Title VII / ADA / FMLA / ÃÂ§ 1981 back pay only): Calculated using the IRS underpayment rate under 26 U.S.C. ÃÂ§ 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date. Does not apply to ADEA (see note 6) or FLSA overtime claims (see note 4); updated through the actual date of judgment.`;
   const fn2=`2. Lost Benefits: Estimated at ${(parseFloat(STATE.customBenefitsRate)||BLS[STATE.employerType]||32.5).toFixed(1)}% of gross back wages, reflecting supplementary (voluntary) employer-paid benefits per U.S. Bureau of Labor Statistics, Employer Costs for Employee Compensation (ECEC), Table 1, Q4 2024 (USDL-25-0379, Mar. 2025), www.bls.gov/news.release/ecec.htm. Excludes legally-required costs (Social Security, Medicare, unemployment insurance, workers' compensation). Will be supplemented by actual plan documentation prior to trial.`;
   const fn3=`3. All figures are estimates based on currently available information and are subject to revision. Plaintiff reserves the right to update these calculations through the date of judgment.`;
-  const fn4=`4. FLSA Liquidated Damages: 29 U.S.C. Â§ 216(b) authorizes liquidated damages equal to unpaid overtime. The Supreme Court has held that liquidated damages âare not a penalty exacted by the law, but rather compensation to the employee . . . for the loss of the use of [the wages]â â i.e., they substitute for prejudgment interest. Brooklyn Sav. Bank v. O'Neil, 324 U.S. 697, 715 (1945); see Martin v. Cooper Elec. Supply Co., 940 F.2d 896, 910 (3d Cir. 1991). Accordingly, no separate prejudgment-interest line is calculated for FLSA overtime claims.`;
-  const fn5=`5. FLSA Statute of Limitations & Workweek: Damages are limited to two years before the complaint filing date, or three years if the violation was willful. 29 U.S.C. Â§ 255(a). The workweek is a fixed, recurring period of 168 consecutive hours designated by the employer. 29 C.F.R. Â§ 778.105. Filing date${res.flsa&&res.flsa.filingDate?': '+res.flsa.filingDate:' not yet entered â SOL cap not applied to weekly calculation'}.`;
-  const fn6=`6. ADEA â No Separate Prejudgment Interest: The ADEA incorporates the FLSA's enforcement scheme. Lorillard v. Pons, 434 U.S. 575, 581 (1978). Because liquidated damages under the ADEA serve as compensation for the loss of the use of wages â substituting for prejudgment interest â courts do not award prejudgment interest in addition to liquidated damages. See Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990). Accordingly, no prejudgment-interest line is calculated for ADEA back pay.`;
+  const fn4=`4. FLSA Liquidated Damages: 29 U.S.C. ÃÂ§ 216(b) authorizes liquidated damages equal to unpaid overtime. The Supreme Court has held that liquidated damages Ã¢ÂÂare not a penalty exacted by the law, but rather compensation to the employee . . . for the loss of the use of [the wages]Ã¢ÂÂ Ã¢ÂÂ i.e., they substitute for prejudgment interest. Brooklyn Sav. Bank v. O'Neil, 324 U.S. 697, 715 (1945); see Martin v. Cooper Elec. Supply Co., 940 F.2d 896, 910 (3d Cir. 1991). Accordingly, no separate prejudgment-interest line is calculated for FLSA overtime claims.`;
+  const fn5=`5. FLSA Statute of Limitations & Workweek: Damages are limited to two years before the complaint filing date, or three years if the violation was willful. 29 U.S.C. ÃÂ§ 255(a). The workweek is a fixed, recurring period of 168 consecutive hours designated by the employer. 29 C.F.R. ÃÂ§ 778.105. Filing date${res.flsa&&res.flsa.filingDate?': '+res.flsa.filingDate:' not yet entered Ã¢ÂÂ SOL cap not applied to weekly calculation'}.`;
+  const fn6=`6. ADEA Ã¢ÂÂ No Separate Prejudgment Interest: The ADEA incorporates the FLSA's enforcement scheme. Lorillard v. Pons, 434 U.S. 575, 581 (1978). Because liquidated damages under the ADEA serve as compensation for the loss of the use of wages Ã¢ÂÂ substituting for prejudgment interest Ã¢ÂÂ courts do not award prejudgment interest in addition to liquidated damages. See Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990). Accordingly, no prejudgment-interest line is calculated for ADEA back pay.`;
   let fnY = y+13;
   doc.text(fn1,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=11;
   doc.text(fn2,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=14;
@@ -1674,7 +1676,7 @@ function exportPDF() {
   if (isAdea) {
     doc.text(fn6,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4});
   }
-  // ââ Addendum: Informational Sheet ââ
+  // Ã¢ÂÂÃ¢ÂÂ Addendum: Informational Sheet Ã¢ÂÂÃ¢ÂÂ
   doc.addPage();
   y=12;
   // Header bar (same as page 1)
@@ -1683,16 +1685,16 @@ function exportPDF() {
   doc.setTextColor(201,168,90);
   doc.setFontSize(11);
   doc.setFont('helvetica','bold');
-  doc.text('ADDENDUM â Calculation Inputs & Applicable Interest Rates',12,10);
+  doc.text('ADDENDUM Ã¢ÂÂ Calculation Inputs & Applicable Interest Rates',12,10);
   doc.setFontSize(8);
   doc.setFont('helvetica','normal');
   doc.setTextColor(223,235,236);
   doc.text(STATE.caseName||'Employment Damages Report',W-12,10,{align:'right'});
   y=24;
 
-  // ââ Section 1: DOL Interest Rates ââ
+  // Ã¢ÂÂÃ¢ÂÂ Section 1: DOL Interest Rates Ã¢ÂÂÃ¢ÂÂ
   doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
-  doc.text('A. DOL Prejudgment Interest Rates (26 U.S.C. Â§ 6621)',14,y);
+  doc.text('A. DOL Prejudgment Interest Rates (26 U.S.C. ÃÂ§ 6621)',14,y);
   y+=3;
   doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(61,69,73);
   doc.text('IRS underpayment rate applied quarterly. Custom overrides shown where applicable.',14,y+3);
@@ -1720,7 +1722,7 @@ function exportPDF() {
     y=doc.lastAutoTable.finalY+10;
   }
 
-  // ââ Section 2: Input Summary ââ
+  // Ã¢ÂÂÃ¢ÂÂ Section 2: Input Summary Ã¢ÂÂÃ¢ÂÂ
   if (y>200){doc.addPage();y=20;}
   doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
   doc.text('B. Compensation Inputs Summary',14,y);
@@ -1730,22 +1732,22 @@ function exportPDF() {
   const wageHead=[['Period','Type','Base Pay','Annual Increase','Bonus','Commissions','Source']];
   const wageBody=STATE.wagePeriods.filter(wp=>wp.startDate).map(wp=>{
     const baseLabel=wp.wageType==='hourly'
-      ?`$${parseFloat(wp.hourlyRate||0).toFixed(2)}/hr Ã ${wp.hoursPerWeek||40}hrs/wk`
+      ?`$${parseFloat(wp.hourlyRate||0).toFixed(2)}/hr ÃÂ ${wp.hoursPerWeek||40}hrs/wk`
       :`$${Number(wp.annualSalary||0).toLocaleString()}/yr`;
     const bonusLabel=wp.bonusType==='percent'
       ?`${wp.bonus||0}% of salary`
-      :(parseFloat(wp.bonus)?`$${Number(wp.bonus).toLocaleString()}`:'â');
+      :(parseFloat(wp.bonus)?`$${Number(wp.bonus).toLocaleString()}`:'Ã¢ÂÂ');
     const commLabel=[];
     if (parseFloat(wp.commissionRate)) commLabel.push(`${wp.commissionRate}% of salary`);
     if (parseFloat(wp.commissions)) commLabel.push(`$${Number(wp.commissions).toLocaleString()}`);
     const sourceMap={paystub:'Paystub',w2:'W-2',offer_letter:'Offer letter',estimate:'Estimate'};
     return [
-      `${wp.startDate}${wp.endDate?' â '+wp.endDate:' â trial'}`,
+      `${wp.startDate}${wp.endDate?' Ã¢ÂÂ '+wp.endDate:' Ã¢ÂÂ trial'}`,
       wp.wageType==='hourly'?'Hourly':'Salary',
       baseLabel,
       `${wp.annualIncrease||0}%`,
       bonusLabel,
-      commLabel.length?commLabel.join(' + '):'â',
+      commLabel.length?commLabel.join(' + '):'Ã¢ÂÂ',
       sourceMap[wp.source]||wp.source
     ];
   });
@@ -1772,13 +1774,13 @@ function exportPDF() {
   ];
   if (STATE.benefitsMethod==='estimate') {
     infoBody.push(['Benefits Rate Applied',`${benefitsRate}% of net back pay (supplementary benefits only)`]);
-    if (STATE.customBenefitsRate) infoBody.push(['Custom Override','Yes â user-specified rate']);
+    if (STATE.customBenefitsRate) infoBody.push(['Custom Override','Yes Ã¢ÂÂ user-specified rate']);
   }
 
   // Add mitigation periods
   STATE.mitigationPeriods.filter(mp=>mp.startDate&&mp.annualWages).forEach((mp,i)=>{
-    infoBody.push([`Mitigation #${i+1}: ${mp.employer||'â'}`,
-      `$${Number(mp.annualWages).toLocaleString()}/yr (${mp.startDate}${mp.endDate?' â '+mp.endDate:' â trial'})`]);
+    infoBody.push([`Mitigation #${i+1}: ${mp.employer||'Ã¢ÂÂ'}`,
+      `$${Number(mp.annualWages).toLocaleString()}/yr (${mp.startDate}${mp.endDate?' Ã¢ÂÂ '+mp.endDate:' Ã¢ÂÂ trial'})`]);
   });
 
   doc.autoTable({head:infoHead,body:infoBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2.5},
@@ -1792,7 +1794,7 @@ function exportPDF() {
   if (y>230){doc.addPage();y=20;}
   const incBody=STATE.incidents.filter(i=>i.date).map((inc,i)=>{
     const typeLabel=INC_TYPES.find(t=>t.v===inc.type)?.l||inc.type;
-    return [`#${i+1}`,inc.date,inc.endDate||'Ongoing',typeLabel,inc.description||'â'];
+    return [`#${i+1}`,inc.date,inc.endDate||'Ongoing',typeLabel,inc.description||'Ã¢ÂÂ'];
   });
   if (incBody.length) {
     doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
@@ -1864,7 +1866,7 @@ function exportAllPDF() {
     if(s.defendant) info.push(['Defendant',s.defendant]);
     if(s.attorney) info.push(['Attorney',s.attorney]);
     info.push(['Scenario',res.scenario.name]);
-    info.push(['Trial Date',res.scenario.trialDate||'â']);
+    info.push(['Trial Date',res.scenario.trialDate||'Ã¢ÂÂ']);
     info.forEach(([k,v],i)=>{
       const col=i%2===0?12:105, row=39+Math.floor(i/2)*6;
       doc.setTextColor(105,114,123); doc.text(k+':',col,row);
@@ -1892,7 +1894,7 @@ function exportAllPDF() {
       // 434 U.S. 575, 581 (1978); Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990).
       const xNoInt = (s.statutoryBasis === 'adea');
       doc.setTextColor(15,35,39); doc.setFontSize(12); doc.setFont('helvetica','bold');
-      doc.text('Back Wages â '+s.displayPeriod.charAt(0).toUpperCase()+s.displayPeriod.slice(1)+' Breakdown',14,y);
+      doc.text('Back Wages Ã¢ÂÂ '+s.displayPeriod.charAt(0).toUpperCase()+s.displayPeriod.slice(1)+' Breakdown',14,y);
       y+=6;
       const head = xNoInt
         ? [['Period','Days','Expected','Mitigation (-)','Net Back Pay','Benefits','Subtotal']]
@@ -1916,17 +1918,17 @@ function exportAllPDF() {
     if(res.flsa&&res.flsa.flsaRows.length){
       if(y>220){doc.addPage();y=20;}
       doc.setTextColor(15,35,39); doc.setFontSize(12); doc.setFont('helvetica','bold');
-      doc.text('FLSA Overtime â Period Summary',14,y);
+      doc.text('FLSA Overtime Ã¢ÂÂ Period Summary',14,y);
       y+=6;
       doc.setFontSize(8); doc.setFont('helvetica','italic'); doc.setTextColor(105,114,123);
-      const solLine = `Filing date: ${res.flsa.filingDate||'(not set â SOL not applied)'}   |   ${res.flsa.willful?'Willful (3-yr)':'Non-willful (2-yr)'}   |   SOL cutoff: ${res.flsa.cutoff||'â'}`;
+      const solLine = `Filing date: ${res.flsa.filingDate||'(not set Ã¢ÂÂ SOL not applied)'}   |   ${res.flsa.willful?'Willful (3-yr)':'Non-willful (2-yr)'}   |   SOL cutoff: ${res.flsa.cutoff||'Ã¢ÂÂ'}`;
       doc.text(solLine,14,y);
       doc.setFont('helvetica','normal'); doc.setTextColor(15,35,39);
       y+=4;
       // Short header labels so each column fits on one line (see main PDF path).
       const head=[['Period / Position','Weeks','Excl.','Dropped','OT Hrs','OT Wages','Liq.','Subtotal']];
       const body=res.flsa.flsaRows.map(r=>[
-        `${r.startDate} â ${r.endDate||'present'}${r.description?' Â· '+r.description:''}`,
+        `${r.startDate} Ã¢ÂÂ ${r.endDate||'present'}${r.description?' ÃÂ· '+r.description:''}`,
         String(r.weeksCounted||0), String(r.weeksExcluded||0), String((r.weeksDroppedBySOL||0)+(r.weeksDroppedPostTrial||0)),
         r.otHrs.toFixed(1), $$(r.ot), $$(r.liq), $$(r.sub)
       ]);
@@ -1942,15 +1944,15 @@ function exportAllPDF() {
       if (wkRows.length) {
         if (y>220){doc.addPage();y=20;}
         doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
-        doc.text('FLSA Overtime â Weekly Breakdown',14,y);
+        doc.text('FLSA Overtime Ã¢ÂÂ Weekly Breakdown',14,y);
         y+=5;
         const reasonLabels = {vacation:'Vacation',fmla:'FMLA',sick:'Sick',suspension:'Suspension',no_work:'No work',other:'Other'};
         const wHead=[['Week Of','Position','Status','Days','Hours','Rate','OT Hrs','OT Wages','Liq.','Note']];
         const wBody=wkRows.map(w=>{
-          const meth = w.otMethod==='full'?'1.5Ã':(w.otMethod==='half'?'0.5Ã':'');
+          const meth = w.otMethod==='full'?'1.5ÃÂ':(w.otMethod==='half'?'0.5ÃÂ':'');
           let note = w.note||'';
-          if (w.status==='user_excluded') note = (reasonLabels[w.exclusionReason]||'Excluded')+(note?' â '+note:'');
-          else if (w.isPartial) note = (note?note+' â ':'')+'Partial';
+          if (w.status==='user_excluded') note = (reasonLabels[w.exclusionReason]||'Excluded')+(note?' Ã¢ÂÂ '+note:'');
+          else if (w.isPartial) note = (note?note+' Ã¢ÂÂ ':'')+'Partial';
           return [
             w.weekKey, w.description||'', w.status==='counted'?'Counted':'Excluded',
             String(w.daysInPeriod||7), (w.hours||0).toFixed(1), '$'+(w.rate||0).toFixed(2),
@@ -1973,12 +1975,12 @@ function exportAllPDF() {
     doc.setTextColor(15,35,39); doc.setFontSize(8); doc.setFont('helvetica','bold');
     doc.text('Notes & Sources',15,y+6);
     doc.setFont('helvetica','normal'); doc.setTextColor(61,69,73);
-    const fn1=`1. Prejudgment Interest (Title VII / ADA / FMLA / Â§ 1981 back pay only): Calculated using the IRS underpayment rate under 26 U.S.C. Â§ 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date. Does not apply to ADEA (see note 6) or FLSA overtime claims (see note 4); updated through the actual date of judgment.`;
+    const fn1=`1. Prejudgment Interest (Title VII / ADA / FMLA / ÃÂ§ 1981 back pay only): Calculated using the IRS underpayment rate under 26 U.S.C. ÃÂ§ 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date. Does not apply to ADEA (see note 6) or FLSA overtime claims (see note 4); updated through the actual date of judgment.`;
     const fn2=`2. Lost Benefits: Estimated at ${(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5).toFixed(1)}% of gross back wages, reflecting supplementary (voluntary) employer-paid benefits per U.S. Bureau of Labor Statistics, Employer Costs for Employee Compensation (ECEC), Table 1, Q4 2024 (USDL-25-0379, Mar. 2025), www.bls.gov/news.release/ecec.htm. Excludes legally-required costs (Social Security, Medicare, unemployment insurance, workers' compensation). Will be supplemented by actual plan documentation prior to trial.`;
     const fn3=`3. All figures are estimates based on currently available information and are subject to revision. Plaintiff reserves the right to update these calculations through the date of judgment.`;
-    const fn4=`4. FLSA Liquidated Damages: 29 U.S.C. Â§ 216(b) authorizes liquidated damages equal to unpaid overtime. The Supreme Court has held that liquidated damages âare not a penalty exacted by the law, but rather compensation to the employee . . . for the loss of the use of [the wages]â â i.e., they substitute for prejudgment interest. Brooklyn Sav. Bank v. O'Neil, 324 U.S. 697, 715 (1945); see Martin v. Cooper Elec. Supply Co., 940 F.2d 896, 910 (3d Cir. 1991). Accordingly, no separate prejudgment-interest line is calculated for FLSA overtime claims.`;
-    const fn5=`5. FLSA Statute of Limitations & Workweek: Damages are limited to two years before the complaint filing date, or three years if the violation was willful. 29 U.S.C. Â§ 255(a). The workweek is a fixed, recurring period of 168 consecutive hours designated by the employer. 29 C.F.R. Â§ 778.105. Filing date${res.flsa&&res.flsa.filingDate?': '+res.flsa.filingDate:' not yet entered â SOL cap not applied to weekly calculation'}.`;
-    const fn6=`6. ADEA â No Separate Prejudgment Interest: The ADEA incorporates the FLSA's enforcement scheme. Lorillard v. Pons, 434 U.S. 575, 581 (1978). Because liquidated damages under the ADEA serve as compensation for the loss of the use of wages â substituting for prejudgment interest â courts do not award prejudgment interest in addition to liquidated damages. See Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990). Accordingly, no prejudgment-interest line is calculated for ADEA back pay.`;
+    const fn4=`4. FLSA Liquidated Damages: 29 U.S.C. ÃÂ§ 216(b) authorizes liquidated damages equal to unpaid overtime. The Supreme Court has held that liquidated damages Ã¢ÂÂare not a penalty exacted by the law, but rather compensation to the employee . . . for the loss of the use of [the wages]Ã¢ÂÂ Ã¢ÂÂ i.e., they substitute for prejudgment interest. Brooklyn Sav. Bank v. O'Neil, 324 U.S. 697, 715 (1945); see Martin v. Cooper Elec. Supply Co., 940 F.2d 896, 910 (3d Cir. 1991). Accordingly, no separate prejudgment-interest line is calculated for FLSA overtime claims.`;
+    const fn5=`5. FLSA Statute of Limitations & Workweek: Damages are limited to two years before the complaint filing date, or three years if the violation was willful. 29 U.S.C. ÃÂ§ 255(a). The workweek is a fixed, recurring period of 168 consecutive hours designated by the employer. 29 C.F.R. ÃÂ§ 778.105. Filing date${res.flsa&&res.flsa.filingDate?': '+res.flsa.filingDate:' not yet entered Ã¢ÂÂ SOL cap not applied to weekly calculation'}.`;
+    const fn6=`6. ADEA Ã¢ÂÂ No Separate Prejudgment Interest: The ADEA incorporates the FLSA's enforcement scheme. Lorillard v. Pons, 434 U.S. 575, 581 (1978). Because liquidated damages under the ADEA serve as compensation for the loss of the use of wages Ã¢ÂÂ substituting for prejudgment interest Ã¢ÂÂ courts do not award prejudgment interest in addition to liquidated damages. See Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990). Accordingly, no prejudgment-interest line is calculated for ADEA back pay.`;
     let fnY = y+13;
     doc.text(fn1,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=11;
     doc.text(fn2,15,fnY,{maxWidth:W-28,lineHeightFactor:1.4}); fnY+=14;
@@ -1998,16 +2000,16 @@ function exportAllPDF() {
     doc.setTextColor(201,168,90);
     doc.setFontSize(11);
     doc.setFont('helvetica','bold');
-    doc.text('ADDENDUM â Calculation Inputs & Applicable Interest Rates',12,10);
+    doc.text('ADDENDUM Ã¢ÂÂ Calculation Inputs & Applicable Interest Rates',12,10);
     doc.setFontSize(8);
     doc.setFont('helvetica','normal');
     doc.setTextColor(223,235,236);
-    doc.text((s.caseName||'Employment Damages Report')+' â '+res.scenario.name,W-12,10,{align:'right'});
+    doc.text((s.caseName||'Employment Damages Report')+' Ã¢ÂÂ '+res.scenario.name,W-12,10,{align:'right'});
     y=24;
 
     // Section A: DOL rates
     doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
-    doc.text('A. DOL Prejudgment Interest Rates (26 U.S.C. Â§ 6621)',14,y);
+    doc.text('A. DOL Prejudgment Interest Rates (26 U.S.C. ÃÂ§ 6621)',14,y);
     y+=3;
     doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(61,69,73);
     doc.text('IRS underpayment rate applied quarterly. Custom overrides shown where applicable.',14,y+3);
@@ -2038,13 +2040,13 @@ function exportAllPDF() {
     y+=7;
     const wageHead=[['Period','Type','Base Pay','Annual Increase','Bonus','Commissions','Source']];
     const wageBody=s.wagePeriods.filter(wp=>wp.startDate).map(wp=>{
-      const baseLabel=wp.wageType==='hourly'?`$${parseFloat(wp.hourlyRate||0).toFixed(2)}/hr Ã ${wp.hoursPerWeek||40}hrs/wk`:`$${Number(wp.annualSalary||0).toLocaleString()}/yr`;
-      const bonusLabel=wp.bonusType==='percent'?`${wp.bonus||0}% of salary`:(parseFloat(wp.bonus)?`$${Number(wp.bonus).toLocaleString()}`:'â');
+      const baseLabel=wp.wageType==='hourly'?`$${parseFloat(wp.hourlyRate||0).toFixed(2)}/hr ÃÂ ${wp.hoursPerWeek||40}hrs/wk`:`$${Number(wp.annualSalary||0).toLocaleString()}/yr`;
+      const bonusLabel=wp.bonusType==='percent'?`${wp.bonus||0}% of salary`:(parseFloat(wp.bonus)?`$${Number(wp.bonus).toLocaleString()}`:'Ã¢ÂÂ');
       const commLabel=[];
       if(parseFloat(wp.commissionRate)) commLabel.push(`${wp.commissionRate}% of salary`);
       if(parseFloat(wp.commissions)) commLabel.push(`$${Number(wp.commissions).toLocaleString()}`);
       const sourceMap={paystub:'Paystub',w2:'W-2',offer_letter:'Offer letter',estimate:'Estimate'};
-      return [`${wp.startDate}${wp.endDate?' â '+wp.endDate:' â trial'}`,wp.wageType==='hourly'?'Hourly':'Salary',baseLabel,`${wp.annualIncrease||0}%`,bonusLabel,commLabel.length?commLabel.join(' + '):'â',sourceMap[wp.source]||wp.source];
+      return [`${wp.startDate}${wp.endDate?' Ã¢ÂÂ '+wp.endDate:' Ã¢ÂÂ trial'}`,wp.wageType==='hourly'?'Hourly':'Salary',baseLabel,`${wp.annualIncrease||0}%`,bonusLabel,commLabel.length?commLabel.join(' + '):'Ã¢ÂÂ',sourceMap[wp.source]||wp.source];
     });
     if(wageBody.length){
       doc.autoTable({head:wageHead,body:wageBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2},
@@ -2066,10 +2068,10 @@ function exportAllPDF() {
     ];
     if(s.benefitsMethod==='estimate'){
       infoBody.push(['Benefits Rate Applied',`${benefitsRate}% of net back pay (supplementary benefits only)`]);
-      if(s.customBenefitsRate) infoBody.push(['Custom Override','Yes â user-specified rate']);
+      if(s.customBenefitsRate) infoBody.push(['Custom Override','Yes Ã¢ÂÂ user-specified rate']);
     }
     s.mitigationPeriods.filter(mp=>mp.startDate&&mp.annualWages).forEach((mp,i)=>{
-      infoBody.push([`Mitigation #${i+1}: ${mp.employer||'â'}`,`$${Number(mp.annualWages).toLocaleString()}/yr (${mp.startDate}${mp.endDate?' â '+mp.endDate:' â trial'})`]);
+      infoBody.push([`Mitigation #${i+1}: ${mp.employer||'Ã¢ÂÂ'}`,`$${Number(mp.annualWages).toLocaleString()}/yr (${mp.startDate}${mp.endDate?' Ã¢ÂÂ '+mp.endDate:' Ã¢ÂÂ trial'})`]);
     });
     doc.autoTable({head:infoHead,body:infoBody,startY:y,margin:{left:14,right:14},styles:{fontSize:7.5,cellPadding:2.5},
       headStyles:{fillColor:[15,35,39],textColor:[201,168,90],fontStyle:'bold'},
@@ -2081,7 +2083,7 @@ function exportAllPDF() {
     if(y>230){doc.addPage();y=20;}
     const incBody=s.incidents.filter(i=>i.date).map((inc,i)=>{
       const typeLabel=INC_TYPES.find(t=>t.v===inc.type)?.l||inc.type;
-      return [`#${i+1}`,inc.date,inc.endDate||'Ongoing',typeLabel,inc.description||'â'];
+      return [`#${i+1}`,inc.date,inc.endDate||'Ongoing',typeLabel,inc.description||'Ã¢ÂÂ'];
     });
     if(incBody.length){
       doc.setTextColor(15,35,39); doc.setFontSize(11); doc.setFont('helvetica','bold');
@@ -2104,9 +2106,9 @@ function exportAllPDF() {
   doc.save((s.caseName||s.plaintiff||'damages')+'-all-scenarios.pdf');
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 // 6. TAB NAVIGATION
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function showTab(name) {
   activeTab=name;
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -2115,6 +2117,31 @@ function showTab(name) {
   renderTab();
 }
 
+function updateSidebarDots() {
+  const s = STATE;
+  const dot = (id, hasData) => {
+    const el = document.getElementById('dot-' + id);
+    if (!el) return;
+    el.className = 'tab-dot ' + (hasData ? 'tab-dot-green' : 'tab-dot-orange');
+  };
+  const hasScenarioTrial = s.scenarios && s.scenarios.some(sc => sc.trialDate);
+  const hasIncidents = s.incidents && s.incidents.length > 0;
+  const hasWages = s.wagePeriods && s.wagePeriods.length > 0;
+  const hasBenefits = s.benefitsPeriods && s.benefitsPeriods.some(b => b.annualValue > 0);
+  const hasMitigation = s.mitigationPeriods && s.mitigationPeriods.length > 0;
+  const hasFlsa = s.flsaPeriods && s.flsaPeriods.length > 0;
+  const hasFlsaMw = s.flsaMinWagePeriods && s.flsaMinWagePeriods.length > 0;
+  const hasComp = s.compensatoryItems && s.compensatoryItems.length > 0;
+  dot('setup', hasScenarioTrial);
+  dot('incidents', hasIncidents);
+  dot('wages', hasWages);
+  dot('benefits', hasBenefits);
+  dot('mitigation', hasMitigation);
+  dot('flsa', hasFlsa);
+  dot('flsa-minwage', hasFlsaMw);
+  dot('compensatory', hasComp);
+  // rates and results always available - no dot
+}
 function renderTab() {
   const el=document.getElementById('tab-content');
   // Preserve scroll position so users don't get jumped to the top when an
@@ -2135,6 +2162,7 @@ function renderTab() {
   }
   attachInputListeners();
   updateHeaderTotal();
+  updateSidebarDots();
   if (el) el.scrollTop = prevScroll;
 }
 
@@ -2146,12 +2174,12 @@ function attachInputListeners() {
   // Anchor empty date pickers to a recent year so the calendar widget opens
   // in the right decade instead of at year 0001/0005 (browser default for
   // empty <input type="date"> fields). We seed the value on focus, then
-  // clear it on blur if the user didn't actually pick something â so blank
+  // clear it on blur if the user didn't actually pick something Ã¢ÂÂ so blank
   // remains a meaningful state ("runs to trial", "ongoing").
   document.querySelectorAll('#tab-content input[type="date"]').forEach(el => {
     el.addEventListener('focus', () => {
       if (!el.value) {
-        // Pick an anchor inside [min, max] â prefer today, fall back to max, then min.
+        // Pick an anchor inside [min, max] Ã¢ÂÂ prefer today, fall back to max, then min.
         const max = el.getAttribute('max');
         const min = el.getAttribute('min');
         const today = todayISO();
@@ -2171,7 +2199,7 @@ function attachInputListeners() {
         // we can detect that by reading STATE for the input's data-list/data-field.
         // Simpler heuristic: if the value still equals the anchor we set AND the
         // user never typed/picked, clear it. We can't perfectly detect "didn't pick",
-        // so we always clear on blur â if they DID pick the same date as the anchor,
+        // so we always clear on blur Ã¢ÂÂ if they DID pick the same date as the anchor,
         // change event already fired and STATE is updated; renderTab() will repaint
         // it back. The clear here only affects the visible DOM until next render.
         // Safest: only clear if STATE says the field is empty.
@@ -2216,10 +2244,10 @@ function handleChange(e) {
   let val=el.type==='checkbox'?el.checked:el.value;
   // Reject obvious year-typo dates (e.g. 0002-01-24 from typing "2-1-24" into
   // a date field). The browser's min/max only blocks on form submit; on
-  // 'input' events we have to gate it ourselves. Empty string passes â blank
+  // 'input' events we have to gate it ourselves. Empty string passes Ã¢ÂÂ blank
   // is meaningful for end-date fields ("runs to trial").
   if (el.type === 'date' && val && !isValidISODate(val)) {
-    // Don't write the bad value to STATE â just ignore until they finish typing
+    // Don't write the bad value to STATE Ã¢ÂÂ just ignore until they finish typing
     // a valid date.
     return;
   }
@@ -2286,16 +2314,16 @@ function updateHeaderTotal() {
   scheduleSave();
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 // 7. RENDER FUNCTIONS
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 function field(label, inp, opts={}) {
-  return `<div style="${opts.style||''}">
-    <span class="section-label">${label}</span>
+  const hh = opts.help ? `<span class="field-help-btn" onclick="event.stopPropagation();this.nextElementSibling.classList.toggle('visible')" title="Help">?</span><span class="field-help-tip">${esc(opts.help)}</span>` : '';
+  return `<div style="${opts.style||''}" class="field-wrap">
+    <span class="section-label">${label}${hh}</span>
     ${inp}
   </div>`;
 }
-
 function inp(val='',opts={}) {
   const {type='text',placeholder='',min,max,step,dk,list,idx,field,rerender,extra=''} = opts;
   const data = dk?`data-key="${dk}"`:'';
@@ -2316,7 +2344,7 @@ function sel(val='',options=[],opts={}) {
   </select>`;
 }
 
-// ââ SETUP TAB ââ
+// Ã¢ÂÂÃ¢ÂÂ SETUP TAB Ã¢ÂÂÃ¢ÂÂ
 function renderSetup() {
   const s=STATE;
   return `
@@ -2331,11 +2359,11 @@ function renderSetup() {
       ${field('Employer type',sel(s.employerType,[{v:'private',l:'Private sector'},{v:'state_local',l:'State / Local government'},{v:'federal',l:'Federal government'}],{dk:'employerType',rerender:'1'}))}
       ${field('Employer size',sel(s.employerSize,[{v:'15-100',l:'15-100 employees'},{v:'101-200',l:'101-200 employees'},{v:'201-500',l:'201-500 employees'},{v:'500+',l:'500+ employees'}],{dk:'employerSize'}))}
       ${field('Claim type',sel(s.claimType,[{v:'both',l:'Discrimination + FLSA Overtime'},{v:'discrimination',l:'Discrimination only'},{v:'flsa',l:'FLSA Overtime only'}],{dk:'claimType',rerender:'1'}))}
-      ${s.claimType!=='flsa'?field('Statutory basis (discrimination claim)',sel(s.statutoryBasis,[{v:'title_vii',l:'Title VII'},{v:'ada',l:'ADA'},{v:'fmla',l:'FMLA'},{v:'adea',l:'ADEA'},{v:'section_1981',l:'Â§ 1981'},{v:'state_other',l:'State law / other'}],{dk:'statutoryBasis',rerender:'1'})):''}
+      ${s.claimType!=='flsa'?field('Statutory basis (discrimination claim)',sel(s.statutoryBasis,[{v:'title_vii',l:'Title VII'},{v:'ada',l:'ADA'},{v:'fmla',l:'FMLA'},{v:'adea',l:'ADEA'},{v:'section_1981',l:'ÃÂ§ 1981'},{v:'state_other',l:'State law / other'}],{dk:'statutoryBasis',rerender:'1'})):''}
       ${s.claimType!=='discrimination'?field('Complaint filing date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(s.complaintFiledDate||'')}" data-key="complaintFiledDate" data-rerender="1">`,{style:'grid-column:span 1'}):''}
     </div>
     ${s.claimType!=='flsa' && s.statutoryBasis==='adea'?`<div class="card-sub" style="margin-top:8px"><strong>ADEA selected:</strong> prejudgment interest is excluded from back pay. Under <em>Lorillard v. Pons</em>, 434 U.S. 575, 581 (1978), the ADEA incorporates the FLSA's enforcement scheme; courts therefore hold that liquidated damages substitute for prejudgment interest. <em>See Powers v. Grinnell Corp.</em>, 915 F.2d 34, 41 (1st Cir. 1990).</div>`:''}
-    ${s.claimType!=='discrimination'?`<div class="card-sub" style="margin-top:8px"><strong>Filing date</strong> anchors the FLSA statute-of-limitations cutoff under 29 U.S.C. Â§ 255(a). ${s.complaintFiledDate?'':'<span style="color:var(--gold-d)">Not set â SOL cap will not be applied to FLSA damages.</span>'}</div>`:''}
+    ${s.claimType!=='discrimination'?`<div class="card-sub" style="margin-top:8px"><strong>Filing date</strong> anchors the FLSA statute-of-limitations cutoff under 29 U.S.C. ÃÂ§ 255(a). ${s.complaintFiledDate?'':'<span style="color:var(--gold-d)">Not set Ã¢ÂÂ SOL cap will not be applied to FLSA damages.</span>'}</div>`:''}
     ${s.claimType!=='flsa'?`
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-100)">
       <span class="section-label" style="margin-bottom:8px;display:block">Benefits calculation method</span>
@@ -2345,7 +2373,7 @@ function renderSetup() {
             <input type="radio" name="bm-setup" value="${v}" ${s.benefitsMethod===v?'checked':''} data-key="benefitsMethod" data-rerender="1">
             <div>
               <div class="radio-card-label">${v==='estimate'?'BLS Government Estimate':'W-2 / Actual Plan Documents'}</div>
-              <div class="radio-card-desc">${v==='estimate'?'Bureau of Labor Statistics ECEC data â supplementary benefits only':'Enter actual employer benefit costs per wage period (W-2 Box 12, premium statements)'}</div>
+              <div class="radio-card-desc">${v==='estimate'?'Bureau of Labor Statistics ECEC data Ã¢ÂÂ supplementary benefits only':'Enter actual employer benefit costs per wage period (W-2 Box 12, premium statements)'}</div>
             </div>
           </label>`).join('')}
       </div>
@@ -2354,7 +2382,7 @@ function renderSetup() {
 
   <div class="card">
     <div class="card-title">Damage Scenarios</div>
-    <div class="card-sub">Model multiple trial dates simultaneously â e.g., backpay to date, mediation, trial</div>
+    <div class="card-sub">Model multiple trial dates simultaneously Ã¢ÂÂ e.g., backpay to date, mediation, trial</div>
     ${s.scenarios.map((sc,i)=>`
       <div style="border:1px solid var(--gray-100);border-radius:var(--r);padding:12px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
         <div style="flex:1;min-width:160px">
@@ -2367,8 +2395,8 @@ function renderSetup() {
         <div style="flex:1;min-width:200px">
           <span class="section-label">FLSA lookback</span>
           <div style="display:flex;gap:0;border:1px solid var(--gray-100);border-radius:var(--r);overflow:hidden">
-            <button type="button" class="btn btn-sm" style="flex:1;border-radius:0;background:${sc.flsaWillful!==false?'var(--navy)':'transparent'};color:${sc.flsaWillful!==false?'var(--gold)':'var(--text-2)'};border:none;font-size:11px" onclick="STATE.scenarios[${i}].flsaWillful=true;renderTab();updateHeaderTotal();scheduleSave()" title="3-year lookback under 29 U.S.C. Â§ 255(a) for willful violations">Willful â 3 yr</button>
-            <button type="button" class="btn btn-sm" style="flex:1;border-radius:0;background:${sc.flsaWillful===false?'var(--navy)':'transparent'};color:${sc.flsaWillful===false?'var(--gold)':'var(--text-2)'};border:none;border-left:1px solid var(--gray-100);font-size:11px" onclick="STATE.scenarios[${i}].flsaWillful=false;renderTab();updateHeaderTotal();scheduleSave()" title="2-year lookback under 29 U.S.C. Â§ 255(a) for non-willful violations">Non-willful â 2 yr</button>
+            <button type="button" class="btn btn-sm" style="flex:1;border-radius:0;background:${sc.flsaWillful!==false?'var(--navy)':'transparent'};color:${sc.flsaWillful!==false?'var(--gold)':'var(--text-2)'};border:none;font-size:11px" onclick="STATE.scenarios[${i}].flsaWillful=true;renderTab();updateHeaderTotal();scheduleSave()" title="3-year lookback under 29 U.S.C. ÃÂ§ 255(a) for willful violations">Willful Ã¢ÂÂ 3 yr</button>
+            <button type="button" class="btn btn-sm" style="flex:1;border-radius:0;background:${sc.flsaWillful===false?'var(--navy)':'transparent'};color:${sc.flsaWillful===false?'var(--gold)':'var(--text-2)'};border:none;border-left:1px solid var(--gray-100);font-size:11px" onclick="STATE.scenarios[${i}].flsaWillful=false;renderTab();updateHeaderTotal();scheduleSave()" title="2-year lookback under 29 U.S.C. ÃÂ§ 255(a) for non-willful violations">Non-willful Ã¢ÂÂ 2 yr</button>
           </div>
         </div>`:''}
         <div>
@@ -2376,9 +2404,9 @@ function renderSetup() {
           <div style="display:flex;gap:6px">
             <button class="btn btn-ghost btn-sm ${sc.id===s.activeScenarioId?'btn-navy':''}"
               onclick="STATE.activeScenarioId='${sc.id}';renderTab()">
-              ${sc.id===s.activeScenarioId?'â Active':'Set Active'}
+              ${sc.id===s.activeScenarioId?'Ã¢ÂÂ Active':'Set Active'}
             </button>
-            ${s.scenarios.length>1?`<button class="btn-remove" onclick="STATE.scenarios.splice(${i},1);if(STATE.activeScenarioId==='${sc.id}')STATE.activeScenarioId=STATE.scenarios[0].id;renderTab()">Ã</button>`:''}
+            ${s.scenarios.length>1?`<button class="btn-remove" onclick="STATE.scenarios.splice(${i},1);if(STATE.activeScenarioId==='${sc.id}')STATE.activeScenarioId=STATE.scenarios[0].id;renderTab()">ÃÂ</button>`:''}
           </div>
         </div>
       </div>
@@ -2392,7 +2420,7 @@ function renderSetup() {
   </div>`;
 }
 
-// ââ INCIDENTS TAB ââ
+// Ã¢ÂÂÃ¢ÂÂ INCIDENTS TAB Ã¢ÂÂÃ¢ÂÂ
 function renderIncidents() {
   const s=STATE;
   const isFlsaOnly=s.claimType==='flsa';
@@ -2409,7 +2437,7 @@ function renderIncidents() {
             ${INC_TYPES.find(t=>t.v===inc.type)?.l||inc.type}
           </span>
         </div>
-        ${s.incidents.length>1?`<button class="btn-remove" onclick="STATE.incidents.splice(${i},1);renderTab()">Ã</button>`:''}
+        ${s.incidents.length>1?`<button class="btn-remove" onclick="STATE.incidents.splice(${i},1);renderTab()">ÃÂ</button>`:''}
       </div>
       <div class="g3">
         ${field('Date of incident',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(inc.date)}" data-list="incidents" data-idx="${i}" data-field="date">`)}
@@ -2418,14 +2446,24 @@ function renderIncidents() {
           `<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(inc.endDate)}" data-list="incidents" data-idx="${i}" data-field="endDate" data-rerender="1">`)}
         ${field('Type of action',sel(inc.type,INC_TYPES,{list:'incidents',idx:i,field:'type'}))}
       </div>
-      ${inc.endDate?`<div class="info-box" style="margin-top:10px;margin-bottom:0;font-size:11.5px">
-        Back pay accrues <strong>${dt(inc.date)} â ${dt(inc.endDate)}</strong> for this incident
-        ${inc.type==='suspension'?' (fixed suspension period)':inc.type==='failure_hire'?' (failure to hire â enter hypothetical salary in Back Wages tab)':''}.
+
+      ${inc.type==='demotion'?`<div style="margin-top:10px;padding:10px 12px;border:1px solid var(--mgray);border-radius:6px;background:var(--lgray)">
+        <div style="font-size:11px;font-weight:600;margin-bottom:8px;color:var(--dark)">Wage Differential (auto-calculated)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          ${field('Pre-demotion rate ($/hr)',`<input type="number" min="0" step="0.01" value="${esc(inc.preDemotionRate||'')}" data-list="incidents" data-idx="${i}" data-field="preDemotionRate" data-rerender="1">`)}
+          ${field('Pre-demotion hrs/wk',`<input type="number" min="0" step="0.5" value="${esc(inc.preDemotionHrs||'')}" data-list="incidents" data-idx="${i}" data-field="preDemotionHrs" data-rerender="1">`)}
+          ${field('Post-demotion rate ($/hr)',`<input type="number" min="0" step="0.01" value="${esc(inc.postDemotionRate||'')}" data-list="incidents" data-idx="${i}" data-field="postDemotionRate" data-rerender="1">`)}
+          ${field('Post-demotion hrs/wk',`<input type="number" min="0" step="0.5" value="${esc(inc.postDemotionHrs||'')}" data-list="incidents" data-idx="${i}" data-field="postDemotionHrs" data-rerender="1">`)}
+        </div>
+        ${(()=>{const pre=(parseFloat(inc.preDemotionRate)||0)*(parseFloat(inc.preDemotionHrs)||0);const post=(parseFloat(inc.postDemotionRate)||0)*(parseFloat(inc.postDemotionHrs)||0);const diff=pre-post;return diff>0?`<div style="margin-top:8px;font-size:11.5px;color:#1E6B3C">Weekly diff: $${diff.toFixed(2)} × 52 = <strong>$${(diff*52).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}/yr</strong></div>`:''})()}
+      </div>`:''}      ${inc.endDate?`<div class="info-box" style="margin-top:10px;margin-bottom:0;font-size:11.5px">
+        Back pay accrues <strong>${dt(inc.date)} Ã¢ÂÂ ${dt(inc.endDate)}</strong> for this incident
+        ${inc.type==='suspension'?' (fixed suspension period)':inc.type==='failure_hire'?' (failure to hire Ã¢ÂÂ enter hypothetical salary in Back Wages tab)':''}.
       </div>`:''}
       ${field('Description',`<input type="text" value="${esc(inc.description)}" placeholder="Brief description of the adverse action" data-list="incidents" data-idx="${i}" data-field="description">`,'margin-top:10px')}
       ${(inc.type==='failure_hire'||inc.type==='failure_promote')?`
         <div class="info-box" style="margin-top:10px;margin-bottom:0">
-          <strong>Failure to hire/promote:</strong> Enter the salary for the denied position in the <strong>Back Wages</strong> tab. Enter the plaintiff's actual wages (what they actually earned) in the <strong>Mitigation</strong> tab. Net back pay = denied position salary â actual earnings.
+          <strong>Failure to hire/promote:</strong> Enter the salary for the denied position in the <strong>Back Wages</strong> tab. Enter the plaintiff's actual wages (what they actually earned) in the <strong>Mitigation</strong> tab. Net back pay = denied position salary Ã¢ÂÂ actual earnings.
         </div>`:''}
     </div>
   `).join('')}
@@ -2434,7 +2472,7 @@ function renderIncidents() {
   </button>`;
 }
 
-// ââ WAGES TAB ââ
+// Ã¢ÂÂÃ¢ÂÂ WAGES TAB Ã¢ÂÂÃ¢ÂÂ
 function renderWages() {
   const s=STATE;
   return `
@@ -2448,7 +2486,7 @@ function renderWages() {
           <div class="card-title" style="font-size:14px">Wage Period ${i+1}</div>
           <div class="card-sub" style="margin-bottom:0">${wp.source==='w2'?'Verified via W-2':wp.source==='paystub'?'Verified via paystub':wp.source==='offer_letter'?'Offer letter / Contract':'Estimated'}</div>
         </div>
-        ${s.wagePeriods.length>1?`<button class="btn-remove" onclick="STATE.wagePeriods.splice(${i},1);renderTab()">Ã</button>`:''}
+        ${s.wagePeriods.length>1?`<button class="btn-remove" onclick="STATE.wagePeriods.splice(${i},1);renderTab()">ÃÂ</button>`:''}
       </div>
       <div class="g3">
         ${field('Period start date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(wp.startDate)}" data-list="wagePeriods" data-idx="${i}" data-field="startDate">`)}
@@ -2515,7 +2553,7 @@ function renderWages() {
   </button>`;
 }
 
-// ââ BENEFITS TAB ââ
+// Ã¢ÂÂÃ¢ÂÂ BENEFITS TAB Ã¢ÂÂÃ¢ÂÂ
 function renderBenefits() {
   const s=STATE;
   const blsRate=parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5;
@@ -2531,7 +2569,7 @@ function renderBenefits() {
   ${s.benefitsMethod==='estimate'?`
   <div class="card">
     <div class="card-title">BLS ECEC Benefits Rate</div>
-    <div class="card-sub">Bureau of Labor Statistics â Employer Costs for Employee Compensation (ECEC), Q4 2024. Shows <strong>supplementary benefits</strong> (health, retirement, paid leave, life/disability insurance) as a % of wages. Excludes legally-required costs (Social Security, Medicare, unemployment, workers' comp) which are not lost benefits.</div>
+    <div class="card-sub">Bureau of Labor Statistics Ã¢ÂÂ Employer Costs for Employee Compensation (ECEC), Q4 2024. Shows <strong>supplementary benefits</strong> (health, retirement, paid leave, life/disability insurance) as a % of wages. Excludes legally-required costs (Social Security, Medicare, unemployment, workers' comp) which are not lost benefits.</div>
     <div class="g3">
       ${[{k:'private',r:BLS.private,t:BLS_TOTAL.private},{k:'state_local',r:BLS.state_local,t:BLS_TOTAL.state_local},{k:'federal',r:BLS.federal,t:BLS_TOTAL.federal}].map(row=>`
         <div class="metric-card" style="${s.employerType===row.k?'border:2px solid var(--gold);background:var(--gold-bg)':''}">
@@ -2539,11 +2577,11 @@ function renderBenefits() {
           <div class="metric-value ${s.employerType===row.k?'gold':''}">${row.r}%</div>
           <div class="metric-sub">supplementary benefits / wages</div>
           <div style="font-size:10px;color:var(--gray-400);margin-top:2px">Total incl. payroll taxes: ${row.t}%</div>
-          ${s.employerType===row.k?'<div style="font-size:10px;color:var(--gold-d);margin-top:4px;font-weight:500">â¸ Applied to this case</div>':''}
+          ${s.employerType===row.k?'<div style="font-size:10px;color:var(--gold-d);margin-top:4px;font-weight:500">Ã¢ÂÂ¸ Applied to this case</div>':''}
         </div>`).join('')}
     </div>
     <div style="margin-top:14px">
-      ${field('Override benefits rate (% of wages) â leave blank to use BLS default',
+      ${field('Override benefits rate (% of wages) Ã¢ÂÂ leave blank to use BLS default',
         inp(s.customBenefitsRate,{type:'number',dk:'customBenefitsRate',placeholder:`${BLS[s.employerType]}% (BLS default)`,min:'0',max:'200',step:'0.1'}))}
     </div>
     <div style="margin-top:10px;padding:10px 14px;background:var(--gray-50);border-radius:var(--r);font-size:12px;color:var(--gray-400)">
@@ -2554,15 +2592,15 @@ function renderBenefits() {
     <div class="info-box">Enter employer-paid benefit costs in the <strong>Back Wages</strong> tab for each wage period. Common sources: W-2 Box 12 Code DD (employer health coverage), 401(k) match, life insurance premiums.</div>
     <div style="font-size:13px;color:var(--text-2);line-height:1.8">
       <strong>W-2 Box 12 reference:</strong><br>
-      Code DD â Cost of employer-sponsored health coverage<br>
-      Code D â Â§401(k) elective deferrals (employer match portion)<br>
-      Code W â Employer contributions to Health Savings Account<br>
+      Code DD Ã¢ÂÂ Cost of employer-sponsored health coverage<br>
+      Code D Ã¢ÂÂ ÃÂ§401(k) elective deferrals (employer match portion)<br>
+      Code W Ã¢ÂÂ Employer contributions to Health Savings Account<br>
       <em>Sum all employer-paid amounts for the annual total.</em>
     </div>
   </div>`}`;
 }
 
-// ââ MITIGATION TAB ââ
+// Ã¢ÂÂÃ¢ÂÂ MITIGATION TAB Ã¢ÂÂÃ¢ÂÂ
 function renderMitigation() {
   const s=STATE;
   return `
@@ -2572,8 +2610,8 @@ function renderMitigation() {
   ${s.mitigationPeriods.map((mp,i)=>`
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div class="card-title" style="font-size:14px">Mitigation Employment #${i+1}${mp.employer?' â '+esc(mp.employer):''}</div>
-        ${s.mitigationPeriods.length>1?`<button class="btn-remove" onclick="STATE.mitigationPeriods.splice(${i},1);renderTab()">Ã</button>`:''}
+        <div class="card-title" style="font-size:14px">Mitigation Employment #${i+1}${mp.employer?' Ã¢ÂÂ '+esc(mp.employer):''}</div>
+        ${s.mitigationPeriods.length>1?`<button class="btn-remove" onclick="STATE.mitigationPeriods.splice(${i},1);renderTab()">ÃÂ</button>`:''}
       </div>
       <div class="g3">
         ${field('Start date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(mp.startDate)}" data-list="mitigationPeriods" data-idx="${i}" data-field="startDate">`)}
@@ -2590,8 +2628,8 @@ function renderMitigation() {
   </button>`;
 }
 
-// ââ FLSA TAB ââ
-// ââ FLSA per-period UI state (selection, expanded months) ââ
+// Ã¢ÂÂÃ¢ÂÂ FLSA TAB Ã¢ÂÂÃ¢ÂÂ
+// Ã¢ÂÂÃ¢ÂÂ FLSA per-period UI state (selection, expanded months) Ã¢ÂÂÃ¢ÂÂ
 const FLSA_UI = {
   selected: {},   // periodId -> Set<weekKey>
   collapsed: {},  // periodId -> Set<'YYYY-MM'> (collapsed months)
@@ -2772,10 +2810,10 @@ function renderFlsa() {
   const banner = `
     <div class="info-box">
       <strong>FLSA overtime:</strong> Damages = unpaid OT wages + equal liquidated damages.
-      Liquidated damages stand in for prejudgment interest under 29 U.S.C. Â§ 216(b); no separate FLSA interest is calculated.
-      The <strong>regular rate</strong> must include all remuneration (base pay + non-discretionary bonuses + commissions Ã· hours worked).
+      Liquidated damages stand in for prejudgment interest under 29 U.S.C. ÃÂ§ 216(b); no separate FLSA interest is calculated.
+      The <strong>regular rate</strong> must include all remuneration (base pay + non-discretionary bonuses + commissions ÃÂ· hours worked).
     </div>
-    ${!s.complaintFiledDate?`<div class="info-box" style="background:var(--gold-bg);border-color:var(--gold-border);color:var(--navy-2)">â  <strong>No complaint filing date set.</strong> The FLSA statute-of-limitations cutoff cannot be applied. Set the filing date in <a href="#" onclick="showTab('setup');return false" style="color:var(--gold-d);font-weight:600">Case Setup</a> to cap damages at the ${willful?'3-year willful':'2-year non-willful'} period under 29 U.S.C. Â§ 255(a).</div>`:''}
+    ${!s.complaintFiledDate?`<div class="info-box" style="background:var(--gold-bg);border-color:var(--gold-border);color:var(--navy-2)">Ã¢ÂÂ  <strong>No complaint filing date set.</strong> The FLSA statute-of-limitations cutoff cannot be applied. Set the filing date in <a href="#" onclick="showTab('setup');return false" style="color:var(--gold-d);font-weight:600">Case Setup</a> to cap damages at the ${willful?'3-year willful':'2-year non-willful'} period under 29 U.S.C. ÃÂ§ 255(a).</div>`:''}
   `;
 
   const periodsHtml = s.flsaPeriods.map((fp,i)=>renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts, reasonOpts, reasonLabel)).join('');
@@ -2806,8 +2844,8 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
 
   const headerCard = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-      <div class="card-title" style="font-size:14px">FLSA Period #${i+1}${fp.description?' â '+esc(fp.description):''}</div>
-      ${STATE.flsaPeriods.length>1?`<button class="btn-remove" onclick="STATE.flsaPeriods.splice(${i},1);renderTab()">Ã</button>`:''}
+      <div class="card-title" style="font-size:14px">FLSA Period #${i+1}${fp.description?' Ã¢ÂÂ '+esc(fp.description):''}</div>
+      ${STATE.flsaPeriods.length>1?`<button class="btn-remove" onclick="STATE.flsaPeriods.splice(${i},1);renderTab()">ÃÂ</button>`:''}
     </div>
     <div class="g3">
       ${field('Period start date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(fp.startDate)}" data-list="flsaPeriods" data-idx="${i}" data-field="startDate" data-rerender="1">`)}
@@ -2815,13 +2853,13 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
       ${field('Position / job title',`<input type="text" value="${esc(fp.description||'')}" placeholder="Warehouse associate" data-list="flsaPeriods" data-idx="${i}" data-field="description">`)}
       ${field('Default regular rate ($/hr)',`<input type="number" value="${esc(fp.defaultRegularRate)}" placeholder="18.50" min="0" step="0.01" data-list="flsaPeriods" data-idx="${i}" data-field="defaultRegularRate" data-rerender="1">`)}
       ${field('Default weekly hours',`<input type="number" value="${esc(fp.defaultWeeklyHours)}" placeholder="50" min="0" step="0.5" data-list="flsaPeriods" data-idx="${i}" data-field="defaultWeeklyHours" data-rerender="1">`)}
-      ${field('Workweek begins',`<select class="workweek-sel-${fp.id}" onchange="flsaChangeWorkweek(${i}, this.value)" title="29 C.F.R. Â§ 778.105 â employer designates the workweek">${dowOpts.map(o=>`<option value="${o.v}" ${parseInt(o.v,10)===startDow?'selected':''}>${esc(o.l)}</option>`).join('')}</select>`)}
+      ${field('Workweek begins',`<select class="workweek-sel-${fp.id}" onchange="flsaChangeWorkweek(${i}, this.value)" title="29 C.F.R. ÃÂ§ 778.105 Ã¢ÂÂ employer designates the workweek">${dowOpts.map(o=>`<option value="${o.v}" ${parseInt(o.v,10)===startDow?'selected':''}>${esc(o.l)}</option>`).join('')}</select>`)}
     </div>
     ${field('OT payment received from employer',sel(fp.otMethod||'half',[
-      {v:'half',l:'Straight time paid for OT hours â claiming half-time premium (0.5Ã rate)'},
-      {v:'full',l:'No compensation received for OT hours â claiming full OT pay (1.5Ã rate)'}
+      {v:'half',l:'Straight time paid for OT hours Ã¢ÂÂ claiming half-time premium (0.5ÃÂ rate)'},
+      {v:'full',l:'No compensation received for OT hours Ã¢ÂÂ claiming full OT pay (1.5ÃÂ rate)'}
     ],{list:'flsaPeriods',idx:i,field:'otMethod',rerender:'1'}),'margin-top:12px')}
-    <div style="font-size:11px;color:var(--gray-400);margin-top:6px">Workweek defaults to MonâSun. The default rate and weekly hours are inherited by every workweek below unless you override the row. 29 C.F.R. Â§ 778.105.</div>
+    <div style="font-size:11px;color:var(--gray-400);margin-top:6px">Workweek defaults to MonÃ¢ÂÂSun. The default rate and weekly hours are inherited by every workweek below unless you override the row. 29 C.F.R. ÃÂ§ 778.105.</div>
   `;
 
   // Rate timeline subsection
@@ -2838,7 +2876,7 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
           ${field('Effective (workweek start)',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(rc.effectiveDate||'')}" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="effectiveDate" data-rerender="1">`)}
           ${field('New rate ($/hr)',`<input type="number" value="${esc(rc.rate||'')}" placeholder="22.50" min="0" step="0.01" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="rate" data-rerender="1">`)}
           ${field('Note (optional)',`<input type="text" value="${esc(rc.note||'')}" placeholder="Promotion raise" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="note">`)}
-          <button class="btn-remove" onclick="flsaRemoveRateChange(${i},'${rc.id}')" title="Remove rate change">Ã</button>
+          <button class="btn-remove" onclick="flsaRemoveRateChange(${i},'${rc.id}')" title="Remove rate change">ÃÂ</button>
         </div>`).join('')}
     </div>
   `;
@@ -2858,7 +2896,7 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
       <div class="metric-card">
         <div class="metric-label">+ Liquidated damages</div>
         <div class="metric-value gold">${$$(periodSummary.liq)}</div>
-        <div class="metric-sub">Equal amount (Â§216(b))</div>
+        <div class="metric-sub">Equal amount (ÃÂ§216(b))</div>
       </div>
     </div>` : '';
 
@@ -2876,7 +2914,7 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
     <div class="card" style="margin-top:10px;padding:14px 16px">
       <div style="font-weight:600;font-size:13px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
         Manual Workweek Entries (Actual Mode)
-        <span style="font-size:11px;font-weight:400;color:var(--text-2)">— overrides estimate calculation</span>
+        <span style="font-size:11px;font-weight:400;color:var(--text-2)">â overrides estimate calculation</span>
         <button class="btn btn-ghost btn-sm" onclick="flsaWwAdd(${i})" style="margin-left:auto">+ Add Week</button>
       </div>
       <div class="table-wrap"><table>
@@ -2895,7 +2933,7 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
             <td><input type="number" min="0" step="0.01" value="${esc(wk.rate||'')}" placeholder="${fp.defaultRegularRate||''}" onchange="flsaWwChange(${i},'${wk.id}','rate',this.value)" class="input-base" style="width:85px;text-align:right"></td>
             <td><input type="number" min="0" step="0.01" value="${esc(wk.otReceived||'')}" onchange="flsaWwChange(${i},'${wk.id}','otReceived',this.value)" class="input-base" style="width:100px;text-align:right"></td>
             <td style="text-align:right;font-weight:600;padding-right:8px">${$(otOwed)}</td>
-            <td><button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="flsaWwRemove(${i},'${wk.id}')">✕</button></td>
+            <td><button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="flsaWwRemove(${i},'${wk.id}')">â</button></td>
           </tr>`;
         }).join('')}</tbody>
         <tfoot>
@@ -2914,10 +2952,10 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
   if (hasDates && hasInputs) {
     const weeklyBanner = `
       <div class="flsa-weekly-banner">
-        <span class="pill">Workweek: <strong>${startDowName}â${startDowEnd}</strong></span>
+        <span class="pill">Workweek: <strong>${startDowName}Ã¢ÂÂ${startDowEnd}</strong></span>
         ${cutoff?`<span class="pill">SOL cutoff: <strong>${dt(cutoff)}</strong> (${willful?'3-yr willful':'2-yr non-willful'})</span>`:`<span class="pill" style="color:var(--gold-d)">No SOL applied</span>`}
         ${trial?`<span class="pill">Trial cap: <strong>${dt(trial)}</strong></span>`:''}
-        <span class="pill" style="margin-left:auto">${counts.counted} counted${counts.excluded?` Â· ${counts.excluded} user-excluded`:''}${counts.sol?` Â· ${counts.sol} dropped by SOL`:''}${counts.post?` Â· ${counts.post} after trial`:''}</span>
+        <span class="pill" style="margin-left:auto">${counts.counted} counted${counts.excluded?` ÃÂ· ${counts.excluded} user-excluded`:''}${counts.sol?` ÃÂ· ${counts.sol} dropped by SOL`:''}${counts.post?` ÃÂ· ${counts.post} after trial`:''}</span>
       </div>`;
 
     const bulkBar = `
@@ -2972,26 +3010,26 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
       let hoursCell, rateCell, methCell, otCell, otWagesCell, statusCell, rowMenu;
 
       if (isLocked) {
-        hoursCell = rateCell = methCell = otCell = otWagesCell = 'â';
+        hoursCell = rateCell = methCell = otCell = otWagesCell = 'Ã¢ÂÂ';
         statusCell = w.status==='sol_excluded'
           ? `<span class="tag muted">Outside ${w.solReason}</span>`
           : `<span class="tag muted">After trial date</span>`;
         rowMenu = '';
       } else if (isUserExcluded) {
-        hoursCell = rateCell = methCell = otCell = otWagesCell = 'â';
-        statusCell = `<span class="tag warn">Excluded â ${esc(reasonLabel(w.exclusionReason))}</span>`;
-        rowMenu = `<button class="btn-remove" onclick="flsaResetWeek('${fp.id}','${w.weekKey}')" title="Restore to defaults">â»</button>`;
+        hoursCell = rateCell = methCell = otCell = otWagesCell = 'Ã¢ÂÂ';
+        statusCell = `<span class="tag warn">Excluded Ã¢ÂÂ ${esc(reasonLabel(w.exclusionReason))}</span>`;
+        rowMenu = `<button class="btn-remove" onclick="flsaResetWeek('${fp.id}','${w.weekKey}')" title="Restore to defaults">Ã¢ÂÂ»</button>`;
       } else {
         hoursCell = `<input type="number" class="cell-input ${overrideHours?'':'is-default'}" value="${overrideHours?esc(ov.hours):''}" placeholder="${inheritedHours||0}" min="0" step="0.5" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="hours">`;
         rateCell  = `<input type="number" class="cell-input ${overrideRate?'':'is-default'}" value="${overrideRate?esc(ov.rate):''}" placeholder="${inheritedRate.toFixed(2)}" min="0" step="0.01" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="rate">`;
-        methCell  = `<select class="cell-input" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="otMethod" data-rerender="1"><option value="" ${!overrideMeth?'selected':''}>(default: ${inheritedMeth==='full'?'1.5Ã':'0.5Ã'})</option><option value="half" ${ov.otMethod==='half'?'selected':''}>0.5Ã</option><option value="full" ${ov.otMethod==='full'?'selected':''}>1.5Ã</option></select>`;
+        methCell  = `<select class="cell-input" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="otMethod" data-rerender="1"><option value="" ${!overrideMeth?'selected':''}>(default: ${inheritedMeth==='full'?'1.5ÃÂ':'0.5ÃÂ'})</option><option value="half" ${ov.otMethod==='half'?'selected':''}>0.5ÃÂ</option><option value="full" ${ov.otMethod==='full'?'selected':''}>1.5ÃÂ</option></select>`;
         otCell    = w.otHrs.toFixed(1);
         otWagesCell = $$(w.ot);
         statusCell = (overrideHours||overrideRate||overrideMeth)
-          ? `<span class="tag gold">â Override</span>`
+          ? `<span class="tag gold">Ã¢ÂÂ Override</span>`
           : `<span class="tag muted">Default</span>`;
         if (w.isPartial) statusCell += `<span class="tag">Partial</span>`;
-        rowMenu = `<button class="btn-remove" onclick="flsaResetWeek('${fp.id}','${w.weekKey}')" title="Reset to defaults">â»</button>`;
+        rowMenu = `<button class="btn-remove" onclick="flsaResetWeek('${fp.id}','${w.weekKey}')" title="Reset to defaults">Ã¢ÂÂ»</button>`;
       }
 
       const checked = flsaSelected(fp.id).has(w.weekKey);
@@ -3037,8 +3075,8 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
         return `<tbody>
           <tr class="flsa-month-row"><td colspan="10" style="padding:0">
             <div class="flsa-month-header" onclick="flsaToggleMonth('${fp.id}','${ym}')">
-              <span>${isCollapsed?'â¶':'â¼'} ${esc(monthLabel)} Â· ${monthWeeks.length} workweek${monthWeeks.length===1?'':'s'}</span>
-              <span>${monthOtHrs.toFixed(1)} OT hrs Â· ${$$(monthOt)}</span>
+              <span>${isCollapsed?'Ã¢ÂÂ¶':'Ã¢ÂÂ¼'} ${esc(monthLabel)} ÃÂ· ${monthWeeks.length} workweek${monthWeeks.length===1?'':'s'}</span>
+              <span>${monthOtHrs.toFixed(1)} OT hrs ÃÂ· ${$$(monthOt)}</span>
             </div>
           </td></tr>
           ${isCollapsed?'':monthWeeks.map(renderRow).join('')}
@@ -3073,16 +3111,16 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
   return `<div class="card">${headerCard}${rateTimelineHtml}${totalsHtml}${weeklyHtml}${wwHtml}</div>`;
 }
 
-// ââ DOL RATES TAB ââ
+// Ã¢ÂÂÃ¢ÂÂ DOL RATES TAB Ã¢ÂÂÃ¢ÂÂ
 
-// ─── FLSA Minimum Wage ────────────────────────────────────────────────────
+// âââ FLSA Minimum Wage ââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function renderFlsaMinWage() {
   const s = STATE;
   if(s.claimType==='discrimination') return `<div class="card"><div class="info-box">FLSA minimum wage claims only apply when FLSA is selected as a claim type. Go to Case Setup and change Claim Type.</div></div>`;
   const periods = s.flsaMinWagePeriods||[];
   const addBtn = `<button class="btn btn-ghost btn-sm" onclick="flsaMwAdd()" style="margin-top:10px">+ Add Period</button>`;
-  let html = `<div class="card"><div class="card-title">FLSA — Minimum Wage Claims</div>
-  <div class="info-box" style="margin-bottom:14px"><strong>Formula:</strong> (Applicable Minimum Wage − Actual Rate Paid) × Average Weekly Hours × Weeks in Period. Liquidated damages = 100% of back wages. No pre-judgment interest.</div>`;
+  let html = `<div class="card"><div class="card-title">FLSA â Minimum Wage Claims</div>
+  <div class="info-box" style="margin-bottom:14px"><strong>Formula:</strong> (Applicable Minimum Wage â Actual Rate Paid) Ã Average Weekly Hours Ã Weeks in Period. Liquidated damages = 100% of back wages. No pre-judgment interest.</div>`;
   if(!periods.length){
     html += `<div style="color:var(--text-2);font-size:12px;margin-bottom:8px">No minimum wage periods added. Click below to add one.</div>${addBtn}</div>`;
     return html;
@@ -3127,28 +3165,28 @@ function flsaMwRemove(i){
   renderTab(); scheduleSave();
 }
 
-// ─── Compensatory Damages ─────────────────────────────────────────────────
+// âââ Compensatory Damages âââââââââââââââââââââââââââââââââââââââââââââââââ
 function renderCompensatory() {
   const s = STATE;
   const items = s.compensatoryItems||[];
   const CATS = [{v:'emotional_distress',l:'Emotional distress / mental anguish'},{v:'medical',l:'Medical / therapy expenses'},{v:'job_search',l:'Job search costs'},{v:'reputation',l:'Reputational harm'},{v:'other',l:'Other'}];
-  const catLabel = v => (CATS.find(c=>c.v===v)||{l:v||'—'}).l;
+  const catLabel = v => (CATS.find(c=>c.v===v)||{l:v||'â'}).l;
   const total = items.reduce((a,it)=>a+(parseFloat(it.amount)||0),0);
   let html = `<div class="card"><div class="card-title">Compensatory Damages</div>
-  <div class="info-box" style="margin-bottom:14px">Record out-of-pocket losses and non-economic damages. Amounts here flow to the Results total and are subject to statutory caps (see Case Setup → Employer Size).<br><strong>Mental anguish:</strong> enter $0 or a placeholder and describe in the Documentation field — the jury sets this amount at trial.</div>
+  <div class="info-box" style="margin-bottom:14px">Record out-of-pocket losses and non-economic damages. Amounts here flow to the Results total and are subject to statutory caps (see Case Setup â Employer Size).<br><strong>Mental anguish:</strong> enter $0 or a placeholder and describe in the Documentation field â the jury sets this amount at trial.</div>
   <div class="table-wrap"><table><thead><tr>
     <th>Description</th><th>Category</th><th style="text-align:right">Amount ($)</th><th>Documentation / Notes</th><th></th>
   </tr></thead><tbody>`;
   if(!items.length){
-    html += '<tr><td colspan="5" style="text-align:center;color:var(--text-2);padding:20px">No items yet — click Add Item below</td></tr>';
+    html += '<tr><td colspan="5" style="text-align:center;color:var(--text-2);padding:20px">No items yet â click Add Item below</td></tr>';
   }
   items.forEach((it,i)=>{
     html += `<tr>
       <td><input type="text" value="${esc(it.description||'')}" placeholder="e.g. Therapy sessions" data-list="compensatoryItems" data-idx="${i}" data-field="description" class="input-base" style="min-width:160px"></td>
       <td><select data-list="compensatoryItems" data-idx="${i}" data-field="category" class="input-base">${CATS.map(o=>`<option value="${o.v}" ${it.category===o.v?'selected':''}>${o.l}</option>`).join('')}</select></td>
       <td><input type="number" min="0" step="0.01" value="${esc(it.amount||'')}" placeholder="0.00" data-list="compensatoryItems" data-idx="${i}" data-field="amount" class="input-base" style="text-align:right;width:110px"></td>
-      <td><input type="text" value="${esc(it.documentation||'')}" placeholder="Records, receipts, narrative…" data-list="compensatoryItems" data-idx="${i}" data-field="documentation" class="input-base" style="min-width:200px"></td>
-      <td><button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="compRemove(${i})">✕</button></td>
+      <td><input type="text" value="${esc(it.documentation||'')}" placeholder="Records, receipts, narrativeâ¦" data-list="compensatoryItems" data-idx="${i}" data-field="documentation" class="input-base" style="min-width:200px"></td>
+      <td><button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="compRemove(${i})">â</button></td>
     </tr>`;
   });
   html += `</tbody><tfoot><tr>
@@ -3175,7 +3213,7 @@ function renderRates() {
   return `
   <div class="card">
     <div class="card-title">DOL Prejudgment Interest Rates</div>
-    <div class="card-sub">IRS underpayment rate (26 U.S.C. Â§ 6621), adopted by courts for employment discrimination claims under Title VII, ADA, FMLA, GINA, and USERRA. Does NOT apply to FLSA (subsumed by liquidated damages), ADEA, or Equal Pay Act. Pre-loaded through Q2 2026. Override any quarter below.</div>
+    <div class="card-sub">IRS underpayment rate (26 U.S.C. ÃÂ§ 6621), adopted by courts for employment discrimination claims under Title VII, ADA, FMLA, GINA, and USERRA. Does NOT apply to FLSA (subsumed by liquidated damages), ADEA, or Equal Pay Act. Pre-loaded through Q2 2026. Override any quarter below.</div>
     <div class="g4">
       ${recent.map(rate=>{
         const key=`${rate.y}Q${rate.q}`;
@@ -3200,7 +3238,7 @@ function renderRates() {
   </div>`;
 }
 
-// ââ RESULTS TAB ââ
+// Ã¢ÂÂÃ¢ÂÂ RESULTS TAB Ã¢ÂÂÃ¢ÂÂ
 function renderResults() {
   const s=STATE;
   // Build per-scenario results
@@ -3220,10 +3258,20 @@ function renderResults() {
   const activeRes=scenarioResults.find(r=>r.sc.id===s.activeScenarioId)||scenarioResults[0];
 
   if (!activeRes) {
-    return `<div class="card" style="text-align:center;padding:56px 24px">
-      <div style="font-size:36px;margin-bottom:16px;color:var(--gray-100)">â</div>
-      <div style="font-size:16px;color:var(--gray-400);margin-bottom:8px">No damages calculated yet</div>
-      <div style="font-size:13px;color:var(--gray-200)">Complete Case Setup with at least one scenario trial date, one incident, and one wage period.</div>
+    const hasTrialDate = s.scenarios && s.scenarios.some(sc=>sc.trialDate);
+    const hasIncident = s.incidents && s.incidents.length > 0;
+    const hasWage = s.wagePeriods && s.wagePeriods.length > 0;
+    const esRow = (ok, label, tab, dest) => `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--gray-50)">
+      <span style="font-size:17px;color:${ok?'#1E6B3C':'#C05A00'}">${ok?'✓':'⚠'}</span>
+      <span style="flex:1;font-size:13px;color:var(--gray-500)">${label}</span>
+      ${!ok?`<button onclick="showTab('${tab}')" style="font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline">Go to ${dest}</button>`:''}
+    </div>`;
+    return `<div class="card" style="max-width:460px;margin:40px auto">
+      <div style="font-size:15px;font-weight:600;margin-bottom:4px">Results not yet available</div>
+      <div style="font-size:12px;color:var(--gray-400);margin-bottom:16px">Complete all three steps below to calculate damages.</div>
+      ${esRow(hasTrialDate,'Trial date set in Case Setup','setup','Setup')}
+      ${esRow(hasIncident,'At least one incident added','incidents','Incidents')}
+      ${esRow(hasWage,'At least one back wage period entered','wages','Back Wages')}
     </div>`;
   }
 
@@ -3240,18 +3288,18 @@ function renderResults() {
       <button class="scenario-tab ${r.sc.id===s.activeScenarioId?'active':''}"
         onclick="STATE.activeScenarioId='${r.sc.id}';renderTab()">
         ${esc(r.sc.name)}<br><span style="font-size:11px;color:${r.sc.id===s.activeScenarioId?'var(--gold-d)':'var(--gray-400)'}">
-          ${r.grand>0?$$(r.grand):'â'}
+          ${r.grand>0?$$(r.grand):'Ã¢ÂÂ'}
         </span>
       </button>`).join('')}
   </div>`:''}
 
   <!-- Export bar -->
   <div class="export-bar">
-    <button class="btn btn-navy" onclick="exportExcel()">â¬ Download Excel</button>
-    <button class="btn btn-navy" onclick="exportPDF()">â¬ Download PDF</button>
+    <button class="btn btn-navy" onclick="exportExcel()">Ã¢Â¬Â Download Excel</button>
+    <button class="btn btn-navy" onclick="exportPDF()">Ã¢Â¬Â Download PDF</button>
     ${scenarioResults.length>1?`
-    <button class="btn btn-gold" onclick="exportAllExcel()" title="Export all scenarios to one Excel workbook">â¬ Export All Scenarios (Excel)</button>
-    <button class="btn btn-gold" onclick="exportAllPDF()" title="Export all scenarios to one PDF">â¬ Export All Scenarios (PDF)</button>`:''}
+    <button class="btn btn-gold" onclick="exportAllExcel()" title="Export all scenarios to one Excel workbook">Ã¢Â¬Â Export All Scenarios (Excel)</button>
+    <button class="btn btn-gold" onclick="exportAllPDF()" title="Export all scenarios to one PDF">Ã¢Â¬Â Export All Scenarios (PDF)</button>`:''}
     <div class="period-toggle">
       ${['annual','monthly','weekly'].map(p=>`
         <button class="period-btn ${s.displayPeriod===p?'active':''}"
@@ -3286,7 +3334,7 @@ function renderResults() {
   <div class="total-banner">
     <div>
       <div class="total-banner-label">Estimated Total Damages</div>
-      <div class="total-banner-sub">${s.plaintiff||'Plaintiff'} â ${incDate?incDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'â'} through ${dt(activeRes.sc.trialDate)}</div>
+      <div class="total-banner-sub">${s.plaintiff||'Plaintiff'} Ã¢ÂÂ ${incDate?incDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Ã¢ÂÂ'} through ${dt(activeRes.sc.trialDate)}</div>
       ${disc&&flsa?`<div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:4px">Discrimination: ${$$(discTotal)} + FLSA: ${$$(flsaTotal)}</div>`:''}
     </div>
     <div class="total-banner-amount">${$$(grand)}</div>
@@ -3308,8 +3356,8 @@ function renderResults() {
           ${scenarioResults.map(r=>`<tr ${r.sc.id===s.activeScenarioId?'style="background:var(--gold-bg)"':''}>
             <td class="bold">${esc(r.sc.name)}</td>
             <td>${dt(r.sc.trialDate)}</td>
-            ${r.disc?`<td class="r">${$$(r.disc.totBP)}</td><td class="r">${$$(r.disc.totBen)}</td>${noInt?'':`<td class="r">${$$(r.disc.totInt)}</td>`}`:(disc?`<td class="r">â</td><td class="r">â</td>${noInt?'':'<td class="r">â</td>'}`:'')}
-            ${r.flsa?`<td class="r">${$$(r.flsa.totOT)}</td><td class="r">${$$(r.flsa.totLiq)}</td>`:(flsa?'<td class="r">â</td><td class="r">â</td>':'')}
+            ${r.disc?`<td class="r">${$$(r.disc.totBP)}</td><td class="r">${$$(r.disc.totBen)}</td>${noInt?'':`<td class="r">${$$(r.disc.totInt)}</td>`}`:(disc?`<td class="r">Ã¢ÂÂ</td><td class="r">Ã¢ÂÂ</td>${noInt?'':'<td class="r">Ã¢ÂÂ</td>'}`:'')}
+            ${r.flsa?`<td class="r">${$$(r.flsa.totOT)}</td><td class="r">${$$(r.flsa.totLiq)}</td>`:(flsa?'<td class="r">Ã¢ÂÂ</td><td class="r">Ã¢ÂÂ</td>':'')}
             <td class="r gold">${$$(r.grand)}</td>
           </tr>`).join('')}
         </tbody>
@@ -3321,14 +3369,14 @@ function renderResults() {
   ${disc&&disc.rows.length?`
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;margin-bottom:4px">
-      <div class="card-title">Back Wages â ${s.displayPeriod.charAt(0).toUpperCase()+s.displayPeriod.slice(1)} Breakdown</div>
+      <div class="card-title">Back Wages Ã¢ÂÂ ${s.displayPeriod.charAt(0).toUpperCase()+s.displayPeriod.slice(1)} Breakdown</div>
     </div>
-    <div class="card-sub">Mitigation deducted: ${$$(disc.totMit)} total Â· Benefits: ${s.benefitsMethod==='w2'?'W-2 actual':`BLS estimate (${(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5).toFixed(1)}%)`}</div>
+    <div class="card-sub">Mitigation deducted: ${$$(disc.totMit)} total ÃÂ· Benefits: ${s.benefitsMethod==='w2'?'W-2 actual':`BLS estimate (${(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5).toFixed(1)}%)`}</div>
     <div class="table-wrap">
       <table>
         <thead><tr>
           <th>Period</th><th class="r">Days</th><th class="r">Expected wages</th>
-          <th class="r">Mitigation (â)</th><th class="r">Net back pay</th>
+          <th class="r">Mitigation (Ã¢ÂÂ)</th><th class="r">Net back pay</th>
           <th class="r">Benefits</th>${noInt?'':'<th class="r">Interest</th>'}<th class="r">Subtotal</th>
           <th class="r" style="color:var(--gold)">Running Total</th>
         </tr></thead>
@@ -3337,7 +3385,7 @@ function renderResults() {
             <td class="bold">${esc(row.label)}</td>
             <td class="r" style="color:var(--gray-400)">${row.dd}</td>
             <td class="r">${$$(row.expWages)}</td>
-            <td class="r" style="color:${row.mitWages>0?'var(--danger)':'var(--gray-200)'}">${row.mitWages>0?'('+$$(row.mitWages)+')':'â'}</td>
+            <td class="r" style="color:${row.mitWages>0?'var(--danger)':'var(--gray-200)'}">${row.mitWages>0?'('+$$(row.mitWages)+')':'Ã¢ÂÂ'}</td>
             <td class="r bold">${$$(row.netBP)}</td>
             <td class="r">${$$(row.benefits)}</td>
             ${noInt?'':`<td class="r">${$$(row.interest)}</td>`}
@@ -3348,7 +3396,7 @@ function renderResults() {
         <tfoot><tr>
           <td colspan="2">Totals</td>
           <td class="r">${$$(disc.rows.reduce((a,r)=>a+r.expWages,0))}</td>
-          <td class="r" style="color:${disc.totMit>0?'#f0a0a0':'rgba(255,255,255,.3)'}">${disc.totMit>0?'('+$$(disc.totMit)+')':'â'}</td>
+          <td class="r" style="color:${disc.totMit>0?'#f0a0a0':'rgba(255,255,255,.3)'}">${disc.totMit>0?'('+$$(disc.totMit)+')':'Ã¢ÂÂ'}</td>
           <td class="r">${$$(disc.totBP)}</td>
           <td class="r">${$$(disc.totBen)}</td>
           ${noInt?'':`<td class="r">${$$(disc.totInt)}</td>`}
@@ -3363,7 +3411,7 @@ function renderResults() {
   ${flsa&&flsa.flsaRows.length?`
   <div class="card">
     <div class="card-title">FLSA Overtime Breakdown</div>
-    <div class="card-sub">Unpaid OT wages plus an equal amount of liquidated damages (no separate prejudgment interest â see note 4)<sup style="font-weight:600;color:var(--navy)">4</sup>. SOL${flsa.cutoff?' cutoff: '+dt(flsa.cutoff):' not applied (no filing date)'} Â· ${flsa.willful?'Willful (3-yr)':'Non-willful (2-yr)'}<sup style="font-weight:600;color:var(--navy)">5</sup></div>
+    <div class="card-sub">Unpaid OT wages plus an equal amount of liquidated damages (no separate prejudgment interest Ã¢ÂÂ see note 4)<sup style="font-weight:600;color:var(--navy)">4</sup>. SOL${flsa.cutoff?' cutoff: '+dt(flsa.cutoff):' not applied (no filing date)'} ÃÂ· ${flsa.willful?'Willful (3-yr)':'Non-willful (2-yr)'}<sup style="font-weight:600;color:var(--navy)">5</sup></div>
     <div class="table-wrap">
       <table>
         <thead><tr>
@@ -3374,7 +3422,7 @@ function renderResults() {
         </tr></thead>
         <tbody>
           ${flsa.flsaRows.map(row=>`<tr>
-            <td>${esc(row.startDate)} â ${esc(row.endDate||'present')}${row.description?' Â· '+esc(row.description):''}</td>
+            <td>${esc(row.startDate)} Ã¢ÂÂ ${esc(row.endDate||'present')}${row.description?' ÃÂ· '+esc(row.description):''}</td>
             <td class="r">${row.weeksCounted||0}</td>
             <td class="r">${row.weeksExcluded||0}</td>
             <td class="r">${(row.weeksDroppedBySOL||0)+(row.weeksDroppedPostTrial||0)}</td>
@@ -3420,7 +3468,7 @@ function renderResults() {
         <div class="metric-card">
           <div class="metric-label">Statutory Cap (${s.employerSize} employees)</div>
           <div class="metric-value">${$(capAmt)}</div>
-          <div class="metric-sub">42 U.S.C. § 1981a(b)(3)</div>
+          <div class="metric-sub">42 U.S.C. Â§ 1981a(b)(3)</div>
         </div>
         <div class="metric-card">
           <div class="metric-label">Remaining for Punitive</div>
@@ -3430,13 +3478,13 @@ function renderResults() {
         ${noCapBasis?`<div class="metric-card">
           <div class="metric-label">Cap Status</div>
           <div class="metric-value" style="font-size:13px">No Cap</div>
-          <div class="metric-sub">${s.statutoryBasis==='section_1981'?'§ 1981 — uncapped':s.statutoryBasis==='adea'?'ADEA — no compensatory/punitive':s.statutoryBasis==='fmla'?'FMLA — no punitive cap':'FLSA — separate scheme'}</div>
+          <div class="metric-sub">${s.statutoryBasis==='section_1981'?'Â§ 1981 â uncapped':s.statutoryBasis==='adea'?'ADEA â no compensatory/punitive':s.statutoryBasis==='fmla'?'FMLA â no punitive cap':'FLSA â separate scheme'}</div>
         </div>`:''}
       </div>
-      ${capApplies?`<div class="info-box" style="font-size:11.5px"><strong>Note:</strong> The statutory cap applies to the <em>combined</em> total of compensatory and punitive damages — not to back pay or front pay. Cap based on employer size at time of discrimination (42 U.S.C. § 1981a(b)(3)).</div>`:''}
+      ${capApplies?`<div class="info-box" style="font-size:11.5px"><strong>Note:</strong> The statutory cap applies to the <em>combined</em> total of compensatory and punitive damages â not to back pay or front pay. Cap based on employer size at time of discrimination (42 U.S.C. Â§ 1981a(b)(3)).</div>`:''}
       ${!compItems.length?`<div style="color:var(--text-2);font-size:12px;margin-top:8px">Add compensatory items in the Compensatory tab.</div>`:`<div class="table-wrap" style="margin-top:12px"><table>
         <thead><tr><th>Description</th><th>Category</th><th class="r">Amount</th></tr></thead>
-        <tbody>${compItems.map(it=>`<tr><td>${esc(it.description||'—')}</td><td style="font-size:11px;color:var(--text-2)">${esc(it.category||'')}</td><td class="r">${$(parseFloat(it.amount)||0)}</td></tr>`).join('')}</tbody>
+        <tbody>${compItems.map(it=>`<tr><td>${esc(it.description||'â')}</td><td style="font-size:11px;color:var(--text-2)">${esc(it.category||'')}</td><td class="r">${$(parseFloat(it.amount)||0)}</td></tr>`).join('')}</tbody>
         <tfoot><tr><td colspan="2" style="font-weight:600">Total</td><td class="r" style="font-weight:700">${$(compTotal)}</td></tr></tfoot>
       </table></div>`}
     </div>`;
@@ -3445,15 +3493,15 @@ function renderResults() {
     <div style="font-size:12px;font-weight:600;color:var(--navy);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">Notes &amp; Sources</div>
     <div style="font-size:11.5px;color:var(--text-2);line-height:1.85">
       <p style="margin-bottom:6px">
-        <sup style="font-weight:600;color:var(--navy)">1</sup>&nbsp;<strong>Prejudgment Interest (Title VII / ADA / FMLA / Â§ 1981 back pay only):</strong>
-        Calculated using the IRS underpayment rate established under 26 U.S.C. Â§ 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date.
+        <sup style="font-weight:600;color:var(--navy)">1</sup>&nbsp;<strong>Prejudgment Interest (Title VII / ADA / FMLA / ÃÂ§ 1981 back pay only):</strong>
+        Calculated using the IRS underpayment rate established under 26 U.S.C. ÃÂ§ 6621(a)(2), applied quarterly from the midpoint of each damage period through the projected trial date.
         Rates are published quarterly by the Internal Revenue Service in Revenue Rulings and Notices (see <em>I.R.S. Rev. Rul.</em> for each applicable quarter).
         Interest accrues on the sum of net back pay and lost benefits per period. <strong>Does not apply to ADEA</strong> (see note 6) <strong>or FLSA overtime claims</strong> (see note 4). This figure will be updated and recalculated through the actual date of judgment.
       </p>
       <p style="margin-bottom:6px">
         <sup style="font-weight:600;color:var(--navy)">2</sup>&nbsp;<strong>Lost Employer-Paid Benefits${s.benefitsMethod==='estimate'?` (BLS Estimate)`:` (Actual)`}:</strong>
         ${s.benefitsMethod==='estimate'
-          ? `Benefits losses are estimated at <strong>${(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5).toFixed(1)}% of gross back wages</strong>, reflecting supplementary (voluntary) employer-paid benefits based on the U.S. Bureau of Labor Statistics <em>Employer Costs for Employee Compensation</em> (ECEC) survey, Table 1 (${BLS_L[s.employerType]}, civilian workers), fourth quarter 2024 release. This rate excludes legally-required employer costs (Social Security, Medicare, FUTA, workers' compensation) which are not recoverable as lost benefits. See U.S. Bureau of Labor Statistics, <em>Employer Costs for Employee Compensation â December 2024</em>, USDL-25-0379 (Mar. 2025), available at <em>www.bls.gov/news.release/ecec.htm</em>. This estimate will be supplemented or replaced by actual plan documentation, W-2 records, and employer benefits statements prior to trial.`
+          ? `Benefits losses are estimated at <strong>${(parseFloat(s.customBenefitsRate)||BLS[s.employerType]||32.5).toFixed(1)}% of gross back wages</strong>, reflecting supplementary (voluntary) employer-paid benefits based on the U.S. Bureau of Labor Statistics <em>Employer Costs for Employee Compensation</em> (ECEC) survey, Table 1 (${BLS_L[s.employerType]}, civilian workers), fourth quarter 2024 release. This rate excludes legally-required employer costs (Social Security, Medicare, FUTA, workers' compensation) which are not recoverable as lost benefits. See U.S. Bureau of Labor Statistics, <em>Employer Costs for Employee Compensation Ã¢ÂÂ December 2024</em>, USDL-25-0379 (Mar. 2025), available at <em>www.bls.gov/news.release/ecec.htm</em>. This estimate will be supplemented or replaced by actual plan documentation, W-2 records, and employer benefits statements prior to trial.`
           : `Benefits losses reflect actual employer-paid benefit costs as documented by W-2 records, plan documents, and premium statements produced in discovery. These figures will be updated as additional documentation becomes available through the close of discovery.`
         }
       </p>
@@ -3464,18 +3512,18 @@ function renderResults() {
       ${flsa?`
       <p style="margin-bottom:6px">
         <sup style="font-weight:600;color:var(--navy)">4</sup>&nbsp;<strong>FLSA Liquidated Damages:</strong>
-        29 U.S.C. Â§ 216(b) authorizes liquidated damages equal to unpaid overtime. The Supreme Court has held that liquidated damages âare not a penalty exacted by the law, but rather compensation to the employee . . . for the loss of the use of [the wages]â â i.e., they substitute for prejudgment interest. <em>Brooklyn Sav. Bank v. O'Neil</em>, 324 U.S. 697, 715 (1945); see <em>Martin v. Cooper Elec. Supply Co.</em>, 940 F.2d 896, 910 (3d Cir. 1991). Accordingly, no separate prejudgment-interest line is calculated for FLSA overtime claims.
+        29 U.S.C. ÃÂ§ 216(b) authorizes liquidated damages equal to unpaid overtime. The Supreme Court has held that liquidated damages Ã¢ÂÂare not a penalty exacted by the law, but rather compensation to the employee . . . for the loss of the use of [the wages]Ã¢ÂÂ Ã¢ÂÂ i.e., they substitute for prejudgment interest. <em>Brooklyn Sav. Bank v. O'Neil</em>, 324 U.S. 697, 715 (1945); see <em>Martin v. Cooper Elec. Supply Co.</em>, 940 F.2d 896, 910 (3d Cir. 1991). Accordingly, no separate prejudgment-interest line is calculated for FLSA overtime claims.
       </p>
       <p style="margin-bottom:6px">
         <sup style="font-weight:600;color:var(--navy)">5</sup>&nbsp;<strong>FLSA Statute of Limitations &amp; Workweek:</strong>
-        Overtime damages are limited to two years before the complaint filing date, or three years if the violation was willful. 29 U.S.C. Â§ 255(a). The workweek is a fixed, recurring period of 168 consecutive hours designated by the employer; the default here is MondayâSunday but is configurable per period. 29 C.F.R. Â§ 778.105. ${flsa.filingDate?`Filing date <strong>${dt(flsa.filingDate)}</strong>; SOL cutoff <strong>${dt(flsa.cutoff)}</strong>.`:`<span style="color:var(--gold-d)">Filing date not yet entered â SOL cap not applied to weekly calculation.</span>`}
+        Overtime damages are limited to two years before the complaint filing date, or three years if the violation was willful. 29 U.S.C. ÃÂ§ 255(a). The workweek is a fixed, recurring period of 168 consecutive hours designated by the employer; the default here is MondayÃ¢ÂÂSunday but is configurable per period. 29 C.F.R. ÃÂ§ 778.105. ${flsa.filingDate?`Filing date <strong>${dt(flsa.filingDate)}</strong>; SOL cutoff <strong>${dt(flsa.cutoff)}</strong>.`:`<span style="color:var(--gold-d)">Filing date not yet entered Ã¢ÂÂ SOL cap not applied to weekly calculation.</span>`}
       </p>`:''}
       ${noInt?`
       <p style="margin-bottom:6px">
-        <sup style="font-weight:600;color:var(--navy)">6</sup>&nbsp;<strong>ADEA â No Separate Prejudgment Interest:</strong>
-        The ADEA incorporates the FLSA's enforcement scheme. <em>Lorillard v. Pons</em>, 434 U.S. 575, 581 (1978). Because liquidated damages under the ADEA serve as compensation for the loss of the use of wages â substituting for prejudgment interest â courts do not award prejudgment interest in addition to liquidated damages. <em>See Powers v. Grinnell Corp.</em>, 915 F.2d 34, 41 (1st Cir. 1990). <em>Loeffler v. Frank</em>, 490 U.S. 826 (1989) held that ADEA back pay awards do not carry pre-judgment interest. Accordingly, no prejudgment-interest line is calculated for ADEA back pay in this report.
+        <sup style="font-weight:600;color:var(--navy)">6</sup>&nbsp;<strong>ADEA Ã¢ÂÂ No Separate Prejudgment Interest:</strong>
+        The ADEA incorporates the FLSA's enforcement scheme. <em>Lorillard v. Pons</em>, 434 U.S. 575, 581 (1978). Because liquidated damages under the ADEA serve as compensation for the loss of the use of wages Ã¢ÂÂ substituting for prejudgment interest Ã¢ÂÂ courts do not award prejudgment interest in addition to liquidated damages. <em>See Powers v. Grinnell Corp.</em>, 915 F.2d 34, 41 (1st Cir. 1990). <em>Loeffler v. Frank</em>, 490 U.S. 826 (1989) held that ADEA back pay awards do not carry pre-judgment interest. Accordingly, no prejudgment-interest line is calculated for ADEA back pay in this report.
       </p>`:''}
-      <p style="margin-bottom:6px"><sup style="font-weight:600;color:var(--navy)">7</sup>&nbsp;<strong>Equal Pay Act (EPA) â Pre-Judgment Interest Applies:</strong> Back pay awarded under the EPA carries pre-judgment interest from the date wages were withheld. Unlike ADEA, the EPA does not bar pre-judgment interest recovery.</p>
+      <p style="margin-bottom:6px"><sup style="font-weight:600;color:var(--navy)">7</sup>&nbsp;<strong>Equal Pay Act (EPA) Ã¢ÂÂ Pre-Judgment Interest Applies:</strong> Back pay awarded under the EPA carries pre-judgment interest from the date wages were withheld. Unlike ADEA, the EPA does not bar pre-judgment interest recovery.</p>
         <p style="margin-bottom:0;font-style:italic;color:var(--gray-400)">
         All damages figures presented herein are estimates based on information currently available and are subject to revision. Plaintiff reserves the right to update and supplement these calculations as additional discovery is received, and through the date of judgment or verdict.
       </p>
@@ -3483,9 +3531,9 @@ function renderResults() {
   </div>`;
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 // 7b. TOAST UTILITY
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 let toastTimer = null;
 function showToast(msg, type='info') {
   const el = document.getElementById('toast');
@@ -3501,9 +3549,9 @@ function showToast(msg, type='info') {
   toastTimer = setTimeout(()=>{ el.style.display='none'; }, type==='error'?6000:3500);
 }
 
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 // 8. INIT
-// âââââââââââââââââââââââââââââââââââââââââââââ
+// Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 window.addEventListener('DOMContentLoaded', async ()=>{
   updateConnectionStatus();
   await updateCaseSelect();
@@ -3519,7 +3567,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   const cfg = getBlobCfg();
   if (cfg) {
     testBlobConnection(cfg).then(ok=>{
-      if (!ok) showToast('â  Azure Blob Storage connection failed. Check your SAS token has not expired.', 'warning');
+      if (!ok) showToast('Ã¢ÂÂ  Azure Blob Storage connection failed. Check your SAS token has not expired.', 'warning');
     });
   }
 });
