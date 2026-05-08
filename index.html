@@ -2347,7 +2347,8 @@ function field(label, inp, opts={}) {
   </div>`;
 }
 function inp(val='',opts={}) {
-  const {type='text',placeholder='',min,max,step,dk,list,idx,field,rerender,extra=''} = opts;
+  const {type='text',placeholder='',min,max,step:_rawStep,dk,list,idx,field,rerender,extra=''} = opts;
+    const step = (type==='number' && _rawStep===undefined) ? 'any' : _rawStep;
   const data = dk?`data-key="${dk}"`:'';
   const dlist = list?`data-list="${list}" data-idx="${idx}" data-field="${field}"`:'';
   const drr = rerender?`data-rerender="1"`:'';
@@ -3208,7 +3209,7 @@ function flsaMwRemove(i){
 function renderCompensatory() {
   const s = STATE;
   const items = s.compensatoryItems||[];
-  const CATS = [{v:'emotional_distress',l:'Emotional distress / mental anguish'},{v:'medical',l:'Medical / therapy expenses'},{v:'job_search',l:'Job search costs'},{v:'reputation',l:'Reputational harm'},{v:'other',l:'Other'}];
+  const CATS = [{v:'emotional_distress',l:'Emotional distress / mental anguish'},{v:'medical',l:'Medical / therapy expenses'},{v:'job_search',l:'Job search costs'},{v:'relocation',l:'Moving / relocation expenses'},{v:'replacement_benefits',l:'Replacement benefits costs'},{v:'credit_harm',l:'Credit and financial harm costs'},{v:'commuting',l:'Commuting and transportation differentials'},{v:'training',l:'Training, licensing, and recertification'},{v:'reputation',l:'Reputational harm'},{v:'other',l:'Other'}];
   const catLabel = v => (CATS.find(c=>c.v===v)||{l:v||'—'}).l;
   const total = items.reduce((a,it)=>a+(parseFloat(it.amount)||0),0);
   let html = `<div class="card"><div class="card-title">Compensatory Damages</div>
@@ -3262,7 +3263,7 @@ function renderRates() {
           <div style="display:flex;align-items:baseline;gap:3px">
             <input type="number" value="${isCustom?s.customRates[key]:''}" placeholder="${rate.r}"
               style="width:48px;border:none;background:transparent;font-size:15px;font-weight:500;padding:0;outline:none;color:${isCustom?'var(--gold-d)':'var(--text)'}"
-              step="0.25" min="0"
+              step="any" min="0"
               onchange="STATE.customRates['${key}']=this.value===''?null:this.value;this.parentElement.parentElement.className='rate-cell '+(this.value?'custom':'');updateHeaderTotal();scheduleSave()">
             <span style="font-size:13px;color:var(--gray-400)">%</span>
           </div>
