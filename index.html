@@ -2933,14 +2933,14 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
             <td><input type="number" min="0" max="168" step="0.5" value="${esc(wk.otHours||'')}" onchange="flsaWwChange(${i},'${wk.id}','otHours',this.value)" class="input-base" style="width:75px;text-align:right"></td>
             <td><input type="number" min="0" step="0.01" value="${esc(wk.rate||'')}" placeholder="${fp.defaultRegularRate||''}" onchange="flsaWwChange(${i},'${wk.id}','rate',this.value)" class="input-base" style="width:85px;text-align:right"></td>
             <td><input type="number" min="0" step="0.01" value="${esc(wk.otReceived||'')}" onchange="flsaWwChange(${i},'${wk.id}','otReceived',this.value)" class="input-base" style="width:100px;text-align:right"></td>
-            <td style="text-align:right;font-weight:600;padding-right:8px">${$(otOwed)}</td>
+            <td style="text-align:right;font-weight:600;padding-right:8px">${$$(otOwed)}</td>
             <td><button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="flsaWwRemove(${i},'${wk.id}')">â</button></td>
           </tr>`;
         }).join('')}</tbody>
         <tfoot>
-          <tr><td colspan="5" style="font-weight:600">OT Subtotal</td><td style="text-align:right;font-weight:700">${$(wwTotal)}</td><td></td></tr>
-          <tr><td colspan="5" style="font-weight:600;color:var(--gold)">+ Liquidated Damages (equal amount)</td><td style="text-align:right;font-weight:700;color:var(--gold)">${$(wwTotal)}</td><td></td></tr>
-          <tr><td colspan="5" style="font-weight:700;background:var(--navy);color:#fff;border-radius:4px 0 0 4px;padding:8px 10px">Total (Actual Mode)</td><td style="text-align:right;font-weight:700;font-size:15px;background:var(--navy);color:#fff;padding:8px">${$(wwTotal*2)}</td><td style="background:var(--navy);border-radius:0 4px 4px 0"></td></tr>
+          <tr><td colspan="5" style="font-weight:600">OT Subtotal</td><td style="text-align:right;font-weight:700">${$$(wwTotal)}</td><td></td></tr>
+          <tr><td colspan="5" style="font-weight:600;color:var(--gold)">+ Liquidated Damages (equal amount)</td><td style="text-align:right;font-weight:700;color:var(--gold)">${$$(wwTotal)}</td><td></td></tr>
+          <tr><td colspan="5" style="font-weight:700;background:var(--navy);color:#fff;border-radius:4px 0 0 4px;padding:8px 10px">Total (Actual Mode)</td><td style="text-align:right;font-weight:700;font-size:15px;background:var(--navy);color:#fff;padding:8px">${$$(wwTotal*2)}</td><td style="background:var(--navy);border-radius:0 4px 4px 0"></td></tr>
         </tfoot>
       </table></div>
     </div>
@@ -3147,8 +3147,8 @@ function renderFlsaMinWage() {
         <div><label class="field-label">Actual Rate Paid ($/hr)</label><input type="number" min="0" step="0.01" value="${esc(p.actualRate||'')}" data-list="flsaMinWagePeriods" data-idx="${i}" data-field="actualRate" class="input-base"></div>
         <div style="background:var(--gray-50);padding:10px;border-radius:6px;border:1px solid var(--border)">
           <div style="font-size:10px;color:var(--text-2);text-transform:uppercase;font-weight:600">Estimated Damages</div>
-          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-top:4px">${$(total)}</div>
-          <div style="font-size:10px;color:var(--text-2);margin-top:2px">${$(backPay)} wages + ${$(backPay)} liquidated</div>
+          <div style="font-size:15px;font-weight:700;color:var(--navy);margin-top:4px">${$$(total)}</div>
+          <div style="font-size:10px;color:var(--text-2);margin-top:2px">${$$(backPay)} wages + ${$$(backPay)} liquidated</div>
         </div>
       </div>
     </div>`;
@@ -3192,7 +3192,7 @@ function renderCompensatory() {
   });
   html += `</tbody><tfoot><tr>
     <td colspan="2" style="font-weight:600">Total Compensatory</td>
-    <td style="text-align:right;font-weight:700;color:var(--navy)">${$(total)}</td>
+    <td style="text-align:right;font-weight:700;color:var(--navy)">${$$(total)}</td>
     <td colspan="2"></td>
   </tr></tfoot></table></div>
   <button class="btn btn-ghost btn-sm" onclick="compAdd()" style="margin-top:10px">+ Add Item</button></div>`;
@@ -3462,13 +3462,13 @@ function renderResults() {
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:14px">
         <div class="metric-card">
           <div class="metric-label">Compensatory Total</div>
-          <div class="metric-value">${$(compTotal)}</div>
+          <div class="metric-value">${$$(compTotal)}</div>
           <div class="metric-sub">${compItems.length} item${compItems.length===1?'':'s'}</div>
         </div>
         ${capApplies?`
         <div class="metric-card">
           <div class="metric-label">Statutory Cap (${s.employerSize} employees)</div>
-          <div class="metric-value">${$(capAmt)}</div>
+          <div class="metric-value">${$$(capAmt)}</div>
           <div class="metric-sub">42 U.S.C. Â§ 1981a(b)(3)</div>
         </div>
         <div class="metric-card">
@@ -3485,8 +3485,8 @@ function renderResults() {
       ${capApplies?`<div class="info-box" style="font-size:11.5px"><strong>Note:</strong> The statutory cap applies to the <em>combined</em> total of compensatory and punitive damages â not to back pay or front pay. Cap based on employer size at time of discrimination (42 U.S.C. Â§ 1981a(b)(3)).</div>`:''}
       ${!compItems.length?`<div style="color:var(--text-2);font-size:12px;margin-top:8px">Add compensatory items in the Compensatory tab.</div>`:`<div class="table-wrap" style="margin-top:12px"><table>
         <thead><tr><th>Description</th><th>Category</th><th class="r">Amount</th></tr></thead>
-        <tbody>${compItems.map(it=>`<tr><td>${esc(it.description||'â')}</td><td style="font-size:11px;color:var(--text-2)">${esc(it.category||'')}</td><td class="r">${$(parseFloat(it.amount)||0)}</td></tr>`).join('')}</tbody>
-        <tfoot><tr><td colspan="2" style="font-weight:600">Total</td><td class="r" style="font-weight:700">${$(compTotal)}</td></tr></tfoot>
+        <tbody>${compItems.map(it=>`<tr><td>${esc(it.description||'â')}</td><td style="font-size:11px;color:var(--text-2)">${esc(it.category||'')}</td><td class="r">${$$(parseFloat(it.amount)||0)}</td></tr>`).join('')}</tbody>
+        <tfoot><tr><td colspan="2" style="font-weight:600">Total</td><td class="r" style="font-weight:700">${$$(compTotal)}</td></tr></tfoot>
       </table></div>`}
     </div>`;
   })()}
