@@ -2382,7 +2382,7 @@ function renderIncidents() {
   if (isFlsaOnly) return `<div class="card"><div class="info-box">Incidents apply to discrimination claims. Switch the claim type to "Discrimination" or "Both" in Case Setup.</div></div>`;
   return `
   <div class="info-box">
-    <strong>Incident dates</strong> determine when back pay begins. Add an <strong>end date</strong> if the adverse action had a defined end (rehire date, suspension end date). For <strong>failure to hire/promote</strong>, enter the decision date and the salary the plaintiff would have earned in the wage periods tab.
+    <strong>Incident dates</strong> determine when back pay begins. Add an <strong>end date</strong> if the adverse action had a defined end (rehire date, suspension end date). For <strong>failure to hire/promote</strong>, enter the date the position was filled by a candidate outside the protected class as the Date of Incident. If unknown, use the decision date as a conservative estimate, and enter the salary the plaintiff would have earned in the wage periods tab.
   </div>
   ${s.incidents.map((inc,i)=>`
     <div class="incident-card ${inc.endDate?'has-end':''}">
@@ -2997,7 +2997,7 @@ function renderRates() {
   return `
   <div class="card">
     <div class="card-title">DOL Prejudgment Interest Rates</div>
-    <div class="card-sub">IRS underpayment rate (26 U.S.C. § 6621), adopted by courts for employment discrimination and FLSA prejudgment interest. Pre-loaded through Q2 2026. Override any quarter below.</div>
+    <div class="card-sub">IRS underpayment rate (26 U.S.C. § 6621), adopted by courts for employment discrimination claims under Title VII, ADA, FMLA, GINA, and USERRA. Does NOT apply to FLSA (subsumed by liquidated damages), ADEA, or Equal Pay Act. Pre-loaded through Q2 2026. Override any quarter below.</div>
     <div class="g4">
       ${recent.map(rate=>{
         const key=`${rate.y}Q${rate.q}`;
