@@ -410,9 +410,9 @@ function defaultCase(name='New Case') {
     displayPeriod:'annual',
     incidents:[{id:uid(), date:'', endDate:'', type:'termination', description:''}],
     wagePeriods:[{id:uid(), startDate:'', endDate:'', wageType:'annual',
-      annualSalary:'', hourlyRate:'', hoursPerWeek:'40', annualIncrease:'0',
+      annualSalary:'', hourlyRate:'', hoursPerWeek:'40', overtimeHoursPerWeek:'', annualIncrease:'0',
       source:'paystub', bonus:'', bonusType:'fixed', commissionRate:'', commissions:'', employerBenefitsW2:''}],
-    mitigationPeriods:[{id:uid(), startDate:'', endDate:'', annualWages:'', annualBenefits:0, employer:'', notes:''}],
+    mitigationPeriods:[{id:uid(), startDate:'', endDate:'', annualWages:'', annualBenefits:0, hourlyRate:'', hoursPerWeek:'', overtimeHoursPerWeek:'', employer:'', notes:''}],
     flsaPeriods:[{id:uid(), startDate:yearsAgoISO(5), endDate:todayISO(), description:'', otMethod:'half',
       workweekStart:1, defaultRegularRate:'', defaultWeeklyHours:'',
       rateChanges:[], weekOverrides:{}, workweeks:[]}],
@@ -511,6 +511,7 @@ function migrateCase(c) {
       scrubDate(wp, 'startDate', yearsAgoISO(5));
       // endDate blank = "runs to trial" — keep blank.
       scrubDate(wp, 'endDate', '');
+      if (wp.overtimeHoursPerWeek === undefined) wp.overtimeHoursPerWeek = '';
     });
   }
   if (Array.isArray(c.mitigationPeriods)) {
@@ -519,6 +520,9 @@ function migrateCase(c) {
       // endDate blank = "runs to trial" — keep blank.
       scrubDate(mp, 'endDate', '');
             if(mp.annualBenefits===undefined)mp.annualBenefits=0;
+      if(mp.hourlyRate===undefined)mp.hourlyRate='';
+      if(mp.hoursPerWeek===undefined)mp.hoursPerWeek='';
+      if(mp.overtimeHoursPerWeek===undefined)mp.overtimeHoursPerWeek='';
     });
   }
     if(!c.frontPay)c.frontPay={years:2,projectedWage:'',projectedMitigation:''};
@@ -990,7 +994,7 @@ function daysInDamagePeriods(from, to, periods) {
 
 function getEffectiveAnnual(wp, year, trial) {
   const base = wp.wageType==='hourly'
-    ? (parseFloat(wp.hourlyRate)||0)*(parseFloat(wp.hoursPerWeek)||40)*52
+    ? (parseFloat(wp.hourlyRate)||0)*((parseFloat(wp.hoursPerWeek)||40)+0.5*(parseFloat(wp.overtimeHoursPerWeek)||0))*52
     : (parseFloat(wp.annualSalary)||0);
   const inc = parseFloat(wp.annualIncrease)||0;
   const yrs = Math.max(0, year - new Date(wp.startDate+'T12:00:00').getFullYear());
@@ -2278,6 +2282,15 @@ function handleChange(e) {
   }
   else if (list&&field&&idx!==null) {
     STATE[list][idx][field]=val;
+    if (list==='wagePeriods' && field==='hoursPerWeek') {
+      const _wp = STATE.wagePeriods[idx];
+      if (_wp.overtimeHoursPerWeek === '') _wp.overtimeHoursPerWeek = String(Math.max(0,(parseFloat(val)||0)-40)||'').replace(/^0$/,'');
+    }
+    if (list==='mitigationPeriods' && (field==='hourlyRate'||field==='hoursPerWeek'||field==='overtimeHoursPerWeek')) {
+      const _mp = STATE.mitigationPeriods[idx];
+      const r=parseFloat(_mp.hourlyRate)||0, h=parseFloat(_mp.hoursPerWeek)||0, o=parseFloat(_mp.overtimeHoursPerWeek)||0;
+      if(r&&h) _mp.annualWages=String(Math.round(r*(h+0.5*o)*52));
+    }
   } else if (key) {
     setNested(STATE,key,val);
   }
@@ -2360,7 +2373,7 @@ function renderSetup() {
       ${field('Employer size',sel(s.employerSize,[{v:'15-100',l:'15-100 employees'},{v:'101-200',l:'101-200 employees'},{v:'201-500',l:'201-500 employees'},{v:'500+',l:'500+ employees'}],{dk:'employerSize'}))}
       ${field('Claim type',sel(s.claimType,[{v:'both',l:'Discrimination + FLSA Overtime'},{v:'discrimination',l:'Discrimination only'},{v:'flsa',l:'FLSA Overtime only'}],{dk:'claimType',rerender:'1'}))}
       ${s.claimType!=='flsa'?field('Statutory basis (discrimination claim)',sel(s.statutoryBasis,[{v:'title_vii',l:'Title VII'},{v:'ada',l:'ADA'},{v:'fmla',l:'FMLA'},{v:'adea',l:'ADEA'},{v:'section_1981',l:'§ 1981'},{v:'state_other',l:'State law / other'}],{dk:'statutoryBasis',rerender:'1'})):''}
-      ${s.claimType!=='discrimination'?field('Complaint filing date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(s.complaintFiledDate||'')}" data-key="complaintFiledDate" data-rerender="1">`,{style:'grid-column:span 1'}):''}
+      ${s.claimType!=='discrimination'?field('Complaint filing date',`<input type="date" min="${yearsAgoISO(10)}" value="${esc(s.complaintFiledDate||'')}" data-key="complaintFiledDate" data-rerender="1">`,{style:'grid-column:span 1'}):''}
     </div>
     ${s.claimType!=='flsa' && s.statutoryBasis==='adea'?`<div class="card-sub" style="margin-top:8px"><strong>ADEA selected:</strong> prejudgment interest is excluded from back pay. Under <em>Lorillard v. Pons</em>, 434 U.S. 575, 581 (1978), the ADEA incorporates the FLSA's enforcement scheme; courts therefore hold that liquidated damages substitute for prejudgment interest. <em>See Powers v. Grinnell Corp.</em>, 915 F.2d 34, 41 (1st Cir. 1990).</div>`:''}
     ${s.claimType!=='discrimination'?`<div class="card-sub" style="margin-top:8px"><strong>Filing date</strong> anchors the FLSA statute-of-limitations cutoff under 29 U.S.C. § 255(a). ${s.complaintFiledDate?'':'<span style="color:var(--gold-d)">Not set — SOL cap will not be applied to FLSA damages.</span>'}</div>`:''}
@@ -2451,9 +2464,9 @@ function renderIncidents() {
       ${inc.type==='demotion'?`<div style="margin-top:10px;padding:10px 12px;border:1px solid var(--mgray);border-radius:6px;background:var(--lgray)">
         <div style="font-size:11px;font-weight:600;margin-bottom:8px;color:var(--dark)">Wage Differential (auto-calculated)</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          ${field('Pre-demotion rate ($/hr)',`<input type="number" min="0" step="0.01" value="${esc(inc.preDemotionRate||'')}" data-list="incidents" data-idx="${i}" data-field="preDemotionRate" data-rerender="1">`)}
+          ${field('Pre-demotion rate ($/hr)',`<input type="number" min="0" step="any" value="${esc(inc.preDemotionRate||'')}" data-list="incidents" data-idx="${i}" data-field="preDemotionRate" data-rerender="1">`)}
           ${field('Pre-demotion hrs/wk',`<input type="number" min="0" step="0.5" value="${esc(inc.preDemotionHrs||'')}" data-list="incidents" data-idx="${i}" data-field="preDemotionHrs" data-rerender="1">`)}
-          ${field('Post-demotion rate ($/hr)',`<input type="number" min="0" step="0.01" value="${esc(inc.postDemotionRate||'')}" data-list="incidents" data-idx="${i}" data-field="postDemotionRate" data-rerender="1">`)}
+          ${field('Post-demotion rate ($/hr)',`<input type="number" min="0" step="any" value="${esc(inc.postDemotionRate||'')}" data-list="incidents" data-idx="${i}" data-field="postDemotionRate" data-rerender="1">`)}
           ${field('Post-demotion hrs/wk',`<input type="number" min="0" step="0.5" value="${esc(inc.postDemotionHrs||'')}" data-list="incidents" data-idx="${i}" data-field="postDemotionHrs" data-rerender="1">`)}
         </div>
         ${(()=>{const pre=(parseFloat(inc.preDemotionRate)||0)*(parseFloat(inc.preDemotionHrs)||0);const post=(parseFloat(inc.postDemotionRate)||0)*(parseFloat(inc.postDemotionHrs)||0);const diff=pre-post;return diff>0?`<div style="margin-top:8px;font-size:11.5px;color:#1E6B3C">Weekly diff: $${diff.toFixed(2)} × 52 = <strong>$${(diff*52).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}/yr</strong></div>`:''})()}
@@ -2505,8 +2518,9 @@ function renderWages() {
       </div>
       <div class="g3">
         ${wp.wageType==='hourly'?`
-          ${field('Hourly rate of pay ($)',inp(wp.hourlyRate,{type:'number',placeholder:'18.50',min:'0',step:'0.01',list:'wagePeriods',idx:i,field:'hourlyRate'}))}
-          ${field('Regular hours per week',inp(wp.hoursPerWeek,{type:'number',placeholder:'40',min:'1',step:'0.5',list:'wagePeriods',idx:i,field:'hoursPerWeek'}))}
+          ${field('Hourly rate of pay ($)',inp(wp.hourlyRate,{type:'number',placeholder:'18.50',min:'0',step:'any',list:'wagePeriods',idx:i,field:'hourlyRate'}))}
+          ${field('Reg hours/week',inp(wp.hoursPerWeek,{type:'number',placeholder:'40',min:'1',step:'0.5',list:'wagePeriods',idx:i,field:'hoursPerWeek',rerender:'1'}))}
+          ${field('OT hours/week',inp(wp.overtimeHoursPerWeek,{type:'number',placeholder:'0',min:'0',step:'0.5',list:'wagePeriods',idx:i,field:'overtimeHoursPerWeek'}))}
         `:`
           ${field('Annual salary / gross wages ($)',inp(wp.annualSalary,{type:'number',placeholder:'65,000',min:'0',step:'500',list:'wagePeriods',idx:i,field:'annualSalary'}))}
         `}
@@ -2549,7 +2563,7 @@ function renderWages() {
         </div>`:''}
     </div>
   `).join('')}
-  <button class="btn-add" onclick="STATE.wagePeriods.push({id:uid(),startDate:'',endDate:'',wageType:'annual',annualSalary:'',hourlyRate:'',hoursPerWeek:'40',annualIncrease:'0',source:'paystub',bonus:'',bonusType:'fixed',commissionRate:'',commissions:'',employerBenefitsW2:''});renderTab()">
+  <button class="btn-add" onclick="STATE.wagePeriods.push({id:uid(),startDate:'',endDate:'',wageType:'annual',annualSalary:'',hourlyRate:'',hoursPerWeek:'40',overtimeHoursPerWeek:'',annualIncrease:'0',source:'paystub',bonus:'',bonusType:'fixed',commissionRate:'',commissions:'',employerBenefitsW2:''});renderTab()">
     + Add wage period (promotion, reclassification, COLA)
   </button>`;
 }
@@ -2618,13 +2632,16 @@ function renderMitigation() {
         ${field('Start date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(mp.startDate)}" data-list="mitigationPeriods" data-idx="${i}" data-field="startDate">`)}
         ${field('End date (blank = trial date)',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(mp.endDate)}" data-list="mitigationPeriods" data-idx="${i}" data-field="endDate">`)}
         ${field('Employer / income source',`<input type="text" value="${esc(mp.employer)}" placeholder="Employer name or 'Self-employed'" data-list="mitigationPeriods" data-idx="${i}" data-field="employer">`)}
+        ${field('Hourly rate ($)',inp(mp.hourlyRate,{type:'number',placeholder:'18.50',min:'0',step:'any',list:'mitigationPeriods',idx:i,field:'hourlyRate',rerender:'1'}))}
+        ${field('Reg hrs/wk',inp(mp.hoursPerWeek,{type:'number',placeholder:'40',min:'0',step:'0.5',list:'mitigationPeriods',idx:i,field:'hoursPerWeek',rerender:'1'}))}
+        ${field('OT hrs/wk',inp(mp.overtimeHoursPerWeek,{type:'number',placeholder:'0',min:'0',step:'0.5',list:'mitigationPeriods',idx:i,field:'overtimeHoursPerWeek',rerender:'1'}))}
         ${field('Annual gross wages ($)',`<input type="number" value="${esc(mp.annualWages)}" placeholder="48,000" min="0" step="500" data-list="mitigationPeriods" data-idx="${i}" data-field="annualWages">`, 'grid-column:span 2')}
         ${field('Employer benefits paid (annual $)',`<input type="number" value="${esc(mp.annualBenefits||0)}" placeholder="Health, 401k, etc." min="0" step="100" data-list="mitigationPeriods" data-idx="${i}" data-field="annualBenefits">`)}
         ${field('Notes',`<input type="text" value="${esc(mp.notes)}" placeholder="Part-time, seasonal, comparable / non-comparable role, etc." data-list="mitigationPeriods" data-idx="${i}" data-field="notes">`)}
       </div>
     </div>
   `).join('')}
-  <button class="btn-add" onclick="STATE.mitigationPeriods.push({id:uid(),startDate:'',endDate:'',annualWages:'',annualBenefits:0,employer:'',notes:''});renderTab()">
+  <button class="btn-add" onclick="STATE.mitigationPeriods.push({id:uid(),startDate:'',endDate:'',annualWages:'',annualBenefits:0,hourlyRate:'',hoursPerWeek:'',overtimeHoursPerWeek:'',employer:'',notes:''});renderTab()">
     + Add mitigation employment period
   </button>`;
 }
@@ -2852,7 +2869,7 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
       ${field('Period start date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(fp.startDate)}" data-list="flsaPeriods" data-idx="${i}" data-field="startDate" data-rerender="1">`)}
       ${field('Period end date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(fp.endDate)}" data-list="flsaPeriods" data-idx="${i}" data-field="endDate" data-rerender="1">`)}
       ${field('Position / job title',`<input type="text" value="${esc(fp.description||'')}" placeholder="Warehouse associate" data-list="flsaPeriods" data-idx="${i}" data-field="description">`)}
-      ${field('Default regular rate ($/hr)',`<input type="number" value="${esc(fp.defaultRegularRate)}" placeholder="18.50" min="0" step="0.01" data-list="flsaPeriods" data-idx="${i}" data-field="defaultRegularRate" data-rerender="1">`)}
+      ${field('Default regular rate ($/hr)',`<input type="number" value="${esc(fp.defaultRegularRate)}" placeholder="18.50" min="0" step="any" data-list="flsaPeriods" data-idx="${i}" data-field="defaultRegularRate" data-rerender="1">`)}
       ${field('Default weekly hours',`<input type="number" value="${esc(fp.defaultWeeklyHours)}" placeholder="50" min="0" step="0.5" data-list="flsaPeriods" data-idx="${i}" data-field="defaultWeeklyHours" data-rerender="1">`)}
       ${field('Workweek begins',`<select class="workweek-sel-${fp.id}" onchange="flsaChangeWorkweek(${i}, this.value)" title="29 C.F.R. § 778.105 — employer designates the workweek">${dowOpts.map(o=>`<option value="${o.v}" ${parseInt(o.v,10)===startDow?'selected':''}>${esc(o.l)}</option>`).join('')}</select>`)}
     </div>
@@ -2875,7 +2892,7 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
       ${rateChanges.map(rc=>`
         <div class="rate-change-row">
           ${field('Effective (workweek start)',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(rc.effectiveDate||'')}" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="effectiveDate" data-rerender="1">`)}
-          ${field('New rate ($/hr)',`<input type="number" value="${esc(rc.rate||'')}" placeholder="22.50" min="0" step="0.01" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="rate" data-rerender="1">`)}
+          ${field('New rate ($/hr)',`<input type="number" value="${esc(rc.rate||'')}" placeholder="22.50" min="0" step="any" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="rate" data-rerender="1">`)}
           ${field('Note (optional)',`<input type="text" value="${esc(rc.note||'')}" placeholder="Promotion raise" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="note">`)}
           <button class="btn-remove" onclick="flsaRemoveRateChange(${i},'${rc.id}')" title="Remove rate change">×</button>
         </div>`).join('')}
@@ -2931,8 +2948,8 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
             <td><input type="date" value="${esc(wk.weekStart||'')}" onchange="flsaWwChange(${i},'${wk.id}','weekStart',this.value)" class="input-base" style="width:130px"></td>
             <td><input type="number" min="0" max="168" step="0.5" value="${esc(wk.regHours||'')}" placeholder="${fp.defaultWeeklyHours||40}" onchange="flsaWwChange(${i},'${wk.id}','regHours',this.value)" class="input-base" style="width:75px;text-align:right"></td>
             <td><input type="number" min="0" max="168" step="0.5" value="${esc(wk.otHours||'')}" onchange="flsaWwChange(${i},'${wk.id}','otHours',this.value)" class="input-base" style="width:75px;text-align:right"></td>
-            <td><input type="number" min="0" step="0.01" value="${esc(wk.rate||'')}" placeholder="${fp.defaultRegularRate||''}" onchange="flsaWwChange(${i},'${wk.id}','rate',this.value)" class="input-base" style="width:85px;text-align:right"></td>
-            <td><input type="number" min="0" step="0.01" value="${esc(wk.otReceived||'')}" onchange="flsaWwChange(${i},'${wk.id}','otReceived',this.value)" class="input-base" style="width:100px;text-align:right"></td>
+            <td><input type="number" min="0" step="any" value="${esc(wk.rate||'')}" placeholder="${fp.defaultRegularRate||''}" onchange="flsaWwChange(${i},'${wk.id}','rate',this.value)" class="input-base" style="width:85px;text-align:right"></td>
+            <td><input type="number" min="0" step="any" value="${esc(wk.otReceived||'')}" onchange="flsaWwChange(${i},'${wk.id}','otReceived',this.value)" class="input-base" style="width:100px;text-align:right"></td>
             <td style="text-align:right;font-weight:600;padding-right:8px">${$$(otOwed)}</td>
             <td><button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="flsaWwRemove(${i},'${wk.id}')">✕</button></td>
           </tr>`;
@@ -2967,7 +2984,7 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
         <span style="width:1px;height:18px;background:var(--gray-100);margin:0 4px"></span>
         <input type="number" id="bulk-hours-${fp.id}" placeholder="Hours" min="0" step="0.5">
         <button class="btn btn-ghost btn-sm" onclick="flsaBulkSetHours('${fp.id}')">Set hours</button>
-        <input type="number" id="bulk-rate-${fp.id}" placeholder="Rate $/hr" min="0" step="0.01">
+        <input type="number" id="bulk-rate-${fp.id}" placeholder="Rate $/hr" min="0" step="any">
         <button class="btn btn-ghost btn-sm" onclick="flsaBulkSetRate('${fp.id}')">Set rate</button>
         <select id="bulk-reason-${fp.id}">${reasonOpts.map(r=>`<option value="${r.v}">${esc(r.l)}</option>`).join('')}</select>
         <button class="btn btn-ghost btn-sm" onclick="flsaBulkExclude('${fp.id}')">Exclude</button>
@@ -3022,7 +3039,7 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
         rowMenu = `<button class="btn-remove" onclick="flsaResetWeek('${fp.id}','${w.weekKey}')" title="Restore to defaults">↻</button>`;
       } else {
         hoursCell = `<input type="number" class="cell-input ${overrideHours?'':'is-default'}" value="${overrideHours?esc(ov.hours):''}" placeholder="${inheritedHours||0}" min="0" step="0.5" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="hours">`;
-        rateCell  = `<input type="number" class="cell-input ${overrideRate?'':'is-default'}" value="${overrideRate?esc(ov.rate):''}" placeholder="${inheritedRate.toFixed(2)}" min="0" step="0.01" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="rate">`;
+        rateCell  = `<input type="number" class="cell-input ${overrideRate?'':'is-default'}" value="${overrideRate?esc(ov.rate):''}" placeholder="${inheritedRate.toFixed(2)}" min="0" step="any" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="rate">`;
         methCell  = `<select class="cell-input" data-list="flsaPeriods" data-idx="${i}" data-overrides-key="${w.weekKey}" data-field="otMethod" data-rerender="1"><option value="" ${!overrideMeth?'selected':''}>(default: ${inheritedMeth==='full'?'1.5×':'0.5×'})</option><option value="half" ${ov.otMethod==='half'?'selected':''}>0.5×</option><option value="full" ${ov.otMethod==='full'?'selected':''}>1.5×</option></select>`;
         otCell    = w.otHrs.toFixed(1);
         otWagesCell = $$(w.ot);
@@ -3143,8 +3160,8 @@ function renderFlsaMinWage() {
         <div><label class="field-label">Start Date</label><input type="date" value="${esc(p.startDate||'')}" data-list="flsaMinWagePeriods" data-idx="${i}" data-field="startDate" data-rerender="1" class="input-base"></div>
         <div><label class="field-label">End Date</label><input type="date" value="${esc(p.endDate||'')}" data-list="flsaMinWagePeriods" data-idx="${i}" data-field="endDate" data-rerender="1" class="input-base"></div>
         <div><label class="field-label">Avg Weekly Hours</label><input type="number" min="0" max="168" step="0.5" value="${esc(p.weeklyHours||'')}" data-list="flsaMinWagePeriods" data-idx="${i}" data-field="weeklyHours" class="input-base"></div>
-        <div><label class="field-label">Applicable Min Wage ($/hr)</label><input type="number" min="0" step="0.01" value="${esc(p.minWage||'')}" data-list="flsaMinWagePeriods" data-idx="${i}" data-field="minWage" class="input-base"></div>
-        <div><label class="field-label">Actual Rate Paid ($/hr)</label><input type="number" min="0" step="0.01" value="${esc(p.actualRate||'')}" data-list="flsaMinWagePeriods" data-idx="${i}" data-field="actualRate" class="input-base"></div>
+        <div><label class="field-label">Applicable Min Wage ($/hr)</label><input type="number" min="0" step="any" value="${esc(p.minWage||'')}" data-list="flsaMinWagePeriods" data-idx="${i}" data-field="minWage" class="input-base"></div>
+        <div><label class="field-label">Actual Rate Paid ($/hr)</label><input type="number" min="0" step="any" value="${esc(p.actualRate||'')}" data-list="flsaMinWagePeriods" data-idx="${i}" data-field="actualRate" class="input-base"></div>
         <div style="background:var(--gray-50);padding:10px;border-radius:6px;border:1px solid var(--border)">
           <div style="font-size:10px;color:var(--text-2);text-transform:uppercase;font-weight:600">Estimated Damages</div>
           <div style="font-size:15px;font-weight:700;color:var(--navy);margin-top:4px">${$$(total)}</div>
@@ -3185,7 +3202,7 @@ function renderCompensatory() {
     html += `<tr>
       <td><input type="text" value="${esc(it.description||'')}" placeholder="e.g. Therapy sessions" data-list="compensatoryItems" data-idx="${i}" data-field="description" class="input-base" style="min-width:160px"></td>
       <td><select data-list="compensatoryItems" data-idx="${i}" data-field="category" class="input-base">${CATS.map(o=>`<option value="${o.v}" ${it.category===o.v?'selected':''}>${o.l}</option>`).join('')}</select></td>
-      <td><input type="number" min="0" step="0.01" value="${esc(it.amount||'')}" placeholder="0.00" data-list="compensatoryItems" data-idx="${i}" data-field="amount" class="input-base" style="text-align:right;width:110px"></td>
+      <td><input type="number" min="0" step="any" value="${esc(it.amount||'')}" placeholder="0.00" data-list="compensatoryItems" data-idx="${i}" data-field="amount" class="input-base" style="text-align:right;width:110px"></td>
       <td><input type="text" value="${esc(it.documentation||'')}" placeholder="Records, receipts, narrative…" data-list="compensatoryItems" data-idx="${i}" data-field="documentation" class="input-base" style="min-width:200px"></td>
       <td><button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="compRemove(${i})">✕</button></td>
     </tr>`;
