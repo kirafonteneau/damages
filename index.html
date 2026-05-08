@@ -2400,7 +2400,7 @@ function renderIncidents() {
       </div>
       <div class="g3">
         ${field('Date of incident',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(inc.date)}" data-list="incidents" data-idx="${i}" data-field="date">`)}
-                ${inc.type==='failure_hire'?`<p style="font-size:11px;color:var(--gray-400);margin:2px 0 8px;">Enter the date the position was filled by a candidate outside the protected class. If unknown, use the decision date as a conservative estimate.</p>`:''}  
+                ${inc.type==='failure_hire'?`<p style="font-size:11px;color:var(--gray-400);margin:2px 0 8px;">Enter the date the position was filled by a candidate outside the protected class. If unknown, use
         ${field('Resolution / end date <span style="font-size:10px;color:var(--gray-400)">(leave blank if ongoing)</span>',
           `<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(inc.endDate)}" data-list="incidents" data-idx="${i}" data-field="endDate" data-rerender="1">`)}
         ${field('Type of action',sel(inc.type,INC_TYPES,{list:'incidents',idx:i,field:'type'}))}
@@ -3258,9 +3258,10 @@ function renderResults() {
       ${noInt?`
       <p style="margin-bottom:6px">
         <sup style="font-weight:600;color:var(--navy)">6</sup>&nbsp;<strong>ADEA — No Separate Prejudgment Interest:</strong>
-        The ADEA incorporates the FLSA's enforcement scheme. <em>Lorillard v. Pons</em>, 434 U.S. 575, 581 (1978). Because liquidated damages under the ADEA serve as compensation for the loss of the use of wages — substituting for prejudgment interest — courts do not award prejudgment interest in addition to liquidated damages. <em>See Powers v. Grinnell Corp.</em>, 915 F.2d 34, 41 (1st Cir. 1990). Accordingly, no prejudgment-interest line is calculated for ADEA back pay in this report.
+        The ADEA incorporates the FLSA's enforcement scheme. <em>Lorillard v. Pons</em>, 434 U.S. 575, 581 (1978). Because liquidated damages under the ADEA serve as compensation for the loss of the use of wages — substituting for prejudgment interest — courts do not award prejudgment interest in addition to liquidated damages. <em>See Powers v. Grinnell Corp.</em>, 915 F.2d 34, 41 (1st Cir. 1990). <em>Loeffler v. Frank</em>, 490 U.S. 826 (1989) held that ADEA back pay awards do not carry pre-judgment interest. Accordingly, no prejudgment-interest line is calculated for ADEA back pay in this report.
       </p>`:''}
-      <p style="margin-bottom:0;font-style:italic;color:var(--gray-400)">
+      <p style="margin-bottom:6px"><sup style="font-weight:600;color:var(--navy)">7</sup>&nbsp;<strong>Equal Pay Act (EPA) — Pre-Judgment Interest Applies:</strong> Back pay awarded under the EPA carries pre-judgment interest from the date wages were withheld. Unlike ADEA, the EPA does not bar pre-judgment interest recovery.</p>
+        <p style="margin-bottom:0;font-style:italic;color:var(--gray-400)">
         All damages figures presented herein are estimates based on information currently available and are subject to revision. Plaintiff reserves the right to update and supplement these calculations as additional discovery is received, and through the date of judgment or verdict.
       </p>
     </div>
