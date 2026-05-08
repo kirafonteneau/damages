@@ -1046,25 +1046,26 @@ function computeDiscrimination(state, trialDate) {
     if (dd<=0) continue;
     const {daily,w2Ben}=getDailyWage(unit.start, state.wagePeriods, trial);
     const expWages=daily*dd;
-    let mitWages=0;
+    let mitWages=0,mitBenefits=0;
     for (const mp of state.mitigationPeriods) {
-      if (!mp.startDate||!mp.annualWages) continue;
+      if (!mp.startDate) continue;
       const ms=new Date(mp.startDate+'T12:00:00');
       const me=mp.endDate?new Date(mp.endDate+'T12:00:00'):trial;
       const os=Math.max(unit.start.getTime(),ms.getTime());
       const oe=Math.min(unit.end.getTime(),me.getTime());
-      if (os<oe) mitWages+=(parseFloat(mp.annualWages)||0)/365*((oe-os)/86400000);
+      if (os<oe){mitWages+=(parseFloat(mp.annualWages)||0)/365*((oe-os)/86400000);mitBenefits+=(parseFloat(mp.annualBenefits)||0)/365*((oe-os)/86400000);}
     }
     const netBP=Math.max(0,expWages-mitWages);
     const benefits=state.benefitsMethod==='w2'?w2Ben*(dd/365):netBP*bRate;
+    const netBen=Math.max(0,benefits-mitBenefits);
     const mid=new Date((unit.start.getTime()+unit.end.getTime())/2);
     // ADEA: liquidated damages substitute for prejudgment interest. Lorillard v. Pons,
     // 434 U.S. 575, 581 (1978); Powers v. Grinnell Corp., 915 F.2d 34, 41 (1st Cir. 1990).
     const interest = (state.statutoryBasis === 'adea')
       ? 0
       : calcInterest(netBP+benefits, mid.toISOString().slice(0,10), trialDate, state.customRates);
-    totBP+=netBP; totMit+=mitWages; totBen+=benefits; totInt+=interest;
-    rows.push({label:unit.label,start:unit.start,end:unit.end,dd:Math.round(dd),expWages,mitWages,netBP,benefits,interest,sub:netBP+benefits+interest});
+    totBP+=netBP; totMit+=mitWages; totBen+=netBen; totInt+=interest;
+    rows.push({label:unit.label,start:unit.start,end:unit.end,dd:Math.round(dd),expWages,mitWages,netBP,benefits:netBen,interest,sub:netBP+netBen+interest});
   }
   return {rows,totBP,totMit,totBen,totInt,discTotal:totBP+totBen+totInt};
 }
@@ -2562,11 +2563,12 @@ function renderMitigation() {
         ${field('End date (blank = trial date)',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(mp.endDate)}" data-list="mitigationPeriods" data-idx="${i}" data-field="endDate">`)}
         ${field('Employer / income source',`<input type="text" value="${esc(mp.employer)}" placeholder="Employer name or 'Self-employed'" data-list="mitigationPeriods" data-idx="${i}" data-field="employer">`)}
         ${field('Annual gross wages ($)',`<input type="number" value="${esc(mp.annualWages)}" placeholder="48,000" min="0" step="500" data-list="mitigationPeriods" data-idx="${i}" data-field="annualWages">`, 'grid-column:span 2')}
+        ${field('Employer benefits paid (annual $)',`<input type="number" value="${esc(mp.annualBenefits||0)}" placeholder="Health, 401k
         ${field('Notes',`<input type="text" value="${esc(mp.notes)}" placeholder="Part-time, seasonal, comparable / non-comparable role, etc." data-list="mitigationPeriods" data-idx="${i}" data-field="notes">`)}
       </div>
     </div>
   `).join('')}
-  <button class="btn-add" onclick="STATE.mitigationPeriods.push({id:uid(),startDate:'',endDate:'',annualWages:'',employer:'',notes:''});renderTab()">
+  <button class="btn-add" onclick="STATE.mitigationPeriods.push({id:uid(),startDate:'',endDate:'',annualWages:'',annualBenefits:0,employer:'',notes:''});renderTab()">
     + Add mitigation employment period
   </button>`;
 }
