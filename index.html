@@ -2519,8 +2519,8 @@ function renderWages() {
       <div class="g3">
         ${wp.wageType==='hourly'?`
           ${field('Hourly rate of pay ($)',inp(wp.hourlyRate,{type:'number',placeholder:'18.50',min:'0',step:'any',list:'wagePeriods',idx:i,field:'hourlyRate'}))}
-          ${field('Reg hours/week',inp(wp.hoursPerWeek,{type:'number',placeholder:'40',min:'1',step:'0.5',list:'wagePeriods',idx:i,field:'hoursPerWeek',rerender:'1'}))}
-          ${field('OT hours/week',inp(wp.overtimeHoursPerWeek,{type:'number',placeholder:'0',min:'0',step:'0.5',list:'wagePeriods',idx:i,field:'overtimeHoursPerWeek'}))}
+          ${field('Reg hours/week',inp(wp.hoursPerWeek,{type:'number',placeholder:'40',min:'1',step:'any',list:'wagePeriods',idx:i,field:'hoursPerWeek',rerender:'1'}))}
+          ${field('OT hours/week',inp(wp.overtimeHoursPerWeek,{type:'number',placeholder:'0',min:'0',step:'any',list:'wagePeriods',idx:i,field:'overtimeHoursPerWeek'}))}
         `:`
           ${field('Annual salary / gross wages ($)',inp(wp.annualSalary,{type:'number',placeholder:'65,000',min:'0',step:'500',list:'wagePeriods',idx:i,field:'annualSalary'}))}
         `}
@@ -2633,8 +2633,8 @@ function renderMitigation() {
         ${field('End date (blank = trial date)',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(mp.endDate)}" data-list="mitigationPeriods" data-idx="${i}" data-field="endDate">`)}
         ${field('Employer / income source',`<input type="text" value="${esc(mp.employer)}" placeholder="Employer name or 'Self-employed'" data-list="mitigationPeriods" data-idx="${i}" data-field="employer">`)}
         ${field('Hourly rate ($)',inp(mp.hourlyRate,{type:'number',placeholder:'18.50',min:'0',step:'any',list:'mitigationPeriods',idx:i,field:'hourlyRate',rerender:'1'}))}
-        ${field('Reg hrs/wk',inp(mp.hoursPerWeek,{type:'number',placeholder:'40',min:'0',step:'0.5',list:'mitigationPeriods',idx:i,field:'hoursPerWeek',rerender:'1'}))}
-        ${field('OT hrs/wk',inp(mp.overtimeHoursPerWeek,{type:'number',placeholder:'0',min:'0',step:'0.5',list:'mitigationPeriods',idx:i,field:'overtimeHoursPerWeek',rerender:'1'}))}
+        ${field('Reg hrs/wk',inp(mp.hoursPerWeek,{type:'number',placeholder:'40',min:'0',step:'any',list:'mitigationPeriods',idx:i,field:'hoursPerWeek',rerender:'1'}))}
+        ${field('OT hrs/wk',inp(mp.overtimeHoursPerWeek,{type:'number',placeholder:'0',min:'0',step:'any',list:'mitigationPeriods',idx:i,field:'overtimeHoursPerWeek',rerender:'1'}))}
         ${field('Annual gross wages ($)',`<input type="number" value="${esc(mp.annualWages)}" placeholder="48,000" min="0" step="500" data-list="mitigationPeriods" data-idx="${i}" data-field="annualWages">`, 'grid-column:span 2')}
         ${field('Employer benefits paid (annual $)',`<input type="number" value="${esc(mp.annualBenefits||0)}" placeholder="Health, 401k, etc." min="0" step="100" data-list="mitigationPeriods" data-idx="${i}" data-field="annualBenefits">`)}
         ${field('Notes',`<input type="text" value="${esc(mp.notes)}" placeholder="Part-time, seasonal, comparable / non-comparable role, etc." data-list="mitigationPeriods" data-idx="${i}" data-field="notes">`)}
