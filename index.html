@@ -407,11 +407,12 @@ function defaultCase(name='New Case') {
     wagePeriods:[{id:uid(), startDate:'', endDate:'', wageType:'annual',
       annualSalary:'', hourlyRate:'', hoursPerWeek:'40', annualIncrease:'0',
       source:'paystub', bonus:'', bonusType:'fixed', commissionRate:'', commissions:'', employerBenefitsW2:''}],
-    mitigationPeriods:[{id:uid(), startDate:'', endDate:'', annualWages:'', employer:'', notes:''}],
+    mitigationPeriods:[{id:uid(), startDate:'', endDate:'', annualWages:'', annualBenefits:0, employer:'', notes:''}],
     flsaPeriods:[{id:uid(), startDate:yearsAgoISO(5), endDate:todayISO(), description:'', otMethod:'half',
       workweekStart:1, defaultRegularRate:'', defaultWeeklyHours:'',
       rateChanges:[], weekOverrides:{}}],
-    customRates:{}
+    frontPay:{years:2,projectedWage:'',projectedMitigation:''},
+        customRates:{}
   };
 }
 
@@ -509,8 +510,10 @@ function migrateCase(c) {
       scrubDate(mp, 'startDate', yearsAgoISO(5));
       // endDate blank = "runs to trial" — keep blank.
       scrubDate(mp, 'endDate', '');
+            if(mp.annualBenefits===undefined)mp.annualBenefits=0;
     });
   }
+    if(!c.frontPay)c.frontPay={years:2,projectedWage:'',projectedMitigation:''};
   if (Array.isArray(c.flsaPeriods)) {
     c.flsaPeriods = c.flsaPeriods.map(migrateFlsaPeriod);
     // Rate-change effective dates are reseeded inside migrateFlsaPeriod above.
@@ -1067,8 +1070,8 @@ function computeDiscrimination(state, trialDate) {
     totBP+=netBP; totMit+=mitWages; totBen+=netBen; totInt+=interest;
     rows.push({label:unit.label,start:unit.start,end:unit.end,dd:Math.round(dd),expWages,mitWages,netBP,benefits:netBen,interest,sub:netBP+netBen+interest});
   }
-  return {rows,totBP,totMit,totBen,totInt,discTotal:totBP+totBen+totInt};
-}
+  const fp=state.frontPay||{};const fpYrs=Math.min(5,Math.max(0,parseFloat(fp.years)||2));const fpW=parseFloat(fp.projectedWage)||0;const fpM=parseFloat(fp.projectedMitigation)||0;const frontPay=Math.max(0,(fpW-fpM)*fpYrs);
+  return {rows,totBP,totMit,totBen,totInt,frontPay,discTotal:totBP+totBen+totInt+frontPay};}
 
 // ── FLSA helpers ──
 const DOW_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -3096,7 +3099,17 @@ function renderResults() {
       <div class="metric-card"><div class="metric-label">Liquidated damages</div><div class="metric-value">${$$(flsa.totLiq)}</div></div>`:''}
   </div>
 
-  <!-- Total banner -->
+  <!-- Front pay -->
+      ${disc?`<div class="metric-card" style="margin-bottom:0"><div class="metric-label">Front pay</div><div class="metric-value gold" id="fp-total">${$$(disc.frontPay)}</div><div class="metric-sub">Projected wage &minus; mitigation &times; years</div></div>`:''}  
+          <div class="card" style="margin-bottom:14px;padding:14px 16px;">
+                <div class="card-title" style="margin-bottom:8px;">Front Pay (Post-Trial)</div>
+                      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+                              <div><label class="field-label">Years (max 5)</label><input type="number" min="0" max="5" step="0.5" class="field-input" value="${STATE.frontPay.years||2}" oninput="STATE.frontPay.years=Math.min(5,Math.max(0,parseFloat(this.value)||0));const r=computeAll(STATE);if(r&&r.disc)document.getElementById('fp-total').textContent=$$(r.disc.frontPay);updateHeaderTotal();scheduleSave()"></div>
+                                      <div><label class="field-label">Projected Annual Wage ($)</label><input type="text" class="field-input" value="${STATE.frontPay.projectedWage||''}" oninput="STATE.frontPay.projectedWage=this.value;const r=computeAll(STATE);if(r&&r.disc)document.getElementById('fp-total').textContent=$$(r.disc.frontPay);updateHeaderTotal();scheduleSave()"></div>
+                                              <div><label class="field-label">Projected Mitigation ($)</label><input type="text" class="field-input" value="${STATE.frontPay.projectedMitigation||''}" oninput="STATE.frontPay.projectedMitigation=this.value;const r=computeAll(STATE);if(r&&r.disc)document.getElementById('fp-total').textContent=$$(r.disc.frontPay);updateHeaderTotal();scheduleSave()"></div>
+                                                    </div>
+                                                        </div>
+                                                            <!-- Total banner -->
   <div class="total-banner">
     <div>
       <div class="total-banner-label">Estimated Total Damages</div>
