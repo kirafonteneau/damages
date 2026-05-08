@@ -2619,7 +2619,7 @@ function renderMitigation() {
         ${field('End date (blank = trial date)',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(mp.endDate)}" data-list="mitigationPeriods" data-idx="${i}" data-field="endDate">`)}
         ${field('Employer / income source',`<input type="text" value="${esc(mp.employer)}" placeholder="Employer name or 'Self-employed'" data-list="mitigationPeriods" data-idx="${i}" data-field="employer">`)}
         ${field('Annual gross wages ($)',`<input type="number" value="${esc(mp.annualWages)}" placeholder="48,000" min="0" step="500" data-list="mitigationPeriods" data-idx="${i}" data-field="annualWages">`, 'grid-column:span 2')}
-        ${field('Employer benefits paid (annual $)',`<input type="number" value="${esc(mp.annualBenefits||0)}" placeholder="Health, 401k
+        ${field('Employer benefits paid (annual $)',`<input type="number" value="${esc(mp.annualBenefits||0)}" placeholder="Health, 401k, etc." min="0" step="100" data-list="mitigationPeriods" data-idx="${i}" data-field="annualBenefits">`)}
         ${field('Notes',`<input type="text" value="${esc(mp.notes)}" placeholder="Part-time, seasonal, comparable / non-comparable role, etc." data-list="mitigationPeriods" data-idx="${i}" data-field="notes">`)}
       </div>
     </div>
