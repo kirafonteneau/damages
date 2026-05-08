@@ -2882,7 +2882,7 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
       ${field('Period start date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(fp.startDate)}" data-list="flsaPeriods" data-idx="${i}" data-field="startDate" data-rerender="1">`)}
       ${field('Period end date',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(fp.endDate)}" data-list="flsaPeriods" data-idx="${i}" data-field="endDate" data-rerender="1">`)}
       ${field('Position / job title',`<input type="text" value="${esc(fp.description||'')}" placeholder="Warehouse associate" data-list="flsaPeriods" data-idx="${i}" data-field="description">`)}
-      ${field('Default regular rate ($/hr)',`<input type="number" value="${esc(fp.defaultRegularRate)}" placeholder="18.50" min="0" step="any" data-list="flsaPeriods" data-idx="${i}" data-field="defaultRegularRate" data-rerender="1">`)}
+      ${field('Default regular rate ($/hr)',`<input type="number" value="${esc(fp.defaultRegularRate)}" placeholder="18.50" min="0" step="0.01" data-list="flsaPeriods" data-idx="${i}" data-field="defaultRegularRate" data-rerender="1">`)}
       ${field('Default weekly hours',`<input type="number" value="${esc(fp.defaultWeeklyHours)}" placeholder="50" min="0" step="any" data-list="flsaPeriods" data-idx="${i}" data-field="defaultWeeklyHours" data-rerender="1">`)}
       ${field('Workweek begins',`<select class="workweek-sel-${fp.id}" onchange="flsaChangeWorkweek(${i}, this.value)" title="29 C.F.R. § 778.105 — employer designates the workweek">${dowOpts.map(o=>`<option value="${o.v}" ${parseInt(o.v,10)===startDow?'selected':''}>${esc(o.l)}</option>`).join('')}</select>`)}
     </div>
@@ -2905,7 +2905,7 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
       ${rateChanges.map(rc=>`
         <div class="rate-change-row">
           ${field('Effective (workweek start)',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(rc.effectiveDate||'')}" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="effectiveDate" data-rerender="1">`)}
-          ${field('New rate ($/hr)',`<input type="number" value="${esc(rc.rate||'')}" placeholder="22.50" min="0" step="any" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="rate" data-rerender="1">`)}
+          ${field('New rate ($/hr)',`<input type="number" value="${esc(rc.rate||'')}" placeholder="22.50" min="0" step="0.01" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="rate" data-rerender="1">`)}
           ${field('Note (optional)',`<input type="text" value="${esc(rc.note||'')}" placeholder="Promotion raise" data-list="flsaPeriods" data-idx="${i}" data-rate-change-id="${rc.id}" data-field="note">`)}
           <button class="btn-remove" onclick="flsaRemoveRateChange(${i},'${rc.id}')" title="Remove rate change">×</button>
         </div>`).join('')}
@@ -2961,7 +2961,7 @@ function renderFlsaPeriod(fp, i, flsa, scenario, willful, cutoff, trial, dowOpts
             <td><input type="date" value="${esc(wk.weekStart||'')}" onchange="flsaWwChange(${i},'${wk.id}','weekStart',this.value)" class="input-base" style="width:130px"></td>
             <td><input type="number" min="0" max="168" step="any" value="${esc(wk.regHours||'')}" placeholder="${fp.defaultWeeklyHours||40}" onchange="flsaWwChange(${i},'${wk.id}','regHours',this.value)" class="input-base" style="width:75px;text-align:right"></td>
             <td><input type="number" min="0" max="168" step="any" value="${esc(wk.otHours||'')}" onchange="flsaWwChange(${i},'${wk.id}','otHours',this.value)" class="input-base" style="width:75px;text-align:right"></td>
-            <td><input type="number" min="0" step="any" value="${esc(wk.rate||'')}" placeholder="${fp.defaultRegularRate||''}" onchange="flsaWwChange(${i},'${wk.id}','rate',this.value)" class="input-base" style="width:85px;text-align:right"></td>
+            <td><input type="number" min="0" step="0.01" value="${esc(wk.rate||'')}" placeholder="${fp.defaultRegularRate||''}" onchange="flsaWwChange(${i},'${wk.id}','rate',this.value)" class="input-base" style="width:85px;text-align:right"></td>
             <td><input type="number" min="0" step="any" value="${esc(wk.otReceived||'')}" onchange="flsaWwChange(${i},'${wk.id}','otReceived',this.value)" class="input-base" style="width:100px;text-align:right"></td>
             <td style="text-align:right;font-weight:600;padding-right:8px">${$$(otOwed)}</td>
             <td><button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="flsaWwRemove(${i},'${wk.id}')">✕</button></td>
