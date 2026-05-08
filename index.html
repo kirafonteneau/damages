@@ -2400,6 +2400,7 @@ function renderIncidents() {
       </div>
       <div class="g3">
         ${field('Date of incident',`<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(inc.date)}" data-list="incidents" data-idx="${i}" data-field="date">`)}
+                ${inc.type==='failure_hire'?`<p style="font-size:11px;color:var(--gray-400);margin:2px 0 8px;">Enter the date the position was filled by a candidate outside the protected class. If unknown, use the decision date as a conservative estimate.</p>`:''}  
         ${field('Resolution / end date <span style="font-size:10px;color:var(--gray-400)">(leave blank if ongoing)</span>',
           `<input type="date" min="${yearsAgoISO(10)}" max="${todayISO()}" value="${esc(inc.endDate)}" data-list="incidents" data-idx="${i}" data-field="endDate" data-rerender="1">`)}
         ${field('Type of action',sel(inc.type,INC_TYPES,{list:'incidents',idx:i,field:'type'}))}
@@ -3109,7 +3110,7 @@ function renderResults() {
                                               <div><label class="field-label">Projected Mitigation ($)</label><input type="text" class="field-input" value="${STATE.frontPay.projectedMitigation||''}" oninput="STATE.frontPay.projectedMitigation=this.value;const r=computeAll(STATE);if(r&&r.disc)document.getElementById('fp-total').textContent=$$(r.disc.frontPay);updateHeaderTotal();scheduleSave()"></div>
                                                     </div>
                                                         </div>
-                                                            <!-- Total banner -->
+                                                        <!-- Total banner -->
   <div class="total-banner">
     <div>
       <div class="total-banner-label">Estimated Total Damages</div>
