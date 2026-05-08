@@ -2429,6 +2429,7 @@ function renderIncidents() {
   <div class="info-box">
     <strong>Incident dates</strong> determine when back pay begins. Add an <strong>end date</strong> if the adverse action had a defined end (rehire date, suspension end date). For <strong>failure to hire/promote</strong>, enter the date the position was filled by a candidate outside the protected class as the Date of Incident. If unknown, use the decision date as a conservative estimate, and enter the salary the plaintiff would have earned in the wage periods tab.
   </div>
+  <div class="info-box" style="margin-top:8px">You can add multiple incidents to model overlapping discriminatory acts. Each generates its own back pay period, all accruing simultaneously.</div>
   ${s.incidents.map((inc,i)=>`
     <div class="incident-card ${inc.endDate?'has-end':''}">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
