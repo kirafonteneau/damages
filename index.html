@@ -2208,32 +2208,31 @@ function attachInputListeners() {
       // restore blank so the field's "runs to trial / ongoing" semantics survive.
       if (el.dataset.anchored === '1') {
         delete el.dataset.anchored;
-        // If the underlying STATE never received this value (handleChange writes it),
-        // we can detect that by reading STATE for the input's data-list/data-field.
-        // Simpler heuristic: if the value still equals the anchor we set AND the
-        // user never typed/picked, clear it. We can't perfectly detect "didn't pick",
-        // so we always clear on blur — if they DID pick the same date as the anchor,
-        // change event already fired and STATE is updated; renderTab() will repaint
-        // it back. The clear here only affects the visible DOM until next render.
-        // Safest: only clear if STATE says the field is empty.
+        // Use setTimeout(0) so any pending 'change' event (which writes STATE via
+        // handleChange) fires before we check STATE. On some browsers/native date
+        // pickers, 'blur' fires before 'change', causing a race where STATE appears
+        // empty even though the user did pick a date. Deferring one tick fixes this.
         const list = el.getAttribute('data-list');
         const idx = el.getAttribute('data-idx');
         const field = el.getAttribute('data-field');
         const key = el.getAttribute('data-key');
         const rcId = el.getAttribute('data-rate-change-id');
-        let stored = null;
-        try {
-          if (key) stored = STATE[key];
-          else if (list && idx !== null && field) {
-            const item = STATE[list]?.[Number(idx)];
-            if (rcId && Array.isArray(item?.rateChanges)) {
-              stored = item.rateChanges.find(r => r.id === rcId)?.[field];
-            } else if (item) {
-              stored = item[field];
+        const capturedEl = el;
+        setTimeout(() => {
+          let stored = null;
+          try {
+            if (key) stored = STATE[key];
+            else if (list && idx !== null && field) {
+              const item = STATE[list]?.[Number(idx)];
+              if (rcId && Array.isArray(item?.rateChanges)) {
+                stored = item.rateChanges.find(r => r.id === rcId)?.[field];
+              } else if (item) {
+                stored = item[field];
+              }
             }
-          }
-        } catch {}
-        if (!stored) el.value = '';
+          } catch {}
+          if (!stored) capturedEl.value = '';
+        }, 0);
       }
     });
   });
@@ -3289,11 +3288,11 @@ function renderResults() {
     const includeDisc=s.claimType!=='flsa';
     const includeFlsa=s.claimType!=='discrimination';
     const disc=includeDisc?computeDiscrimination({...s,activeScenarioId:sc.id},trial):null;
-    const flsa=includeFlsa?computeFlsa(s,trial):null;
+    const flsa=includeFlsa?computeFlsa({...s,activeScenarioId:sc.id},trial):null;
     const discTotal=disc?.discTotal||0;
     const flsaTotal=flsa?.flsaTotal||0;
     return {sc, disc, flsa, discTotal, flsaTotal, grand:discTotal+flsaTotal};
-  }).filter(r=>r.res!==null||r.disc||r.flsa);
+  }).filter(r=>r.disc||(r.flsa&&r.flsa.flsaRows&&r.flsa.flsaRows.length>0));
 
   const activeRes=scenarioResults.find(r=>r.sc.id===s.activeScenarioId)||scenarioResults[0];
 
@@ -3614,3 +3613,4 @@ window.addEventListener('DOMContentLoaded', async ()=>{
 </script>
 </body>
 </html>
+                                                                                                                                                              
